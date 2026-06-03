@@ -46,9 +46,10 @@ export default function FileDropZone({
 
   const handleClick = async () => {
     try {
-      const paths = await window.api.importFiles('dialog', [])
+      const paths = await window.api.openFileDialog()
       if (paths?.length) {
-        // paths is result from file dialog
+        const result = await window.api.importFiles('current', paths)
+        onFilesImported(result)
       }
     } catch {
       fileInputRef.current?.click()

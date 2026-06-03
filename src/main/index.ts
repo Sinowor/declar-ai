@@ -6,6 +6,7 @@ import { registerDeclarationIpc } from './ipc/declaration'
 import { registerSchemaIpc } from './ipc/schema'
 import { registerAppIpc } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
+import { registerAIIpc } from './ipc/ai'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -18,6 +19,7 @@ function initApp() {
   registerSchemaIpc()
   registerAppIpc()
   registerFileIpc()
+  registerAIIpc()
 }
 
 function createWindow() {

@@ -9,6 +9,7 @@ const api = {
   deleteDeclaration: (id: string) => ipcRenderer.invoke('declaration:delete', id),
 
   // File operations
+  openFileDialog: () => ipcRenderer.invoke('file:dialog'),
   importFiles: (declarationId: string, filePaths: string[]) => ipcRenderer.invoke('file:import', declarationId, filePaths),
   extractText: (fileId: string) => ipcRenderer.invoke('file:extract-text', fileId),
   getFiles: (declarationId: string) => ipcRenderer.invoke('file:list', declarationId),
