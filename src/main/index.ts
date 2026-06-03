@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import * as path from 'path'
-import { getDb, closeDb } from './db'
+import { closeDb } from './db'
 import { loadEnv } from './config'
 import { registerDeclarationIpc } from './ipc/declaration'
 import { registerSchemaIpc } from './ipc/schema'
@@ -12,13 +12,12 @@ const isDev = process.env.NODE_ENV === 'development'
 
 let mainWindow: BrowserWindow | null = null
 
-function initApp() {
+async function initApp() {
   loadEnv()
-  getDb()
-  registerDeclarationIpc()
   registerSchemaIpc()
   registerAppIpc()
-  registerFileIpc()
+  await registerDeclarationIpc()
+  await registerFileIpc()
   registerAIIpc()
 }
 
@@ -50,8 +49,8 @@ function createWindow() {
   })
 }
 
-app.whenReady().then(() => {
-  initApp()
+app.whenReady().then(async () => {
+  await initApp()
   createWindow()
 })
 

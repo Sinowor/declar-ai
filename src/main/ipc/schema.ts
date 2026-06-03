@@ -8,9 +8,7 @@ export function registerSchemaIpc() {
 
   ipcMain.handle('schema:list', () => {
     return Object.values(schemaRegistry).map((s) => ({
-      type: s.type,
-      title: s.title,
-      description: s.description,
+      type: s.type, title: s.title, description: s.description,
     }))
   })
 }

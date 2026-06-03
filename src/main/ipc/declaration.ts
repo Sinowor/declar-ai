@@ -1,7 +1,7 @@
 import { ipcMain, app } from 'electron'
 import { existsSync, unlinkSync, rmSync } from 'fs'
 import * as path from 'path'
-import { getDb, uuid } from '../db'
+import { getDb, queryAll, queryOne, execute, transaction, uuid } from '../db'
 
 const EMPTY_DATA = {
   document_title: '中华人民共和国海关进口转关运输货物申报单',
@@ -24,22 +24,22 @@ const EMPTY_DATA = {
   extraction_notes: [],
 }
 
-export function registerDeclarationIpc() {
-  const db = getDb()
+export async function registerDeclarationIpc() {
+  const db = await getDb()
 
-  ipcMain.handle('declaration:list', (_event, search?: string) => {
-    let query = `SELECT id, type, status, data, created_at, updated_at FROM declarations ORDER BY updated_at DESC`
-    const params: string[] = []
+  ipcMain.handle('declaration:list', async (_event, search?: string) => {
+    let sql = `SELECT id, type, status, data, created_at, updated_at FROM declarations ORDER BY updated_at DESC`
+    const params: any[] = []
 
     if (search) {
-      query = `SELECT id, type, status, data, created_at, updated_at FROM declarations
+      sql = `SELECT id, type, status, data, created_at, updated_at FROM declarations
         WHERE data LIKE ? ORDER BY updated_at DESC`
       const escaped = search.replace(/[%_]/g, '\\$&')
       params.push(`%${escaped}%`)
     }
 
-    const rows = db.prepare(query).all(...params) as any[]
-    return rows.map((r) => {
+    const rows = queryAll(sql, params)
+    return rows.map((r: any) => {
       const parsed = JSON.parse(r.data)
       return {
         id: r.id,
@@ -54,30 +54,23 @@ export function registerDeclarationIpc() {
     })
   })
 
-  ipcMain.handle('declaration:get', (_event, id: string) => {
-    const row = db.prepare('SELECT * FROM declarations WHERE id = ?').get(id) as any
+  ipcMain.handle('declaration:get', async (_event, id: string) => {
+    const row = queryOne('SELECT * FROM declarations WHERE id = ?', [id])
     if (!row) return null
 
-    const cargoDetails = db
-      .prepare('SELECT * FROM cargo_details WHERE declaration_id = ? ORDER BY sort_order')
-      .all(id) as any[]
-
-    return {
-      ...row,
-      data: JSON.parse(row.data),
-      cargo_details: cargoDetails,
-    }
+    const cargoDetails = queryAll('SELECT * FROM cargo_details WHERE declaration_id = ? ORDER BY sort_order', [id])
+    return { ...row, data: JSON.parse(row.data), cargo_details: cargoDetails }
   })
 
-  ipcMain.handle('declaration:create', () => {
+  ipcMain.handle('declaration:create', async () => {
     const id = uuid()
-    db.prepare('INSERT INTO declarations (id, type, status, data) VALUES (?, ?, ?, ?)').run(
-      id, 'transit_transport', 'draft', JSON.stringify(EMPTY_DATA)
-    )
+    execute('INSERT INTO declarations (id, type, status, data) VALUES (?, ?, ?, ?)', [
+      id, 'transit_transport', 'draft', JSON.stringify(EMPTY_DATA),
+    ])
     return { id, status: 'draft', data: EMPTY_DATA }
   })
 
-  ipcMain.handle('declaration:update', (_event, id: string, data: unknown) => {
+  ipcMain.handle('declaration:update', async (_event, id: string, data: unknown) => {
     const d = data as any
     if (!d || typeof d !== 'object') {
       return { success: false, error: '无效的申报单数据' }
@@ -86,47 +79,39 @@ export function registerDeclarationIpc() {
       return { success: false, error: '数据缺少必要字段（transport_info 或 cargo_details）' }
     }
 
-    const updateTx = db.transaction(() => {
-      db.prepare(
-        "UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?"
-      ).run(JSON.stringify(data), id)
-
-      db.prepare('DELETE FROM cargo_details WHERE declaration_id = ?').run(id)
-      const insertCargo = db.prepare(
-        `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
-          container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
+    transaction(() => {
+      execute("UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?", [
+        JSON.stringify(data), id,
+      ])
+      execute('DELETE FROM cargo_details WHERE declaration_id = ?', [id])
       const details = d.cargo_details || []
       for (let i = 0; i < details.length; i++) {
         const cd = details[i]
-        insertCargo.run(
-          uuid(), id,
-          cd.domestic_transport_tool_name || null,
-          cd.bill_of_lading_number || null,
-          cd.container_number || null,
-          cd.cargo_name || null,
-          cd.pieces || 0, cd.weight || 0,
-          cd.customs_lock_number || null,
-          cd.quantity || 1, i
+        execute(
+          `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
+            container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [uuid(), id,
+            cd.domestic_transport_tool_name || null, cd.bill_of_lading_number || null,
+            cd.container_number || null, cd.cargo_name || null,
+            cd.pieces || 0, cd.weight || 0,
+            cd.customs_lock_number || null, cd.quantity || 1, i,
+          ]
         )
       }
     })
-    updateTx()
 
     return { success: true }
   })
 
-  ipcMain.handle('declaration:delete', (_event, id: string) => {
-    // Clean up physical files before cascade delete
-    const files = db.prepare('SELECT file_path FROM declaration_files WHERE declaration_id = ?').all(id) as any[]
+  ipcMain.handle('declaration:delete', async (_event, id: string) => {
+    const files = queryAll('SELECT file_path FROM declaration_files WHERE declaration_id = ?', [id])
     for (const f of files) {
       try { if (existsSync(f.file_path)) unlinkSync(f.file_path) } catch {}
     }
     const storageDir = path.join(app.getPath('userData'), 'files', id)
     try { if (existsSync(storageDir)) rmSync(storageDir, { recursive: true }) } catch {}
-
-    db.prepare('DELETE FROM declarations WHERE id = ?').run(id)
+    execute('DELETE FROM declarations WHERE id = ?', [id])
     return { success: true }
   })
 }
