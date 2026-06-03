@@ -45,6 +45,9 @@ interface ReviewIssue {
 
 interface WorkspaceProps {
   declaration: DeclarationItem | null | undefined
+  selectedDeclaration: DeclarationItem | null | undefined
+  onEnterEdit: () => void
+  isEditing: boolean
 }
 
 const formFields = [
@@ -55,7 +58,46 @@ const formFields = [
   { key: 'pre_entry_number' as const, label: '预录入编号' },
 ]
 
-export default function Workspace({ declaration }: WorkspaceProps) {
+export default function Workspace({ declaration, selectedDeclaration, onEnterEdit, isEditing }: WorkspaceProps) {
+  const statusLabels: Record<string, string> = {
+    draft: '草稿', processing: 'AI 提取中', review: '待人工确认', done: '已完成', error: '有错误',
+  }
+
+  // Preview mode: selected but not editing
+  if (!isEditing && selectedDeclaration && !declaration) {
+    return (
+      <main className="flex-1 flex items-center justify-center bg-surface">
+        <div className="text-center py-20 max-w-md">
+          <div className="flex justify-center mb-4"><IconDocument /></div>
+          <h3 className="text-lg font-semibold mb-2">{selectedDeclaration.preEntryNumber || '未编号申报单'}</h3>
+          <p className="text-muted text-sm mb-2">{selectedDeclaration.transportName}</p>
+          <p className="text-muted text-xs mb-6">状态：{statusLabels[selectedDeclaration.status]}</p>
+          <button
+            onClick={onEnterEdit}
+            className="h-10 px-6 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-2 hover:bg-primary-600 transition-all"
+          >
+            进入编辑
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  // No selection at all
+  if (!declaration && !selectedDeclaration) {
+    return (
+      <main className="flex-1 flex items-center justify-center bg-surface">
+        <div className="text-center py-20">
+          <div className="flex justify-center mb-4"><IconDocument /></div>
+          <h3 className="text-lg font-semibold mb-2">选择一个申报单</h3>
+          <p className="text-muted text-sm max-w-sm mx-auto">
+            从左侧列表中选择一个申报单查看详情，或点击「新建申报单」创建新的转关运输货物申报单。
+          </p>
+        </div>
+      </main>
+    )
+  }
+
   const [files, setFiles] = useState<ImportedFileItem[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
   const [isReviewing, setIsReviewing] = useState(false)
@@ -330,39 +372,17 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     }
   }, [reviewIssues])
 
-  if (!declaration) {
-    return (
-      <main className="flex-1 flex items-center justify-center bg-surface">
-        <div className="text-center py-20">
-          <div className="flex justify-center mb-4"><IconDocument /></div>
-          <h3 className="text-lg font-semibold mb-2">选择一个申报单</h3>
-          <p className="text-muted text-sm max-w-sm mx-auto">
-            从左侧列表中选择一个申报单开始编辑，或点击「新建申报单」创建新的转关运输货物申报单。
-          </p>
-        </div>
-      </main>
-    )
-  }
-
-  const statusLabels: Record<string, string> = {
-    draft: '草稿',
-    processing: 'AI 提取中',
-    review: '待人工确认',
-    done: '已完成',
-    error: '有错误',
-  }
-
   return (
     <main className="flex-1 overflow-y-auto flex flex-col">
       {/* Page Header */}
-      <div className="flex items-start justify-between px-8 pt-6 pb-0 shrink-0">
+      <div className="flex items-start justify-between px-8 pt-6 pb-0 shrink-0 drag-region workspace-header">
         <div>
           <h1 className="text-[28px] font-bold">转关运输货物申报单</h1>
           <p className="text-muted text-sm mt-1">
             预录入编号：{transportForm.pre_entry_number || '(待填写)'} · 状态：{statusLabels[declaration.status]}
           </p>
         </div>
-        <div className="flex gap-2.5">
+        <div className="flex gap-2.5 no-drag">
           <button
             onClick={handleSave}
             disabled={isSaving}

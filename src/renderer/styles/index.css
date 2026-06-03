@@ -36,6 +36,21 @@ body {
   height: 100vh;
 }
 
+/* macOS traffic light spacing with hiddenInset titlebar */
+.platform-darwin .sidebar-header {
+  padding-top: 28px;
+}
+.platform-darwin .workspace-header {
+  padding-top: 20px;
+}
+/* Draggable region for frameless window */
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

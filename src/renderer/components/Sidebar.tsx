@@ -14,7 +14,8 @@ const statusBadge: Record<string, { label: string; className: string }> = {
 
 interface SidebarProps {
   declarations: DeclarationItem[]
-  activeId: string | null
+  selectedId: string | null
+  editingId: string | null
   collapsed: boolean
   searchQuery: string
   onSearchChange: (v: string) => void
@@ -27,7 +28,8 @@ interface SidebarProps {
 
 export default function Sidebar({
   declarations,
-  activeId,
+  selectedId,
+  editingId,
   collapsed,
   searchQuery,
   onSearchChange,
@@ -37,7 +39,7 @@ export default function Sidebar({
   onExitDeclaration,
   onShowAbout,
 }: SidebarProps) {
-  const isLocked = activeId !== null
+  const isLocked = editingId !== null
   const [showSettings, setShowSettings] = useState(false)
 
   return (
@@ -50,7 +52,7 @@ export default function Sidebar({
       className="flex flex-col bg-white border-r border-gray-200 z-10"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0 drag-region sidebar-header">
         {!collapsed && (
           <div className="flex items-center gap-2.5 font-bold text-lg whitespace-nowrap">
             <Logo size={34} />
@@ -59,7 +61,7 @@ export default function Sidebar({
         )}
         <button
           onClick={onToggleCollapse}
-          className="w-7 h-7 rounded-md border border-gray-200 bg-white flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface shrink-0"
+          className="w-7 h-7 rounded-md border border-gray-200 bg-white flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface shrink-0 no-drag"
           title={collapsed ? '展开侧栏' : '折叠侧栏'}
         >
           <span
@@ -106,15 +108,18 @@ export default function Sidebar({
             )}
             {declarations.map((d) => {
               const badge = statusBadge[d.status]
-              const isActive = d.id === activeId
+              const isActive = d.id === selectedId
+              const isEditing = d.id === editingId
               return (
                 <div
                   key={d.id}
                   onClick={() => onSelect(d.id)}
                   className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 ${
-                    isActive
+                    isEditing
                       ? 'bg-primary-50 ring-1 ring-primary-200'
-                      : 'hover:bg-surface'
+                      : isActive
+                        ? 'bg-gray-100'
+                        : 'hover:bg-surface'
                   }`}
                 >
                   <div className="font-semibold text-sm">

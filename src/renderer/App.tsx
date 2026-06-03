@@ -20,7 +20,6 @@ function formatRelativeTime(dateStr: string): string {
   const now = new Date()
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return dateStr
-
   const diffMs = now.getTime() - date.getTime()
   const diffMin = Math.floor(diffMs / 60000)
   if (diffMin < 1) return '刚刚'
@@ -32,18 +31,13 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 const mockDeclarations: DeclarationItem[] = [
-  {
-    id: '1',
-    preEntryNumber: '2002029999509318',
-    transportName: 'COSCO HAIFA / 072N',
-    status: 'review',
-    updatedAt: '2 分钟前',
-  },
+  { id: '1', preEntryNumber: '2002029999509318', transportName: 'COSCO HAIFA / 072N', status: 'review', updatedAt: '2 分钟前' },
 ]
 
 export default function App() {
   const [declarations, setDeclarations] = useState<DeclarationItem[]>([])
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -53,12 +47,8 @@ export default function App() {
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(searchQuery)
-    }, 300)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
+    debounceRef.current = setTimeout(() => setDebouncedSearch(searchQuery), 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [searchQuery])
 
   const loadDeclarations = useCallback(async () => {
@@ -66,42 +56,47 @@ export default function App() {
       try {
         const result = await window.api.getDeclarations(debouncedSearch || undefined)
         if (Array.isArray(result)) {
-          setDeclarations(
-            result.map((r: any) => ({
-              id: r.id,
-              preEntryNumber: r.preEntryNumber,
-              transportName: r.transportName || '',
-              status: r.status,
-              updatedAt: formatRelativeTime(r.updated_at),
-            }))
-          )
+          setDeclarations(result.map((r: any) => ({
+            id: r.id, preEntryNumber: r.preEntryNumber,
+            transportName: r.transportName || '', status: r.status,
+            updatedAt: formatRelativeTime(r.updated_at),
+          })))
         }
       } catch (err) {
         console.error('Failed to load declarations:', err)
         setDeclarations(mockDeclarations)
       }
     } else {
-      // Running in browser (dev without Electron) — use mock data
       setDeclarations(mockDeclarations)
     }
     setReady(true)
   }, [debouncedSearch])
 
-  useEffect(() => {
-    loadDeclarations()
-  }, [loadDeclarations])
+  useEffect(() => { loadDeclarations() }, [loadDeclarations])
 
-  const activeDeclaration = activeId
-    ? declarations.find((d) => d.id === activeId) || null
-    : null
+  const editingDeclaration = editingId ? declarations.find(d => d.id === editingId) || null : null
+  const selectedDeclaration = selectedId ? declarations.find(d => d.id === selectedId) || null : null
 
   const filteredDeclarations = searchQuery
-    ? declarations.filter(
-        (d) =>
-          (d.preEntryNumber || '').includes(searchQuery) ||
-          d.transportName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+    ? declarations.filter(d =>
+        (d.preEntryNumber || '').includes(searchQuery) ||
+        d.transportName.toLowerCase().includes(searchQuery.toLowerCase()))
     : declarations
+
+  const handleSelect = (id: string) => {
+    if (editingId) return // locked
+    setSelectedId(id)
+  }
+
+  const handleEnterEdit = (id: string) => {
+    setSelectedId(id)
+    setEditingId(id)
+  }
+
+  const handleExitEdit = async () => {
+    setEditingId(null)
+    await loadDeclarations()
+  }
 
   const handleNewDeclaration = async () => {
     if (isElectron()) {
@@ -109,33 +104,28 @@ export default function App() {
         const result = await window.api.createDeclaration()
         if (result?.id) {
           await loadDeclarations()
-          setActiveId(result.id)
+          setSelectedId(result.id)
+          setEditingId(result.id)
         }
-      } catch (err) {
-        console.error('Failed to create declaration:', err)
-      }
+      } catch (err) { console.error('Failed to create declaration:', err) }
     } else {
       const newId = String(Date.now())
-      setActiveId(newId)
+      setSelectedId(newId)
+      setEditingId(newId)
     }
   }
 
-  // ESC key to exit declaration lock mode
+  // ESC to exit edit mode
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && activeId) {
-        setActiveId(null)
+      if (e.key === 'Escape' && editingId) {
+        setEditingId(null)
         loadDeclarations()
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [activeId])
-
-  const handleExitDeclaration = async () => {
-    setActiveId(null)
-    await loadDeclarations()
-  }
+  }, [editingId])
 
   if (!ready) {
     return (
@@ -148,21 +138,29 @@ export default function App() {
     )
   }
 
+  const platformClass = navigator.platform?.toLowerCase?.().includes('mac') ? 'platform-darwin' : 'platform-win32'
+
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div className={platformClass} style={{ display: 'flex', height: '100vh' }}>
       <Sidebar
         declarations={filteredDeclarations}
-        activeId={activeId}
+        selectedId={selectedId}
+        editingId={editingId}
         collapsed={sidebarCollapsed}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onSelect={(id) => setActiveId(id)}
+        onSelect={handleSelect}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         onNewDeclaration={handleNewDeclaration}
-        onExitDeclaration={handleExitDeclaration}
+        onExitDeclaration={handleExitEdit}
         onShowAbout={() => setAboutOpen(true)}
       />
-      <Workspace declaration={activeDeclaration} />
+      <Workspace
+        declaration={editingDeclaration}
+        selectedDeclaration={selectedDeclaration}
+        onEnterEdit={() => selectedId && handleEnterEdit(selectedId)}
+        isEditing={!!editingId}
+      />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   )

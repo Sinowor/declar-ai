@@ -1,21 +1,35 @@
-MIT License
+# DeclarAI 软件许可协议
 
-Copyright (c) 2026 Sinowor
+版权所有 © 2026 Sinowor
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## 专有软件许可
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+本软件（DeclarAI）为 Sinowor 的专有软件，受中华人民共和国著作权法及国际著作权条约的保护。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## 许可条款
+
+1. **授权范围**：本软件仅供 Sinowor 内部授权用户使用。未经 Sinowor 明确的书面授权，任何个人或组织不得：
+   - 复制、修改、分发、传播本软件的全部或部分内容
+   - 对本软件进行反向工程、反编译或反汇编
+   - 将本软件用于任何商业目的或向第三方提供
+   - 删除或修改本软件中的任何版权声明或商标标识
+
+2. **所有权**：本软件的所有权、知识产权和商业机密均归 Sinowor 所有。本协议不授予用户任何明示或暗示的所有权。
+
+3. **保密义务**：用户须对本软件及其相关文档承担保密义务，不得向任何第三方披露。
+
+4. **免责声明**：本软件按「现状」提供，不提供任何明示或暗示的保证。Sinowor 不对因使用本软件而产生的任何直接或间接损失承担责任。
+
+5. **终止**：如用户违反本协议任何条款，许可将自动终止。终止后，用户须立即停止使用并销毁所有副本。
+
+## 隐私声明
+
+DeclarAI 重视用户隐私和数据安全：
+
+- **本地优先**：所有申报数据存储在用户本地计算机，不会自动上传至任何服务器
+- **API 数据传输**：仅在用户主动触发 AI 提取/审核功能时，会将单证文本内容发送至 DeepSeek API 进行处理。API 调用过程采用加密传输（HTTPS）
+- **数据控制**：用户可随时删除本地数据库文件来清除所有数据
+- **无遥测**：本软件不包含任何遥测、数据收集或用户行为跟踪功能
+- **API 密钥**：DeepSeek API Key 存储在本地 .env 文件中，不会上传或分享
+
+如有疑问，请联系 Sinowor。
