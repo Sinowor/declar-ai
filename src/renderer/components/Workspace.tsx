@@ -77,10 +77,29 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     let cancelled = false
 
     const loadData = async () => {
+      // Reset state for the new declaration
+      setFiles([])
+      setConfidenceMap({})
+      setReviewIssues([])
+
       try {
-        if (window.api?.getDeclaration) {
-          const result = await window.api.getDeclaration(declaration.id)
-          if (cancelled || !result?.data) return
+        if (window.api?.getDeclaration && window.api?.getFiles) {
+          const [result, fileList] = await Promise.all([
+            window.api.getDeclaration(declaration.id),
+            window.api.getFiles(declaration.id),
+          ])
+          if (cancelled) return
+
+          // Load files
+          if (Array.isArray(fileList)) {
+            setFiles(fileList.map((f: any) => ({
+              id: f.id,
+              file_name: f.file_name,
+              extracted_text: f.extracted_text,
+            })))
+          }
+
+          if (!result?.data) return
           const d = result.data
           setTransportForm({
             entry_exit_transport_tool_name: d.transport_info?.entry_exit_transport_tool_name || '',
@@ -97,6 +116,20 @@ export default function Workspace({ declaration }: WorkspaceProps) {
               ...cd, id: cd.id || '', declaration_id: declaration.id, sort_order: i,
             })))
           }
+
+          // Build confidence map from extraction_notes
+          if (d.extraction_notes) {
+            const cmap: Record<number, Record<string, string>> = {}
+            for (const note of d.extraction_notes) {
+              const cargoMatch = note.field.match(/^cargo_details\[(\d+)\]\.(.+)$/)
+              if (cargoMatch) {
+                const idx = parseInt(cargoMatch[1])
+                if (!cmap[idx]) cmap[idx] = {}
+                cmap[idx][cargoMatch[2]] = note.confidence
+              }
+            }
+            setConfidenceMap(cmap)
+          }
         }
       } catch (err: any) {
         console.error('Failed to load declaration data:', err)
@@ -106,6 +139,18 @@ export default function Workspace({ declaration }: WorkspaceProps) {
 
     return () => { cancelled = true }
   }, [declaration?.id])
+
+  // Ctrl/Cmd+S keyboard shortcut for save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleSave()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -169,7 +214,10 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     showToast(`已添加 ${newFiles.length} 个文件`)
   }, [])
 
-  const handleRemoveFile = useCallback((index: number) => {
+  const handleRemoveFile = useCallback(async (index: number, fileId?: string) => {
+    if (fileId && window.api?.deleteFile) {
+      try { await window.api.deleteFile(fileId) } catch {}
+    }
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
@@ -342,7 +390,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
             <div className="grid grid-cols-3 gap-5">
               {formFields.map((f) => (
                 <div key={f.key} className="flex flex-col gap-1.5">
-                  <label className="text-[13px] font-medium text-muted uppercase tracking-wider">
+                  <label className="text-[14px] font-medium text-muted uppercase tracking-wider">
                     {f.label}
                   </label>
                   {f.type === 'select' ? (
@@ -369,7 +417,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
               ))}
               {/* Document number — readonly */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-medium text-muted uppercase tracking-wider">
+                <label className="text-[14px] font-medium text-muted uppercase tracking-wider">
                   申报单编号
                 </label>
                 <input

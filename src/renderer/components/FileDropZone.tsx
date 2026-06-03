@@ -11,7 +11,7 @@ interface FileDropZoneProps {
   declarationId: string
   onFilesImported: (files: ImportedFile[]) => void
   files: ImportedFile[]
-  onRemoveFile: (index: number) => void
+  onRemoveFile: (index: number, fileId?: string) => void
   isExtracting: boolean
 }
 
@@ -82,7 +82,7 @@ export default function FileDropZone({
             拖拽单证文件到此处
           </div>
           <div className="text-[13px] text-muted">
-            支持箱单、发票、合同、运单、提单等 · PDF / Excel / Word / 图片 · 也支持 ZIP / RAR 压缩包
+            支持箱单、发票、合同、运单、提单等 · PDF / Excel / Word / 图片 · 也支持 ZIP 压缩包（RAR 请先解压）
           </div>
           <input
             ref={fileInputRef}
@@ -120,7 +120,7 @@ export default function FileDropZone({
                 {f.error ? '⚠️' : '📄'} {f.file_name}
                 <button
                   className="text-muted text-base leading-none cursor-pointer hover:text-red-500 ml-0.5"
-                  onClick={() => onRemoveFile(i)}
+                  onClick={() => onRemoveFile(i, f.id)}
                 >
                   &times;
                 </button>

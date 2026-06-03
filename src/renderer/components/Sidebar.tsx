@@ -2,7 +2,7 @@ import type { DeclarationItem } from '../App'
 
 const statusBadge: Record<string, { label: string; className: string }> = {
   draft: { label: '草稿', className: 'bg-slate-100 text-slate-500' },
-  processing: { label: 'AI提取中', className: 'bg-sky-50 text-sky-500' },
+  processing: { label: 'AI提取中', className: 'bg-sky-50 text-sky-500 animate-pulse' },
   review: { label: '待确认', className: 'bg-amber-50 text-amber-600' },
   done: { label: '已完成', className: 'bg-emerald-50 text-emerald-600' },
   error: { label: '有错误', className: 'bg-red-50 text-red-500' },

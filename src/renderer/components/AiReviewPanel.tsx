@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 interface ReviewIssue {
+  id?: string
   field_path: string
   issue_type: string
   question: string
