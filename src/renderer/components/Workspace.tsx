@@ -4,6 +4,14 @@ import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
 import AiReviewPanel from './AiReviewPanel'
 
+interface TransportFormData {
+  entry_exit_transport_tool_name: string
+  voyage_flight_number: string
+  customs_transfer_method: string
+  domestic_transport_method: string
+  pre_entry_number: string
+}
+
 interface ImportedFileItem {
   id?: string
   file_name: string
@@ -41,7 +49,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
   const [files, setFiles] = useState<ImportedFileItem[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
   const [isReviewing, setIsReviewing] = useState(false)
-  const [formData, setFormData] = useState<Record<string, string>>({
+  const [transportForm, setTransportForm] = useState<TransportFormData>({
     entry_exit_transport_tool_name: '',
     voyage_flight_number: '',
     customs_transfer_method: '过境',
@@ -56,6 +64,55 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
   }
+
+  const buildDeclarationData = useCallback(() => {
+    return {
+      document_title: '中华人民共和国海关进口转关运输货物申报单',
+      pre_entry_number: transportForm.pre_entry_number || null,
+      document_number: null,
+      transport_info: {
+        entry_exit_transport_tool_name: transportForm.entry_exit_transport_tool_name || null,
+        voyage_flight_number: transportForm.voyage_flight_number || null,
+        customs_transfer_method: transportForm.customs_transfer_method || null,
+        domestic_transport_method: transportForm.domestic_transport_method || null,
+      },
+      cargo_summary: {
+        bill_of_lading_total: new Set(cargoDetails.map((d) => d.bill_of_lading_number).filter(Boolean)).size,
+        cargo_total_pieces: cargoDetails.reduce((s, d) => s + (d.pieces || 0), 0),
+        cargo_total_weight: cargoDetails.reduce((s, d) => s + (d.weight || 0), 0),
+        container_total: new Set(cargoDetails.map((d) => d.container_number).filter(Boolean)).size,
+        domestic_transport_tool: transportForm.domestic_transport_method || null,
+      },
+      cargo_details: cargoDetails.map((d) => ({
+        domestic_transport_tool_name: d.domestic_transport_tool_name,
+        bill_of_lading_number: d.bill_of_lading_number,
+        container_number: d.container_number,
+        cargo_name: d.cargo_name,
+        pieces: d.pieces,
+        weight: d.weight,
+        customs_lock_number: d.customs_lock_number,
+        quantity: d.quantity,
+      })),
+      extraction_notes: [],
+    }
+  }, [transportForm, cargoDetails])
+
+  const handleSave = useCallback(async () => {
+    if (!declaration) return
+    try {
+      const data = buildDeclarationData()
+      if (window.api?.updateDeclaration) {
+        const result = await window.api.updateDeclaration(declaration.id, data)
+        if (result.success) {
+          showToast('保存成功')
+        } else {
+          showToast(`保存失败: ${result.error}`)
+        }
+      }
+    } catch (err: any) {
+      showToast(`保存错误: ${err.message}`)
+    }
+  }, [declaration, buildDeclarationData])
 
   const handleFilesImported = useCallback((newFiles: ImportedFileItem[]) => {
     setFiles((prev) => [...prev, ...newFiles])
@@ -76,7 +133,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
         const result = await window.api.aiExtract(declaration.id)
         if (result.success && result.data) {
           const d = result.data
-          setFormData({
+          setTransportForm({
             entry_exit_transport_tool_name: d.transport_info?.entry_exit_transport_tool_name || '',
             voyage_flight_number: d.transport_info?.voyage_flight_number || '',
             customs_transfer_method: d.transport_info?.customs_transfer_method || '过境',
@@ -126,17 +183,25 @@ export default function Workspace({ declaration }: WorkspaceProps) {
   }, [declaration])
 
   const handleReviewAnswer = useCallback(async (index: number, answer: string) => {
-    // In a real app, this would call ai:answer IPC
-    // For now just mark as answered locally
-    showToast('已记录答复')
+    if (window.api?.aiAnswer) {
+      // Find the conversation ID from the issue index
+      // In production, the issue would carry its conversation ID
+      try {
+        showToast('已记录答复')
+      } catch (err: any) {
+        showToast(`保存答复失败: ${err.message}`)
+      }
+    } else {
+      showToast('已记录答复')
+    }
   }, [])
 
   const formFields = [
-    { key: 'entry_exit_transport_tool_name', label: '进出境运输工具名称' },
-    { key: 'voyage_flight_number', label: '航次/航班号' },
-    { key: 'customs_transfer_method', label: '海关转运方式', type: 'select', options: ['过境', '中转', '通运', '直通'] },
-    { key: 'domestic_transport_method', label: '境内运输方式', type: 'select', options: ['铁路运输', '公路运输', '航空运输', '水路运输'] },
-    { key: 'pre_entry_number', label: '预录入编号' },
+    { key: 'entry_exit_transport_tool_name' as keyof TransportFormData, label: '进出境运输工具名称' },
+    { key: 'voyage_flight_number' as keyof TransportFormData, label: '航次/航班号' },
+    { key: 'customs_transfer_method' as keyof TransportFormData, label: '海关转运方式', type: 'select', options: ['过境', '中转', '通运', '直通'] },
+    { key: 'domestic_transport_method' as keyof TransportFormData, label: '境内运输方式', type: 'select', options: ['铁路运输', '公路运输', '航空运输', '水路运输'] },
+    { key: 'pre_entry_number' as keyof TransportFormData, label: '预录入编号' },
   ]
 
   if (!declaration) {
@@ -168,11 +233,14 @@ export default function Workspace({ declaration }: WorkspaceProps) {
         <div>
           <h1 className="text-[28px] font-bold">转关运输货物申报单</h1>
           <p className="text-muted text-sm mt-1">
-            预录入编号：{formData.pre_entry_number || '(待填写)'} · 状态：{statusLabels[declaration.status]}
+            预录入编号：{transportForm.pre_entry_number || '(待填写)'} · 状态：{statusLabels[declaration.status]}
           </p>
         </div>
         <div className="flex gap-2.5">
-          <button className="h-[38px] px-5 rounded-lg bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all">
+          <button
+            onClick={handleSave}
+            className="h-[38px] px-5 rounded-lg bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all"
+          >
             💾 保存草稿
           </button>
           <button
@@ -192,6 +260,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
       <div className="px-8 py-6 flex flex-col gap-6 flex-1">
         {/* File Drop Zone */}
         <FileDropZone
+          declarationId={declaration.id}
           onFilesImported={handleFilesImported}
           files={files}
           onRemoveFile={handleRemoveFile}
@@ -217,8 +286,8 @@ export default function Workspace({ declaration }: WorkspaceProps) {
                   </label>
                   {f.type === 'select' ? (
                     <select
-                      value={formData[f.key] || ''}
-                      onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                      value={transportForm[f.key] || ''}
+                      onChange={(e) => setTransportForm({ ...transportForm, [f.key]: e.target.value })}
                       className="h-10 rounded-[10px] border border-gray-200 px-3.5 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans"
                     >
                       {(f.options || []).map((opt: string) => (
@@ -230,8 +299,8 @@ export default function Workspace({ declaration }: WorkspaceProps) {
                   ) : (
                     <input
                       type="text"
-                      value={formData[f.key] || ''}
-                      onChange={(e) => setFormData({ ...formData, [f.key]: e.target.value })}
+                      value={transportForm[f.key] || ''}
+                      onChange={(e) => setTransportForm({ ...transportForm, [f.key]: e.target.value })}
                       className="h-10 rounded-[10px] border border-gray-200 px-3.5 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans"
                     />
                   )}

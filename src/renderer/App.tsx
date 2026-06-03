@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
 
@@ -45,12 +45,24 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [ready, setReady] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 300)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchQuery])
 
   const loadDeclarations = useCallback(async () => {
     if (isElectron()) {
       try {
-        const result = await window.api.getDeclarations(searchQuery || undefined)
+        const result = await window.api.getDeclarations(debouncedSearch || undefined)
         if (Array.isArray(result)) {
           setDeclarations(
             result.map((r: any) => ({
@@ -71,7 +83,7 @@ export default function App() {
       setDeclarations(mockDeclarations)
     }
     setReady(true)
-  }, [searchQuery])
+  }, [debouncedSearch])
 
   useEffect(() => {
     loadDeclarations()
@@ -106,9 +118,9 @@ export default function App() {
     }
   }
 
-  const handleExitDeclaration = () => {
+  const handleExitDeclaration = async () => {
     setActiveId(null)
-    loadDeclarations()
+    await loadDeclarations()
   }
 
   if (!ready) {

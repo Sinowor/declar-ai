@@ -52,6 +52,10 @@ export async function extractText(filePath: string): Promise<string> {
 async function extractPdfText(filePath: string): Promise<string> {
   try {
     const pdfjsLib = await import('pdfjs-dist')
+    pdfjsLib.GlobalWorkerOptions.workerSrc = require('path').join(
+      require('path').dirname(require.resolve('pdfjs-dist')),
+      'pdf.worker.mjs'
+    )
     const data = new Uint8Array(readFileSync(filePath))
     const doc = await pdfjsLib.getDocument({ data }).promise
 
@@ -80,15 +84,15 @@ async function extractDocxText(filePath: string): Promise<string> {
   }
 }
 
-function extractXlsxText(filePath: string): string {
+async function extractXlsxText(filePath: string): Promise<string> {
   try {
-    const XLSX = require('xlsx')
+    const XLSX = await import('xlsx')
     const workbook = XLSX.readFile(filePath)
     const sheets: string[] = []
 
     for (const sheetName of workbook.SheetNames) {
       const sheet = workbook.Sheets[sheetName]
-      const csvText = XLSX.utils.sheet_to_csv(sheet)
+      const csvText = XLSX.utils.sheet_to_csv(sheet as any)
       sheets.push(`--- Sheet: ${sheetName} ---\n${csvText}`)
     }
     return sheets.join('\n\n')

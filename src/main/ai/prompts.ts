@@ -3,7 +3,6 @@ import * as path from 'path'
 import { app } from 'electron'
 
 let extractionPrompt: string | null = null
-let reviewPrompt: string | null = null
 
 export function getExtractionPrompt(): string {
   if (extractionPrompt) return extractionPrompt
@@ -48,14 +47,14 @@ export function getReviewPrompt(declarationData: string): string {
 4. 格式规范性 — 编号格式、日期格式是否正确？
 
 ## 输出格式
-返回 JSON 数组，每个问题包含：
+返回 JSON 对象，格式为 {"issues": [...]}，其中 issues 数组的每个元素包含：
 - field_path: 字段路径
 - issue_type: "missing" | "inconsistency" | "logic" | "format"
 - question: 用中文描述的明确问题
 - severity: "high" | "medium" | "low"
 - suggestion: 建议的修正方向
 
-只返回有问题的地方，如果没有问题返回空数组 []。
+只返回有问题的地方，如果没有问题返回 {"issues": []}。
   `.trim()
 
   return `${baseReviewPrompt}\n\n## 申报单数据\n${declarationData}`

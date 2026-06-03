@@ -18,4 +18,6 @@ export function getAIClient(): OpenAI {
   return client
 }
 
-export const AI_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro'
+export function getModel(): string {
+  return process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro'
+}

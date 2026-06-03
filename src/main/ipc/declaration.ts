@@ -36,16 +36,19 @@ export function registerDeclarationIpc() {
     }
 
     const rows = db.prepare(query).all(...params) as any[]
-    return rows.map((r) => ({
-      id: r.id,
-      type: r.type,
-      status: r.status,
-      data: JSON.parse(r.data),
-      created_at: r.created_at,
-      updated_at: r.updated_at,
-      transportName: getTransportName(JSON.parse(r.data)),
-      preEntryNumber: getPreEntryNumber(JSON.parse(r.data)),
-    }))
+    return rows.map((r) => {
+      const parsed = JSON.parse(r.data)
+      return {
+        id: r.id,
+        type: r.type,
+        status: r.status,
+        data: parsed,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        transportName: getTransportName(parsed),
+        preEntryNumber: getPreEntryNumber(parsed),
+      }
+    })
   })
 
   ipcMain.handle('declaration:get', (_event, id: string) => {
@@ -75,6 +78,13 @@ export function registerDeclarationIpc() {
   })
 
   ipcMain.handle('declaration:update', (_event, id: string, data: unknown) => {
+    const d = data as any
+    if (!d || typeof d !== 'object') {
+      return { success: false, error: '无效的申报单数据' }
+    }
+    if (!d.transport_info || !Array.isArray(d.cargo_details)) {
+      return { success: false, error: '数据缺少必要字段（transport_info 或 cargo_details）' }
+    }
     db.prepare(
       "UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?"
     ).run(JSON.stringify(data), id)

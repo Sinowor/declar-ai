@@ -24,12 +24,14 @@ export async function extractArchive(
       if (!existsSync(destDirPath)) {
         mkdirSync(destDirPath, { recursive: true })
       }
+      if (existsSync(destPath)) {
+        console.warn(`[archive] 文件已存在，将被覆盖: ${destPath}`)
+      }
       zip.extractEntryTo(entry, destDir, false, true)
       extractedFiles.push(destPath)
     }
   } else if (ext === '.rar') {
-    // RAR extraction not supported via pure JS — return placeholder
-    return [`[RAR 格式需要安装解压工具: ${path.basename(filePath)}。请解压为 ZIP 后重试。]`]
+    throw new Error(`RAR 格式暂不支持: ${path.basename(filePath)}。请解压为 ZIP 后重试。`)
   }
 
   return extractedFiles

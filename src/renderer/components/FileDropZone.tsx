@@ -8,6 +8,7 @@ interface ImportedFile {
 }
 
 interface FileDropZoneProps {
+  declarationId: string
   onFilesImported: (files: ImportedFile[]) => void
   files: ImportedFile[]
   onRemoveFile: (index: number) => void
@@ -15,6 +16,7 @@ interface FileDropZoneProps {
 }
 
 export default function FileDropZone({
+  declarationId,
   onFilesImported,
   files,
   onRemoveFile,
@@ -34,7 +36,7 @@ export default function FileDropZone({
       const paths = droppedFiles.map((f) => (f as any).path).filter(Boolean)
       if (paths.length) {
         try {
-          const result = await window.api.importFiles('current', paths)
+          const result = await window.api.importFiles(declarationId, paths)
           onFilesImported(result)
         } catch (err: any) {
           console.error('Import error:', err)
@@ -48,7 +50,7 @@ export default function FileDropZone({
     try {
       const paths = await window.api.openFileDialog()
       if (paths?.length) {
-        const result = await window.api.importFiles('current', paths)
+        const result = await window.api.importFiles(declarationId, paths)
         onFilesImported(result)
       }
     } catch {
@@ -92,7 +94,7 @@ export default function FileDropZone({
               const paths = selectedFiles.map((f) => (f as any).path).filter(Boolean)
               if (paths.length) {
                 try {
-                  const result = await window.api.importFiles('current', paths)
+                  const result = await window.api.importFiles(declarationId, paths)
                   onFilesImported(result)
                 } catch (err: any) {
                   console.error('Import error:', err)

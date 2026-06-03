@@ -28,6 +28,12 @@ export function registerFileIpc() {
 
   // Import files for a declaration
   ipcMain.handle('file:import', async (_event, declarationId: string, filePaths: string[]) => {
+    // Validate declaration exists
+    const decl = db.prepare('SELECT id FROM declarations WHERE id = ?').get(declarationId)
+    if (!decl) {
+      return [{ error: '申报单不存在，请先创建申报单' }]
+    }
+
     const storageDir = path.join(app.getPath('userData'), 'files', declarationId)
     if (!fs.existsSync(storageDir)) {
       fs.mkdirSync(storageDir, { recursive: true })
@@ -45,10 +51,8 @@ export function registerFileIpc() {
           const extractDir = path.join(storageDir, `_extracted_${path.parse(fileName).name}`)
           const extractedPaths = await extractArchive(srcPath, extractDir)
 
-          // Filter out error messages
-          const actualFiles = extractedPaths.filter((p) => fs.existsSync(p) && !p.startsWith('['))
-
-          for (const extPath of actualFiles) {
+          for (const extPath of extractedPaths) {
+            if (!fs.existsSync(extPath)) continue
             const extFileName = path.basename(extPath)
             const extText = await extractText(extPath)
             const id = uuid()
