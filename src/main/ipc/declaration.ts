@@ -50,6 +50,7 @@ export async function registerDeclarationIpc() {
         updated_at: r.updated_at,
         transportName: getTransportName(parsed),
         preEntryNumber: getPreEntryNumber(parsed),
+        displayNumber: getDisplayNumber(parsed),
       }
     })
   })
@@ -125,5 +126,15 @@ function getTransportName(data: any): string {
 }
 
 function getPreEntryNumber(data: any): string | null {
+  return data?.pre_entry_number || null
+}
+
+// Use bill of lading number as primary display ID; fall back to pre-entry number
+function getDisplayNumber(data: any): string | null {
+  const details = data?.cargo_details
+  if (Array.isArray(details) && details.length > 0) {
+    const firstBl = details[0]?.bill_of_lading_number
+    if (firstBl) return firstBl
+  }
   return data?.pre_entry_number || null
 }

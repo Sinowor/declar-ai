@@ -6,6 +6,7 @@ import AboutModal from './components/AboutModal'
 export interface DeclarationItem {
   id: string
   preEntryNumber: string | null
+  displayNumber: string | null
   transportName: string
   status: 'draft' | 'processing' | 'review' | 'done' | 'error'
   updatedAt: string
@@ -58,7 +59,9 @@ export default function App() {
         if (Array.isArray(result)) {
           setDeclarations(result.map((r: any) => ({
             id: r.id, preEntryNumber: r.preEntryNumber,
-            transportName: r.transportName || '', status: r.status,
+            transportName: r.transportName || '',
+            displayNumber: r.displayNumber || null,
+            status: r.status,
             updatedAt: formatRelativeTime(r.updated_at),
           })))
         }
@@ -79,6 +82,7 @@ export default function App() {
 
   const filteredDeclarations = searchQuery
     ? declarations.filter(d =>
+        (d.displayNumber || '').includes(searchQuery) ||
         (d.preEntryNumber || '').includes(searchQuery) ||
         d.transportName.toLowerCase().includes(searchQuery.toLowerCase()))
     : declarations

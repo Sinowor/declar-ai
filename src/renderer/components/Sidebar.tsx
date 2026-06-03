@@ -123,9 +123,12 @@ export default function Sidebar({
                   }`}
                 >
                   <div className="font-semibold text-sm">
-                    {d.preEntryNumber || '(未编号)'}
+                    {d.displayNumber || d.preEntryNumber || '(未编号)'}
                   </div>
                   <div className="text-xs text-muted mt-1 flex gap-2 items-center">
+                    {d.preEntryNumber && d.displayNumber !== d.preEntryNumber && (
+                      <span className="text-[10px] text-muted opacity-60">预录入: {d.preEntryNumber}</span>
+                    )}
                     <span>{d.transportName}</span>
                     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}>
                       {badge.label}
