@@ -113,6 +113,17 @@ export default function App() {
     setEditingId(id)
   }
 
+  const handleDelete = async (id: string) => {
+    if (isElectron()) {
+      try {
+        await window.api.deleteDeclaration(id)
+        if (selectedId === id) setSelectedId(null)
+        if (editingId === id) setEditingId(null)
+        await loadDeclarations()
+      } catch (err) { console.error('Failed to delete:', err) }
+    }
+  }
+
   const handleExitEdit = async () => {
     setEditingId(null)
     await loadDeclarations()
@@ -174,6 +185,7 @@ export default function App() {
         onNewDeclaration={handleNewDeclaration}
         onExitDeclaration={handleExitEdit}
         onShowAbout={() => setAboutOpen(true)}
+        onDelete={handleDelete}
       />
       <Workspace
         declaration={editingDeclaration}

@@ -24,6 +24,7 @@ interface SidebarProps {
   onNewDeclaration: () => void
   onExitDeclaration: () => void
   onShowAbout: () => void
+  onDelete: (id: string) => void
 }
 
 export default function Sidebar({
@@ -38,6 +39,7 @@ export default function Sidebar({
   onNewDeclaration,
   onExitDeclaration,
   onShowAbout,
+  onDelete,
 }: SidebarProps) {
   const isLocked = editingId !== null
   const [showSettings, setShowSettings] = useState(false)
@@ -114,7 +116,7 @@ export default function Sidebar({
                 <div
                   key={d.id}
                   onClick={() => onSelect(d.id)}
-                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 ${
+                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 group relative ${
                     isEditing
                       ? 'bg-primary-50 ring-1 ring-primary-200'
                       : isActive
@@ -122,8 +124,24 @@ export default function Sidebar({
                         : 'hover:bg-surface'
                   }`}
                 >
-                  <div className="font-semibold text-sm">
-                    {d.displayNumber || d.preEntryNumber || '(未编号)'}
+                  <div className="flex items-center justify-between">
+                    <div className="font-semibold text-sm min-w-0 flex-1">
+                      {d.displayNumber || d.preEntryNumber || '(未编号)'}
+                    </div>
+                    {!isEditing && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (confirm(`确定删除申报单「${d.displayNumber || d.preEntryNumber || '未编号'}」吗？此操作不可撤销。`)) {
+                            onDelete(d.id)
+                          }
+                        }}
+                        className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 cursor-pointer transition-all shrink-0 ml-2"
+                        title="删除申报单"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                      </button>
+                    )}
                   </div>
                   <div className="text-xs text-muted mt-1 flex gap-2 items-center">
                     {d.preEntryNumber && d.displayNumber !== d.preEntryNumber && (
