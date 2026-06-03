@@ -5,6 +5,7 @@ import { loadEnv } from './config'
 import { registerDeclarationIpc } from './ipc/declaration'
 import { registerSchemaIpc } from './ipc/schema'
 import { registerAppIpc } from './ipc/app'
+import { registerFileIpc } from './ipc/file'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -16,6 +17,7 @@ function initApp() {
   registerDeclarationIpc()
   registerSchemaIpc()
   registerAppIpc()
+  registerFileIpc()
 }
 
 function createWindow() {
