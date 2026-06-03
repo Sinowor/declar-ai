@@ -77,17 +77,19 @@ export default function Sidebar({
       {!collapsed && (
         <>
           {/* Search */}
-          <div className="px-4 pb-3 shrink-0 relative">
-            <span className="absolute left-7 top-1/2 -translate-y-1/2 text-muted">
-              <IconSearch />
-            </span>
-            <input
-              type="text"
-              placeholder="搜索申报单..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full h-9 rounded-md border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-all"
-            />
+          <div className="px-4 pb-3 shrink-0">
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted flex items-center justify-center pointer-events-none">
+                <IconSearch />
+              </span>
+              <input
+                type="text"
+                placeholder="搜索申报单..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full h-9 rounded-md border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-all"
+              />
+            </div>
           </div>
 
           {/* List */}
@@ -109,9 +111,9 @@ export default function Sidebar({
                 <div
                   key={d.id}
                   onClick={() => onSelect(d.id)}
-                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 border border-transparent ${
+                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 ${
                     isActive
-                      ? 'bg-primary-50 border-primary-500 shadow-[inset_3px_0_0_var(--primary)]'
+                      ? 'bg-primary-50 ring-1 ring-primary-200'
                       : 'hover:bg-surface'
                   }`}
                 >
