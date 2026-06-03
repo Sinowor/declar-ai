@@ -158,6 +158,7 @@ export default function App() {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         onNewDeclaration={handleNewDeclaration}
         onExitDeclaration={handleExitDeclaration}
+        onShowAbout={() => window.api?.showAbout?.()}
       />
       <Workspace declaration={activeDeclaration} />
     </div>

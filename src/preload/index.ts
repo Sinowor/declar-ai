@@ -25,6 +25,7 @@ const api = {
 
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),
+  showAbout: () => ipcRenderer.invoke('app:about'),
 }
 
 contextBridge.exposeInMainWorld('api', api)

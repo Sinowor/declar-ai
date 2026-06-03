@@ -4,8 +4,12 @@
 
 :root {
   --primary: #6D5EF7;
+  --primary-rgb: 109 94 247;
+  --primary-foreground: #FFFFFF;
   --primary-dark: #4F46E5;
   --primary-light: #EDE9FE;
+  --accent-foreground: #4F46E5;
+  --ring: #6D5EF7;
   --ink: #111827;
   --muted: #64748B;
   --border: #E5E7EB;

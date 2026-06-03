@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import type { DeclarationItem } from '../App'
+import Logo from './Logo'
+import ThemeColorPicker from './ThemeColorPicker'
 import { IconSearch, IconChevronLeft, IconPlus, IconList } from './Icons'
 
 const statusBadge: Record<string, { label: string; className: string }> = {
@@ -19,6 +22,7 @@ interface SidebarProps {
   onToggleCollapse: () => void
   onNewDeclaration: () => void
   onExitDeclaration: () => void
+  onShowAbout: () => void
 }
 
 export default function Sidebar({
@@ -31,8 +35,10 @@ export default function Sidebar({
   onToggleCollapse,
   onNewDeclaration,
   onExitDeclaration,
+  onShowAbout,
 }: SidebarProps) {
   const isLocked = activeId !== null
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <aside
@@ -47,9 +53,7 @@ export default function Sidebar({
       <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
         {!collapsed && (
           <div className="flex items-center gap-2.5 font-bold text-lg whitespace-nowrap">
-            <div className="w-[34px] h-[34px] rounded-md bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-[15px]">
-              D
-            </div>
+            <Logo size={34} />
             <span>DeclarAI</span>
           </div>
         )}
@@ -107,7 +111,7 @@ export default function Sidebar({
                   onClick={() => onSelect(d.id)}
                   className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 border border-transparent ${
                     isActive
-                      ? 'bg-primary-50 border-primary-500 shadow-[inset_3px_0_0_#6D5EF7]'
+                      ? 'bg-primary-50 border-primary-500 shadow-[inset_3px_0_0_var(--primary)]'
                       : 'hover:bg-surface'
                   }`}
                 >
@@ -116,9 +120,7 @@ export default function Sidebar({
                   </div>
                   <div className="text-xs text-muted mt-1 flex gap-2 items-center">
                     <span>{d.transportName}</span>
-                    <span
-                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}
-                    >
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}>
                       {badge.label}
                     </span>
                   </div>
@@ -133,23 +135,52 @@ export default function Sidebar({
             )}
           </div>
 
+          {/* Settings Panel */}
+          {showSettings && (
+            <div className="px-4 pb-3 border-t border-gray-200 pt-3">
+              <ThemeColorPicker />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={onShowAbout}
+                  className="flex-1 h-8 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-all"
+                >
+                  关于 DeclarAI
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200 shrink-0">
-            {isLocked ? (
+          <div className="p-4 border-t border-gray-200 shrink-0 flex gap-2">
+            {!isLocked && (
               <button
-                onClick={onExitDeclaration}
-                className="w-full h-10 rounded-sm border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-all"
+                onClick={() => setShowSettings(!showSettings)}
+                className={`w-10 h-10 rounded-sm border border-gray-200 flex items-center justify-center cursor-pointer transition-all shrink-0 ${showSettings ? 'bg-primary-50 border-primary-500 text-primary-500' : 'bg-white text-muted hover:bg-surface'}`}
+                title="系统设置"
               >
-                ← 退出当前申报单
-              </button>
-            ) : (
-              <button
-                onClick={onNewDeclaration}
-                className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-all"
-              >
-                <IconPlus /><span>新建申报单</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
               </button>
             )}
+            <div className="flex-1">
+              {isLocked ? (
+                <button
+                  onClick={onExitDeclaration}
+                  className="w-full h-10 rounded-sm border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-all"
+                >
+                  ← 退出当前申报单
+                </button>
+              ) : (
+                <button
+                  onClick={onNewDeclaration}
+                  className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-all"
+                >
+                  <IconPlus /><span>新建申报单</span>
+                </button>
+              )}
+            </div>
           </div>
         </>
       )}

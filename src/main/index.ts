@@ -50,6 +50,13 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  app.setAboutPanelOptions({
+    applicationName: 'DeclarAI',
+    applicationVersion: '1.0.0',
+    copyright: 'Copyright © 2026 Sinowor. All rights reserved.',
+    credits: '基于 AI LLM 的过境转关报关单自动化制单系统',
+    website: 'https://github.com/Sinowor/declar-ai',
+  })
   await initApp()
   createWindow()
 })
