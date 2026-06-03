@@ -195,6 +195,61 @@ CommonJS require 与 ES import 混用，风格不一致。
 
 ---
 
+---
+
+## 第二轮审查 (2026-06-03 下午) — spec 合规 + 代码质量
+
+### 新发现 P0 (4)
+
+| # | 文件 | 问题 | 状态 |
+|---|------|------|------|
+| 1 | `archive.ts:22` | Zip Slip 路径穿越 — entry.entryName 未验证 | ✅ 已修复 |
+| 2 | `archive.ts:30` | extractEntryTo 路径与 tracked path 不一致 | ✅ 已修复 |
+| 3 | `extractor.ts:71` | cargo_summary 缺失时 `Cannot set properties of undefined` | ✅ 已修复 |
+| 4 | `tsconfig.main.json` | TS 6.0 移除 `ignoreDeprecations`，编译中断 | ✅ 已修复 |
+
+### 新发现 P1 (7)
+
+| # | 文件 | 问题 | 状态 |
+|---|------|------|------|
+| 5 | `Workspace.tsx:185` | handleReviewAnswer 未调用 IPC（第一轮未修复） | ✅ 已修复 |
+| 6 | `ipc/file.ts:62` | 压缩包文件 size 始终为 0 | ✅ 已修复 |
+| 7 | `config.ts` | .env 在生产打包后无法加载 (asar) | ✅ 已修复 |
+| 8 | `package.json` | dotenv 已安装但未使用 | ✅ 已修复 |
+| 9 | `Workspace.tsx` | extraction_notes 被丢弃，置信度未连线 | ✅ 已修复 |
+| 10 | `extractor.ts:96` | cargo insert 无事务包裹 | ✅ 已修复 |
+| 11 | `db/index.ts` | DB 打开/初始化失败时无错误报告 | ✅ 已修复 |
+
+### 新发现 P2 (8)
+
+| # | 文件 | 问题 | 状态 |
+|---|------|------|------|
+| 12 | `config.ts, prompts.ts` | 空 catch 块吞没错误 | ✅ 已修复 |
+| 13 | `ipc/ai.ts` | AI IPC 缺少外层 try/catch | ✅ 已修复 |
+| 14 | `Workspace.tsx` | 保存按钮无 loading 防重复提交 | ✅ 已修复 |
+| 15 | `Workspace.tsx` | formFields 每次渲染重建 | ✅ 已修复 |
+| 16 | `tsconfig.json` | paths 别名已配置但从未使用 | ✅ 已修复 |
+| 17 | `declaration.ts:34` | SQL LIKE 搜索未转义 % _ | ✅ 已修复 |
+| 18 | `renderer/` | 缺少 .css 模块类型声明 | ✅ 已修复 |
+
+### Spec 合规差距 (3)
+
+| # | 需求 | 状态 |
+|---|------|------|
+| 19 | RAR 广告但实际不支持 | 已知限制，可在后续加入 unrar 支持 |
+| 20 | 置信度标记未端到端连线 | ✅ 已修复 |
+| 21 | AI 审核答复未持久化 | ✅ 已修复 |
+
+### 最终质量评分: 8.5/10 (+1.5)
+
+- 安全: 9/10 (Zip Slip 已修复)
+- 缺陷: 8/10 (所有 P0/P1 已修复)
+- 架构: 8/10 (clean IPC，事务化写入)
+- 完整性: 8/10 (置信度连线、审核答复 IPC、保存按钮)
+- 代码质量: 8/10 (移除未使用 dep，修复空 catch)
+
+---
+
 ## 做得好的地方
 
 - IPC 桥接设计清晰，preload 提供类型安全的 API

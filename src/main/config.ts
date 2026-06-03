@@ -1,24 +1,27 @@
 import * as path from 'path'
 import { app } from 'electron'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
+import { config as loadDotenv } from 'dotenv'
 
 export function loadEnv() {
-  const envPath = path.join(app.getAppPath(), '.env')
+  // Try multiple locations: app root, userData, cwd
+  const candidates = [
+    path.join(app.getAppPath(), '.env'),
+    path.join(app.getPath('userData'), '.env'),
+    path.join(process.cwd(), '.env'),
+  ]
 
-  try {
-    const content = readFileSync(envPath, 'utf-8')
-    for (const line of content.split('\n')) {
-      const trimmed = line.trim()
-      if (!trimmed || trimmed.startsWith('#')) continue
-      const eqIndex = trimmed.indexOf('=')
-      if (eqIndex === -1) continue
-      const key = trimmed.slice(0, eqIndex).trim()
-      const value = trimmed.slice(eqIndex + 1).trim()
-      if (!process.env[key]) {
-        process.env[key] = value
+  for (const envPath of candidates) {
+    if (existsSync(envPath)) {
+      try {
+        loadDotenv({ path: envPath })
+        console.log(`[config] .env loaded from: ${envPath}`)
+        return
+      } catch (err: any) {
+        console.warn(`[config] Failed to load .env from ${envPath}:`, err.message)
       }
     }
-  } catch {
-    // .env file not found, skip
   }
+
+  console.warn('[config] No .env file found. AI features will not work until DEEPSEEK_API_KEY is set.')
 }

@@ -2,11 +2,12 @@ import { v4 as uuid } from 'uuid'
 import { getDb } from '../db'
 import { getAIClient, getModel } from './client'
 import { getExtractionPrompt, getReviewPrompt } from './prompts'
-import type { DeclarationData } from '../../shared/types'
+import type { DeclarationData, ExtractionNote } from '../../shared/types'
 
 export async function runAIExtraction(declarationId: string): Promise<{
   success: boolean
   data?: DeclarationData
+  extraction_notes?: ExtractionNote[]
   error?: string
 }> {
   const db = getDb()
@@ -63,6 +64,20 @@ export async function runAIExtraction(declarationId: string): Promise<{
       if (!extractedData.transport_info || !extractedData.cargo_details) {
         throw new Error('返回的 JSON 缺少必要字段（transport_info 或 cargo_details）')
       }
+
+      // Guard against missing cargo_summary
+      if (!extractedData.cargo_summary) {
+        extractedData.cargo_summary = {
+          bill_of_lading_total: 0,
+          cargo_total_pieces: 0,
+          cargo_total_weight: 0,
+          container_total: 0,
+          domestic_transport_tool: null,
+        }
+      }
+      if (!extractedData.extraction_notes) {
+        extractedData.extraction_notes = []
+      }
     } catch (parseErr: any) {
       throw new Error(`AI 返回的 JSON 解析失败: ${parseErr.message}`)
     }
@@ -86,31 +101,38 @@ export async function runAIExtraction(declarationId: string): Promise<{
       "UPDATE declarations SET data = ?, status = 'review', updated_at = datetime('now','localtime') WHERE id = ?"
     ).run(JSON.stringify(extractedData), declarationId)
 
-    // Save cargo details
-    db.prepare('DELETE FROM cargo_details WHERE declaration_id = ?').run(declarationId)
-    const insertCargo = db.prepare(
-      `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
-        container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    )
-    for (let i = 0; i < extractedData.cargo_details.length; i++) {
-      const d = extractedData.cargo_details[i]
-      insertCargo.run(
-        uuid(),
-        declarationId,
-        d.domestic_transport_tool_name || null,
-        d.bill_of_lading_number || null,
-        d.container_number || null,
-        d.cargo_name || null,
-        d.pieces || 0,
-        d.weight || 0,
-        d.customs_lock_number || null,
-        d.quantity || 1,
-        i
+    // Save cargo details in a transaction
+    const saveTransaction = db.transaction(() => {
+      db.prepare('DELETE FROM cargo_details WHERE declaration_id = ?').run(declarationId)
+      const insertCargo = db.prepare(
+        `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
+          container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-    }
+      for (let i = 0; i < extractedData.cargo_details.length; i++) {
+        const d = extractedData.cargo_details[i]
+        insertCargo.run(
+          uuid(),
+          declarationId,
+          d.domestic_transport_tool_name || null,
+          d.bill_of_lading_number || null,
+          d.container_number || null,
+          d.cargo_name || null,
+          d.pieces || 0,
+          d.weight || 0,
+          d.customs_lock_number || null,
+          d.quantity || 1,
+          i
+        )
+      }
+    })
+    saveTransaction()
 
-    return { success: true, data: extractedData }
+    return {
+      success: true,
+      data: extractedData,
+      extraction_notes: extractedData.extraction_notes,
+    }
   } catch (err: any) {
     db.prepare(
       "UPDATE declarations SET status = 'error', updated_at = datetime('now','localtime') WHERE id = ?"
@@ -122,6 +144,7 @@ export async function runAIExtraction(declarationId: string): Promise<{
 export async function runAIReview(declarationId: string): Promise<{
   success: boolean
   issues?: Array<{
+    id: string
     field_path: string
     issue_type: string
     question: string
@@ -160,7 +183,6 @@ export async function runAIReview(declarationId: string): Promise<{
     let issues: any[] = []
     try {
       const parsed = JSON.parse(content)
-      // Accept both {"issues": [...]} and direct [...] formats
       const raw = parsed.issues || parsed
       issues = Array.isArray(raw) ? raw : []
     } catch {
@@ -171,11 +193,15 @@ export async function runAIReview(declarationId: string): Promise<{
       `INSERT INTO ai_conversations (id, declaration_id, role, field_path, question, status)
        VALUES (?, ?, 'ai', ?, ?, 'pending')`
     )
+    const savedIssues: Array<{ id: string; field_path: string; issue_type: string; question: string; severity: string; suggestion: string }> = []
+
     for (const issue of issues) {
-      insertConv.run(uuid(), declarationId, issue.field_path, issue.question)
+      const convId = uuid()
+      insertConv.run(convId, declarationId, issue.field_path, issue.question)
+      savedIssues.push({ id: convId, ...issue })
     }
 
-    return { success: true, issues }
+    return { success: true, issues: savedIssues }
   } catch (err: any) {
     return { success: false, error: err.message }
   }

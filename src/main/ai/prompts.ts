@@ -11,12 +11,13 @@ export function getExtractionPrompt(): string {
 
   try {
     extractionPrompt = readFileSync(promptPath, 'utf-8')
-  } catch {
-    // Fallback: load from project root in dev mode
+  } catch (err: any) {
+    console.warn('[prompts] Extraction prompt not found at app path, trying dev path:', err.message)
     const devPath = path.join(process.cwd(), 'prompts', 'extraction-system-prompt.md')
     try {
       extractionPrompt = readFileSync(devPath, 'utf-8')
-    } catch {
+    } catch (err2: any) {
+      console.warn('[prompts] Extraction prompt not found at dev path, using inline fallback:', err2.message)
       extractionPrompt = `
 # Role: 海关报关专家
 

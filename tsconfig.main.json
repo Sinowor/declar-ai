@@ -3,8 +3,7 @@
   "compilerOptions": {
     "module": "CommonJS",
     "outDir": "dist/main",
-    "rootDir": "src",
-    "ignoreDeprecations": "6.0"
+    "rootDir": "src"
   },
   "include": ["src/main/**/*.ts", "src/preload/**/*.ts", "src/shared/**/*.ts"]
 }

@@ -9,15 +9,29 @@ export function getDb(): Database.Database {
   if (db) return db
 
   const dbPath = path.join(app.getPath('userData'), 'declarai.db')
-  db = new Database(dbPath)
-  db.pragma('journal_mode = WAL')
-  db.pragma('foreign_keys = ON')
-  initSchema()
+
+  try {
+    db = new Database(dbPath)
+    db.pragma('journal_mode = WAL')
+    db.pragma('foreign_keys = ON')
+  } catch (err: any) {
+    console.error(`[db] Failed to open database at ${dbPath}:`, err.message)
+    throw new Error(`无法打开数据库: ${err.message}`)
+  }
+
+  try {
+    initSchema()
+  } catch (err: any) {
+    console.error('[db] Schema initialization failed:', err.message)
+    closeDb()
+    throw new Error(`数据库初始化失败: ${err.message}`)
+  }
+
   return db
 }
 
 function initSchema() {
-  if (!db) return
+  if (!db) throw new Error('数据库未初始化')
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS declarations (

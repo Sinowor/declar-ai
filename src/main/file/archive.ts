@@ -15,20 +15,21 @@ export async function extractArchive(
   if (ext === '.zip') {
     const AdmZip = (await import('adm-zip')).default
     const zip = new AdmZip(filePath)
-    const entries = zip.getEntries()
+    const normalizedDest = path.resolve(destDir)
 
-    for (const entry of entries) {
+    for (const entry of zip.getEntries()) {
       if (entry.isDirectory) continue
-      const destPath = path.join(destDir, entry.entryName)
-      const destDirPath = path.dirname(destPath)
-      if (!existsSync(destDirPath)) {
-        mkdirSync(destDirPath, { recursive: true })
+
+      // Zip Slip prevention: reject paths that escape the destination directory
+      const resolvedPath = path.resolve(path.join(normalizedDest, entry.entryName))
+      if (!resolvedPath.startsWith(normalizedDest + path.sep) && resolvedPath !== normalizedDest) {
+        console.warn(`[archive] 安全拦截: 跳过可疑路径 ${entry.entryName}`)
+        continue
       }
-      if (existsSync(destPath)) {
-        console.warn(`[archive] 文件已存在，将被覆盖: ${destPath}`)
-      }
-      zip.extractEntryTo(entry, destDir, false, true)
-      extractedFiles.push(destPath)
+
+      // Use adm-zip's built-in extraction with path structure preserved
+      zip.extractEntryTo(entry, normalizedDest, true, true)
+      extractedFiles.push(resolvedPath)
     }
   } else if (ext === '.rar') {
     throw new Error(`RAR 格式暂不支持: ${path.basename(filePath)}。请解压为 ZIP 后重试。`)

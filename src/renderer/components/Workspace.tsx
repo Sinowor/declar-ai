@@ -34,6 +34,7 @@ interface CargoDetailData {
 }
 
 interface ReviewIssue {
+  id?: string
   field_path: string
   issue_type: string
   question: string
@@ -45,10 +46,19 @@ interface WorkspaceProps {
   declaration: DeclarationItem | null | undefined
 }
 
+const formFields = [
+  { key: 'entry_exit_transport_tool_name' as const, label: '进出境运输工具名称' },
+  { key: 'voyage_flight_number' as const, label: '航次/航班号' },
+  { key: 'customs_transfer_method' as const, label: '海关转运方式', type: 'select', options: ['过境', '中转', '通运', '直通'] },
+  { key: 'domestic_transport_method' as const, label: '境内运输方式', type: 'select', options: ['铁路运输', '公路运输', '航空运输', '水路运输'] },
+  { key: 'pre_entry_number' as const, label: '预录入编号' },
+]
+
 export default function Workspace({ declaration }: WorkspaceProps) {
   const [files, setFiles] = useState<ImportedFileItem[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
   const [isReviewing, setIsReviewing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [transportForm, setTransportForm] = useState<TransportFormData>({
     entry_exit_transport_tool_name: '',
     voyage_flight_number: '',
@@ -57,6 +67,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     pre_entry_number: '',
   })
   const [cargoDetails, setCargoDetails] = useState<CargoDetailData[]>([])
+  const [confidenceMap, setConfidenceMap] = useState<Record<number, Record<string, string>>>({})
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
   const [toast, setToast] = useState<string | null>(null)
 
@@ -98,7 +109,8 @@ export default function Workspace({ declaration }: WorkspaceProps) {
   }, [transportForm, cargoDetails])
 
   const handleSave = useCallback(async () => {
-    if (!declaration) return
+    if (!declaration || isSaving) return
+    setIsSaving(true)
     try {
       const data = buildDeclarationData()
       if (window.api?.updateDeclaration) {
@@ -111,8 +123,10 @@ export default function Workspace({ declaration }: WorkspaceProps) {
       }
     } catch (err: any) {
       showToast(`保存错误: ${err.message}`)
+    } finally {
+      setIsSaving(false)
     }
-  }, [declaration, buildDeclarationData])
+  }, [declaration, isSaving, buildDeclarationData])
 
   const handleFilesImported = useCallback((newFiles: ImportedFileItem[]) => {
     setFiles((prev) => [...prev, ...newFiles])
@@ -148,6 +162,21 @@ export default function Workspace({ declaration }: WorkspaceProps) {
               sort_order: i,
             }))
           )
+          // Build confidence map from extraction_notes
+          if (result.extraction_notes) {
+            const cmap: Record<number, Record<string, string>> = {}
+            for (const note of result.extraction_notes) {
+              // Parse field path like "cargo_details[0].cargo_name" or "transport_info.voyage_flight_number"
+              const match = note.field.match(/^cargo_details\[(\d+)\]\.(.+)$/)
+              if (match) {
+                const idx = parseInt(match[1])
+                const field = match[2]
+                if (!cmap[idx]) cmap[idx] = {}
+                cmap[idx][field] = note.confidence
+              }
+            }
+            setConfidenceMap(cmap)
+          }
           showToast('AI 提取完成，数据已填充')
         } else {
           showToast(`提取失败: ${result.error}`)
@@ -183,26 +212,21 @@ export default function Workspace({ declaration }: WorkspaceProps) {
   }, [declaration])
 
   const handleReviewAnswer = useCallback(async (index: number, answer: string) => {
-    if (window.api?.aiAnswer) {
-      // Find the conversation ID from the issue index
-      // In production, the issue would carry its conversation ID
-      try {
-        showToast('已记录答复')
-      } catch (err: any) {
-        showToast(`保存答复失败: ${err.message}`)
+    const issue = reviewIssues[index]
+    if (!issue?.id) return
+    try {
+      if (window.api?.aiAnswer) {
+        const result = await window.api.aiAnswer(issue.id, answer)
+        if (result.success) {
+          showToast('答复已记录')
+        } else {
+          showToast(`保存失败: ${result.error}`)
+        }
       }
-    } else {
-      showToast('已记录答复')
+    } catch (err: any) {
+      showToast(`保存答复失败: ${err.message}`)
     }
-  }, [])
-
-  const formFields = [
-    { key: 'entry_exit_transport_tool_name' as keyof TransportFormData, label: '进出境运输工具名称' },
-    { key: 'voyage_flight_number' as keyof TransportFormData, label: '航次/航班号' },
-    { key: 'customs_transfer_method' as keyof TransportFormData, label: '海关转运方式', type: 'select', options: ['过境', '中转', '通运', '直通'] },
-    { key: 'domestic_transport_method' as keyof TransportFormData, label: '境内运输方式', type: 'select', options: ['铁路运输', '公路运输', '航空运输', '水路运输'] },
-    { key: 'pre_entry_number' as keyof TransportFormData, label: '预录入编号' },
-  ]
+  }, [reviewIssues])
 
   if (!declaration) {
     return (
@@ -239,9 +263,10 @@ export default function Workspace({ declaration }: WorkspaceProps) {
         <div className="flex gap-2.5">
           <button
             onClick={handleSave}
-            className="h-[38px] px-5 rounded-lg bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all"
+            disabled={isSaving}
+            className={`h-[38px] px-5 rounded-lg bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            💾 保存草稿
+            {isSaving ? '⏳ 保存中...' : '💾 保存草稿'}
           </button>
           <button
             onClick={handleAIExtract}
@@ -326,6 +351,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
         <CargoDetailsTable
           details={cargoDetails}
           onUpdate={setCargoDetails}
+          confidenceMap={confidenceMap}
         />
 
         {/* AI Review Panel */}

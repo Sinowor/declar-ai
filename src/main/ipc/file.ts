@@ -54,12 +54,13 @@ export function registerFileIpc() {
           for (const extPath of extractedPaths) {
             if (!fs.existsSync(extPath)) continue
             const extFileName = path.basename(extPath)
+            const extFileSize = fs.statSync(extPath).size
             const extText = await extractText(extPath)
             const id = uuid()
             db.prepare(
               `INSERT INTO declaration_files (id, declaration_id, file_name, file_path, file_type, file_size, extracted_text)
                VALUES (?, ?, ?, ?, ?, ?, ?)`
-            ).run(id, declarationId, `${fileName} / ${extFileName}`, extPath, detectFileType(extPath), 0, extText)
+            ).run(id, declarationId, `${fileName} / ${extFileName}`, extPath, detectFileType(extPath), extFileSize, extText)
             imported.push({ id, file_name: `${fileName} / ${extFileName}`, extracted_text: extText })
           }
         } else {

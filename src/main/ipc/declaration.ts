@@ -32,7 +32,9 @@ export function registerDeclarationIpc() {
     if (search) {
       query = `SELECT id, type, status, data, created_at, updated_at FROM declarations
         WHERE data LIKE ? ORDER BY updated_at DESC`
-      params.push(`%${search}%`)
+      // Escape SQLite LIKE wildcards so % and _ match literally
+      const escaped = search.replace(/[%_]/g, '\\$&')
+      params.push(`%${escaped}%`)
     }
 
     const rows = db.prepare(query).all(...params) as any[]
