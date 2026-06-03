@@ -1,0 +1,67 @@
+{\rtf1\ansi\ansicpg936\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \{\
+  "document_title": "\uc0\u20013 \u21326 \u20154 \u27665 \u20849 \u21644 \u22269 \u28023 \u20851 \u36827 \u21475 \u36716 \u20851 \u36816 \u36755 \u36135 \u29289 \u30003 \u25253 \u21333 ",\
+  "pre_entry_number": "2002029999509318",\
+  "document_number": null,\
+  "transport_info": \{\
+    "entry_exit_transport_tool_name": "COSCO HAIFA",\
+    "voyage_flight_number": "072N",\
+    "customs_transfer_method": "\uc0\u36807 \u22659 ",\
+    "domestic_transport_method": "\uc0\u38081 \u36335 \u36816 \u36755 "\
+  \},\
+  "cargo_summary": \{\
+    "bill_of_lading_total": 1,\
+    "cargo_total_pieces": 1037,\
+    "cargo_total_weight": 8543.5,\
+    "container_total": 1,\
+    "domestic_transport_tool": "\uc0\u38081 \u36335 "\
+  \},\
+  "cargo_details": [\
+    \{\
+      "domestic_transport_tool_name": "\uc0\u38081 \u36335 ",\
+      "bill_of_lading_number": "COAU7224940662",\
+      "container_number": "OOCU7855971",\
+      "cargo_name": "\uc0\u25171 \u21360 \u26426 ",\
+      "pieces": 116,\
+      "weight": 1247.13,\
+      "customs_lock_number": "14985046",\
+      "quantity": 1\
+    \},\
+    \{\
+      "domestic_transport_tool_name": "\uc0\u38081 \u36335 ",\
+      "bill_of_lading_number": null,\
+      "container_number": "OOCU7855971",\
+      "cargo_name": "\uc0\u30005 \u33041 ",\
+      "pieces": 105,\
+      "weight": 365.05,\
+      "customs_lock_number": "14985046",\
+      "quantity": 1\
+    \},\
+    \{\
+      "domestic_transport_tool_name": "\uc0\u38081 \u36335 ",\
+      "bill_of_lading_number": null,\
+      "container_number": "OOCU7855971",\
+      "cargo_name": "\uc0\u30005 \u39277 \u38149 ",\
+      "pieces": 345,\
+      "weight": 2415.22,\
+      "customs_lock_number": "14985046",\
+      "quantity": 1\
+    \},\
+    \{\
+      "domestic_transport_tool_name": "\uc0\u38081 \u36335 ",\
+      "bill_of_lading_number": null,\
+      "container_number": "OOCU7855971",\
+      "cargo_name": "\uc0\u30005 \u35270 ",\
+      "pieces": 471,\
+      "weight": 4516.1,\
+      "customs_lock_number": "14985046",\
+      "quantity": 1\
+    \}\
+  ]\
+\}}

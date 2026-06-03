@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeclarAI - 过境转关报关单自动化制单</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --primary: #6D5EF7;
+    --primary-dark: #4F46E5;
+    --primary-light: #EDE9FE;
+    --ink: #111827;
+    --muted: #64748B;
+    --border: #E5E7EB;
+    --surface: #F8FAFC;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --success: #22C55E;
+    --info: #0EA5E9;
+    --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    --panel-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', ui-sans-serif, sans-serif;
+    background: #F8FAFC;
+    color: #111827;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  /* ── Layout ── */
+  #app {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: #FFFFFF;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+  }
+  #sidebar.collapsed {
+    min-width: 0;
+    width: 52px;
+  }
+  #sidebar.collapsed .sidebar-content { opacity: 0; pointer-events: none; }
+  #sidebar.collapsed .sidebar-toggle-icon { transform: rotate(180deg); }
+
+  .sidebar-header {
+    padding: 20px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .sidebar-logo .logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #6D5EF7 0%, #4F46E5 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-size: 15px;
+  }
+  .sidebar-toggle {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: white;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--muted);
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { background: var(--surface); border-color: #cbd5e1; }
+  .sidebar-toggle-icon { transition: transform 0.25s; display: inline-block; }
+
+  .sidebar-search {
+    padding: 0 16px 12px;
+    flex-shrink: 0;
+  }
+  .sidebar-search input {
+    width: 100%;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: 0 12px 0 34px;
+    font-size: 13px;
+    background: var(--surface);
+    outline: none;
+    transition: all 0.15s;
+  }
+  .sidebar-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(109,94,247,0.08); }
+  .sidebar-search .search-icon { position: absolute; left: 26px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; }
+  .sidebar-search { position: relative; }
+
+  .sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 12px;
+  }
+  .sidebar-list.locked { opacity: 0.5; pointer-events: none; }
+  .sidebar-list.locked::after {
+    content: '🔒 当前正在编辑中';
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .declaration-item {
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+  }
+  .declaration-item:hover { background: var(--surface); }
+  .declaration-item.active {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    box-shadow: inset 3px 0 0 var(--primary);
+  }
+  .declaration-item .decl-number {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .declaration-item .decl-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+    display: flex; gap: 8px; align-items: center;
+  }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .btn-new-declaration {
+    width: 100%;
+    height: 40px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.15s;
+  }
+  .btn-new-declaration:hover { background: var(--primary-dark); }
+
+  /* ── Main Content ── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .page-header {
+    padding: 24px 32px 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .page-header h1 { font-size: 28px; font-weight: 700; }
+  .page-header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .header-actions { display: flex; gap: 10px; }
+
+  .content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-header h3 { font-size: 16px; font-weight: 600; }
+  .card-body { padding: 24px; }
+
+  /* ── Drag & Drop Zone ── */
+  .drop-zone {
+    border: 2px dashed #CBD5E1;
+    border-radius: var(--radius-lg);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--surface);
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(109,94,247,0.06);
+  }
+  .drop-zone .dz-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+  .drop-zone .dz-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+  .drop-zone .dz-hint { font-size: 13px; color: var(--muted); }
+
+  /* ── File tags ── */
+  .file-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .file-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+  }
+  .file-tag .remove-btn {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .file-tag .remove-btn:hover { color: var(--danger); }
+
+  /* ── Form ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 24px;
+  }
+  .form-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  .form-group input, .form-group select {
+    height: 40px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 0 14px;
+    font-size: 14px;
+    transition: all 0.15s;
+    outline: none;
+    background: #FAFBFC;
+    font-family: inherit;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(109,94,247,0.08);
+    background: white;
+  }
+  .form-group input.low-confidence {
+    border-color: var(--warning);
+    background: #FFFBEB;
+  }
+
+  /* ── Table ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .data-table thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .data-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #F1F5F9;
+    vertical-align: middle;
+  }
+  .data-table tbody tr:hover { background: #FAFBFC; }
+  .data-table .number { text-align: right; font-variant-numeric: tabular-nums; }
+  .data-table .editable {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 4px 6px;
+    transition: all 0.15s;
+    margin: -4px -6px;
+  }
+  .data-table .editable:hover { background: var(--primary-light); }
+  .data-table .summary-row td {
+    border-top: 2px solid var(--border);
+    font-weight: 700;
+    background: #FAFAFE;
+    color: var(--primary-dark);
+  }
+  .data-table .row-action {
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .data-table .row-action:hover { color: var(--danger); background: #FEF2F2; }
+
+  /* ── AI Review Panel ── */
+  .ai-panel {
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--panel-shadow);
+    overflow: hidden;
+  }
+  .ai-panel .ai-panel-header {
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #F5F3FF 0%, #EEF4FF 45%, #FAFAFE 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ai-panel .ai-panel-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .ai-issue {
+    padding: 16px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .ai-issue:last-child { border-bottom: none; }
+  .ai-issue .issue-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .ai-issue .issue-icon.warning { background: #FFFBEB; color: var(--warning); }
+  .ai-issue .issue-icon.info { background: #F0F9FF; color: var(--info); }
+  .ai-issue .issue-content { flex: 1; }
+  .ai-issue .issue-field { font-weight: 600; font-size: 13px; }
+  .ai-issue .issue-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .ai-issue .issue-reply {
+    display: flex; gap: 8px; margin-top: 8px;
+  }
+  .ai-issue .issue-reply input {
+    flex: 1;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    padding: 0 12px;
+    font-size: 13px;
+    outline: none;
+  }
+  .ai-issue .issue-reply input:focus { border-color: var(--primary); }
+  .ai-issue .btn-confirm {
+    height: 36px;
+    padding: 0 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .ai-issue .btn-confirm:hover { background: var(--primary-dark); }
+
+  /* ── Buttons (global) ── */
+  .btn {
+    height: 38px;
+    padding: 0 20px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: white; border: none; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-secondary { background: white; color: var(--ink); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface); }
+  .btn-ghost { background: transparent; color: var(--muted); border: none; }
+  .btn-ghost:hover { color: var(--ink); background: var(--surface); }
+
+  /* ── Status badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-draft { background: #F1F5F9; color: #64748B; }
+  .badge-processing { background: #F0F9FF; color: #0EA5E9; }
+  .badge-review { background: #FFFBEB; color: #D97706; }
+  .badge-done { background: #F0FDF4; color: #16A34A; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── Pulse animation for AI ── */
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(109,94,247,0.3); }
+    70% { box-shadow: 0 0 0 10px rgba(109,94,247,0); }
+    100% { box-shadow: 0 0 0 0 rgba(109,94,247,0); }
+  }
+  .pulse-ai { animation: pulse-ring 2s infinite; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 20px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+  /* ── Confidence dot ── */
+  .confidence-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-left: 6px;
+  }
+  .confidence-high { background: var(--success); }
+  .confidence-medium { background: var(--warning); }
+  .confidence-low { background: var(--danger); }
+
+  /* ── Empty state ── */
+  .empty-state {
+    padding: 80px 24px;
+    text-align: center;
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .empty-state p { color: var(--muted); font-size: 14px; max-width: 400px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">D</div>
+        <span class="sidebar-content">DeclarAI</span>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="折叠侧栏">
+        <span class="sidebar-toggle-icon">◀</span>
+      </button>
+    </div>
+    <div class="sidebar-search sidebar-content">
+      <div class="search-icon">🔍</div>
+      <input type="text" placeholder="搜索申报单编号或运输工具..." oninput="filterList(this.value)">
+    </div>
+    <div class="sidebar-list sidebar-content" id="declarationList">
+      <!-- Item 1: Active -->
+      <div class="declaration-item active" onclick="selectDeclaration(this)" data-id="1">
+        <div class="decl-number">2002029999509318</div>
+        <div class="decl-meta">
+          <span>COSCO HAIFA / 072N</span>
+          <span class="badge badge-review">待确认</span>
+        </div>
+      </div>
+      <!-- Item 2 -->
+      <div class="declaration-item" onclick="selectDeclaration(this)" data-id="2">
+        <div class="decl-number">3104202300001234</div>
+        <div class="decl-meta">
+          <span>EVER FORTUNE / 128W</span>
+          <span class="badge badge-done">已完成</span>
+        </div>
+      </div>
+      <!-- Item 3 -->
+      <div class="declaration-item" onclick="selectDeclaration(this)" data-id="3">
+        <div class="decl-number">4403202300005678</div>
+        <div class="decl-meta">
+          <span>CSCL ARCTIC / 045S</span>
+          <span class="badge badge-draft">草稿</span>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-footer sidebar-content">
+      <button class="btn-new-declaration" onclick="newDeclaration()">
+        <span>+</span> 新建申报单
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main id="main">
+    <div class="page-header">
+      <div>
+        <h1>转关运输货物申报单</h1>
+        <p>预录入编号：2002029999509318 · 上次保存 2 分钟前</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary">保存草稿</button>
+        <button class="btn btn-primary pulse-ai">AI 提取数据</button>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+      <!-- ═══ FILE IMPORT ═══ -->
+      <div class="card">
+        <div class="card-body">
+          <div class="drop-zone" id="dropZone"
+               ondragover="this.classList.add('drag-over'); event.preventDefault()"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleDrop(event); this.classList.remove('drag-over')"
+               onclick="document.getElementById('fileInput').click()">
+            <div class="dz-icon">📎</div>
+            <div class="dz-title">拖拽单证文件到此处</div>
+            <div class="dz-hint">支持箱单、发票、合同、运单、提单等 · PDF / Excel / Word / 图片 · 也支持 ZIP / RAR 压缩包</div>
+            <input type="file" id="fileInput" multiple hidden accept=".pdf,.xlsx,.xls,.doc,.docx,.jpg,.png,.zip,.rar"
+                   onchange="handleFiles(this.files)">
+          </div>
+          <div class="file-tags" id="fileTags">
+            <span class="file-tag">
+              📄 Packing_List_2024.pdf <span class="remove-btn" onclick="this.parentElement.remove()">&times;</span>
+            </span>
+            <span class="file-tag">
+              📊 Invoice_072N.xlsx <span class="remove-btn" onclick="this.parentElement.remove()">&times;</span>
+            </span>
+            <span class="file-tag">
+              📝 Contract_COSCO.doc <span class="remove-btn" onclick="this.parentElement.remove()">&times;</span>
+            </span>
+            <span class="file-tag">
+              🚢 BL_COAU7224940662.pdf <span class="remove-btn" onclick="this.parentElement.remove()">&times;</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TRANSPORT INFO ═══ -->
+      <div class="card">
+        <div class="card-header">
+          <h3>运输信息</h3>
+          <span class="badge badge-processing">🤖 AI 已提取</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid cols-3">
+            <div class="form-group">
+              <label>进出境运输工具名称 <span class="confidence-dot confidence-high"></span></label>
+              <input type="text" value="COSCO HAIFA">
+            </div>
+            <div class="form-group">
+              <label>航次/航班号 <span class="confidence-dot confidence-high"></span></label>
+              <input type="text" value="072N">
+            </div>
+            <div class="form-group">
+              <label>海关转运方式 <span class="confidence-dot confidence-medium"></span></label>
+              <select>
+                <option>过境</option>
+                <option>中转</option>
+                <option>通运</option>
+                <option>直通</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>境内运输方式 <span class="confidence-dot confidence-high"></span></label>
+              <select>
+                <option>铁路运输</option>
+                <option>公路运输</option>
+                <option>航空运输</option>
+                <option>水路运输</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>预录入编号 <span class="confidence-dot confidence-high"></span></label>
+              <input type="text" value="2002029999509318">
+            </div>
+            <div class="form-group">
+              <label>申报单编号</label>
+              <input type="text" placeholder="海关填写" disabled style="opacity:0.5">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CARGO DETAILS ═══ -->
+      <div class="card">
+        <div class="card-header">
+          <h3>货物明细</h3>
+          <button class="btn btn-ghost" onclick="addCargoRow()">+ 添加货物</button>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:44px">#</th>
+                <th>货物名称</th>
+                <th>提单号</th>
+                <th>集装箱号</th>
+                <th class="number">件数</th>
+                <th class="number">重量(KG)</th>
+                <th>海关关锁号</th>
+                <th class="number">数量</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="cargoTableBody">
+              <tr>
+                <td>1</td>
+                <td><span class="editable" contenteditable>打印机</span> <span class="confidence-dot confidence-high"></span></td>
+                <td>COAU7224940662</td>
+                <td>OOCU7855971</td>
+                <td class="number">116</td>
+                <td class="number">1,247.13</td>
+                <td>14985046</td>
+                <td class="number">1</td>
+                <td><span class="row-action" onclick="this.closest('tr').remove(); updateSummary()">🗑</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td><span class="editable" contenteditable>电脑</span> <span class="confidence-dot confidence-medium"></span></td>
+                <td style="color:var(--muted)">—</td>
+                <td>OOCU7855971</td>
+                <td class="number">105</td>
+                <td class="number">365.05</td>
+                <td>14985046</td>
+                <td class="number">1</td>
+                <td><span class="row-action" onclick="this.closest('tr').remove(); updateSummary()">🗑</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td><span class="editable low-confidence" contenteditable>电饭锅</span> <span class="confidence-dot confidence-low"></span></td>
+                <td style="color:var(--muted)">—</td>
+                <td>OOCU7855971</td>
+                <td class="number">345</td>
+                <td class="number">2,415.22</td>
+                <td>14985046</td>
+                <td class="number">1</td>
+                <td><span class="row-action" onclick="this.closest('tr').remove(); updateSummary()">🗑</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td><span class="editable" contenteditable>电视</span> <span class="confidence-dot confidence-high"></span></td>
+                <td style="color:var(--muted)">—</td>
+                <td>OOCU7855971</td>
+                <td class="number">471</td>
+                <td class="number">4,516.10</td>
+                <td>14985046</td>
+                <td class="number">1</td>
+                <td><span class="row-action" onclick="this.closest('tr').remove(); updateSummary()">🗑</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="summary-row">
+                <td></td>
+                <td><strong>合计</strong></td>
+                <td>提单总数：1</td>
+                <td>集装箱总数：1</td>
+                <td class="number"><strong>1,037</strong></td>
+                <td class="number"><strong>8,543.50</strong></td>
+                <td>—</td>
+                <td class="number"><strong>4</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ AI REVIEW PANEL ═══ -->
+      <div class="ai-panel">
+        <div class="ai-panel-header">
+          <h3>
+            🤖 AI 智能审核
+            <span class="ai-badge">3 个问题</span>
+          </h3>
+          <button class="btn btn-ghost" style="font-size:13px">全部确认</button>
+        </div>
+
+        <!-- Issue 1 -->
+        <div class="ai-issue">
+          <div class="issue-icon warning">⚠️</div>
+          <div class="issue-content">
+            <div class="issue-field">cargo_details[2].cargo_name — 货物名称不确定</div>
+            <div class="issue-desc">单证中该货物的英文名称为 "Rice Cooker"，单证原文为 "RICE COOKER SET"。请确认中文品名应填写「电饭锅」还是「电饭煲」？</div>
+            <div class="issue-reply">
+              <input type="text" placeholder="输入修正值...">
+              <button class="btn-confirm">确认</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue 2 -->
+        <div class="ai-issue">
+          <div class="issue-icon info">ℹ️</div>
+          <div class="issue-content">
+            <div class="issue-field">cargo_summary.bill_of_lading_total — 提单数量待核实</div>
+            <div class="issue-desc">货物明细中有 1 个提单号（COAU7224940662），另有 3 项货物未填写提单号。请确认这些货物是否属于同一提单，还是缺少提单信息？</div>
+            <div class="issue-reply">
+              <input type="text" placeholder="输入提单号或确认...">
+              <button class="btn-confirm">确认</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue 3 (resolved) -->
+        <div class="ai-issue" style="opacity:0.6">
+          <div class="issue-icon success" style="background:#F0FDF4;color:#22C55E;">✓</div>
+          <div class="issue-content">
+            <div class="issue-field">transport_info.customs_transfer_method — 已确认「过境」</div>
+            <div class="issue-desc" style="text-decoration:line-through;color:#94A3B8;">运输方式在单证中未明确标注。根据线路推断为「过境」，是否正确？</div>
+            <div class="issue-desc" style="color:#16A34A;margin-top:4px;">用户确认：该票货物经中国境内铁路从阿拉山口入境，至霍尔果斯出境，确认为过境。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast" id="toast" style="display:none">
+  <span>✓</span> <span id="toastMsg"></span>
+</div>
+
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  }
+
+  function selectDeclaration(el) {
+    document.querySelectorAll('.declaration-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function filterList(query) {
+    document.querySelectorAll('.declaration-item').forEach(item => {
+      const txt = item.textContent.toLowerCase();
+      item.style.display = txt.includes(query.toLowerCase()) ? '' : 'none';
+    });
+  }
+
+  function newDeclaration() {
+    showToast('已创建新申报单（草稿）');
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  }
+
+  function handleFiles(files) {
+    const container = document.getElementById('fileTags');
+    Array.from(files).forEach(f => {
+      const tag = document.createElement('span');
+      tag.className = 'file-tag';
+      tag.innerHTML = `📄 ${f.name} <span class="remove-btn" onclick="this.parentElement.remove()">&times;</span>`;
+      container.appendChild(tag);
+    });
+    showToast(`已添加 ${files.length} 个文件，点击「AI 提取数据」开始处理`);
+  }
+
+  function addCargoRow() {
+    const tbody = document.getElementById('cargoTableBody');
+    const row = tbody.insertRow();
+    const idx = tbody.rows.length;
+    row.innerHTML = `
+      <td>${idx}</td>
+      <td><span class="editable" contenteditable>新货物</span></td>
+      <td style="color:var(--muted)">—</td>
+      <td style="color:var(--muted)">—</td>
+      <td class="number">0</td>
+      <td class="number">0.00</td>
+      <td style="color:var(--muted)">—</td>
+      <td class="number">1</td>
+      <td><span class="row-action" onclick="this.closest('tr').remove(); updateSummary()">🗑</span></td>
+    `;
+    updateSummary();
+  }
+
+  function updateSummary() {
+    showToast('货物明细已更新，汇总数据已重新计算');
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.style.display = 'flex';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+</script>
+
+</body>
+</html>
