@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
+import AboutModal from './components/AboutModal'
 
 export interface DeclarationItem {
   id: string
@@ -46,6 +47,7 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [ready, setReady] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -158,9 +160,10 @@ export default function App() {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         onNewDeclaration={handleNewDeclaration}
         onExitDeclaration={handleExitDeclaration}
-        onShowAbout={() => window.api?.showAbout?.()}
+        onShowAbout={() => setAboutOpen(true)}
       />
       <Workspace declaration={activeDeclaration} />
+      <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   )
 }
