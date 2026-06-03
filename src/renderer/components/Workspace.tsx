@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { DeclarationItem } from '../App'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
@@ -70,6 +70,42 @@ export default function Workspace({ declaration }: WorkspaceProps) {
   const [confidenceMap, setConfidenceMap] = useState<Record<number, Record<string, string>>>({})
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
   const [toast, setToast] = useState<string | null>(null)
+
+  // Load existing declaration data when switching declarations
+  useEffect(() => {
+    if (!declaration?.id) return
+    let cancelled = false
+
+    const loadData = async () => {
+      try {
+        if (window.api?.getDeclaration) {
+          const result = await window.api.getDeclaration(declaration.id)
+          if (cancelled || !result?.data) return
+          const d = result.data
+          setTransportForm({
+            entry_exit_transport_tool_name: d.transport_info?.entry_exit_transport_tool_name || '',
+            voyage_flight_number: d.transport_info?.voyage_flight_number || '',
+            customs_transfer_method: d.transport_info?.customs_transfer_method || '过境',
+            domestic_transport_method: d.transport_info?.domestic_transport_method || '铁路运输',
+            pre_entry_number: d.pre_entry_number || '',
+          })
+          const details = result.cargo_details || []
+          if (details.length > 0) {
+            setCargoDetails(details)
+          } else if (d.cargo_details?.length > 0) {
+            setCargoDetails(d.cargo_details.map((cd: any, i: number) => ({
+              ...cd, id: cd.id || '', declaration_id: declaration.id, sort_order: i,
+            })))
+          }
+        }
+      } catch (err: any) {
+        console.error('Failed to load declaration data:', err)
+      }
+    }
+    loadData()
+
+    return () => { cancelled = true }
+  }, [declaration?.id])
 
   const showToast = (msg: string) => {
     setToast(msg)

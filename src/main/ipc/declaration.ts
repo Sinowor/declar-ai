@@ -1,4 +1,6 @@
-import { ipcMain } from 'electron'
+import { ipcMain, app } from 'electron'
+import { existsSync, unlinkSync, rmSync } from 'fs'
+import * as path from 'path'
 import { getDb, uuid } from '../db'
 
 const EMPTY_DATA = {
@@ -32,7 +34,6 @@ export function registerDeclarationIpc() {
     if (search) {
       query = `SELECT id, type, status, data, created_at, updated_at FROM declarations
         WHERE data LIKE ? ORDER BY updated_at DESC`
-      // Escape SQLite LIKE wildcards so % and _ match literally
       const escaped = search.replace(/[%_]/g, '\\$&')
       params.push(`%${escaped}%`)
     }
@@ -71,10 +72,7 @@ export function registerDeclarationIpc() {
   ipcMain.handle('declaration:create', () => {
     const id = uuid()
     db.prepare('INSERT INTO declarations (id, type, status, data) VALUES (?, ?, ?, ?)').run(
-      id,
-      'transit_transport',
-      'draft',
-      JSON.stringify(EMPTY_DATA)
+      id, 'transit_transport', 'draft', JSON.stringify(EMPTY_DATA)
     )
     return { id, status: 'draft', data: EMPTY_DATA }
   })
@@ -87,13 +85,47 @@ export function registerDeclarationIpc() {
     if (!d.transport_info || !Array.isArray(d.cargo_details)) {
       return { success: false, error: '数据缺少必要字段（transport_info 或 cargo_details）' }
     }
-    db.prepare(
-      "UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?"
-    ).run(JSON.stringify(data), id)
+
+    const updateTx = db.transaction(() => {
+      db.prepare(
+        "UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?"
+      ).run(JSON.stringify(data), id)
+
+      db.prepare('DELETE FROM cargo_details WHERE declaration_id = ?').run(id)
+      const insertCargo = db.prepare(
+        `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
+          container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      const details = d.cargo_details || []
+      for (let i = 0; i < details.length; i++) {
+        const cd = details[i]
+        insertCargo.run(
+          uuid(), id,
+          cd.domestic_transport_tool_name || null,
+          cd.bill_of_lading_number || null,
+          cd.container_number || null,
+          cd.cargo_name || null,
+          cd.pieces || 0, cd.weight || 0,
+          cd.customs_lock_number || null,
+          cd.quantity || 1, i
+        )
+      }
+    })
+    updateTx()
+
     return { success: true }
   })
 
   ipcMain.handle('declaration:delete', (_event, id: string) => {
+    // Clean up physical files before cascade delete
+    const files = db.prepare('SELECT file_path FROM declaration_files WHERE declaration_id = ?').all(id) as any[]
+    for (const f of files) {
+      try { if (existsSync(f.file_path)) unlinkSync(f.file_path) } catch {}
+    }
+    const storageDir = path.join(app.getPath('userData'), 'files', id)
+    try { if (existsSync(storageDir)) rmSync(storageDir, { recursive: true }) } catch {}
+
     db.prepare('DELETE FROM declarations WHERE id = ?').run(id)
     return { success: true }
   })

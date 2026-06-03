@@ -49,13 +49,22 @@ export async function extractText(filePath: string): Promise<string> {
   }
 }
 
+let pdfjsWorkerSet = false
+
 async function extractPdfText(filePath: string): Promise<string> {
   try {
     const pdfjsLib = await import('pdfjs-dist')
-    pdfjsLib.GlobalWorkerOptions.workerSrc = require('path').join(
-      require('path').dirname(require.resolve('pdfjs-dist')),
-      'pdf.worker.mjs'
-    )
+    if (!pdfjsWorkerSet) {
+      try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = require('path').join(
+          require('path').dirname(require.resolve('pdfjs-dist')),
+          'pdf.worker.mjs'
+        )
+        pdfjsWorkerSet = true
+      } catch {
+        // Worker path resolution failed, pdfjs will use fake worker
+      }
+    }
     const data = new Uint8Array(readFileSync(filePath))
     const doc = await pdfjsLib.getDocument({ data }).promise
 

@@ -43,7 +43,7 @@ export default function FileDropZone({
         }
       }
     },
-    [onFilesImported]
+    [onFilesImported, declarationId]
   )
 
   const handleClick = async () => {
@@ -53,7 +53,8 @@ export default function FileDropZone({
         const result = await window.api.importFiles(declarationId, paths)
         onFilesImported(result)
       }
-    } catch {
+    } catch (err: any) {
+      console.error('File dialog/import error:', err)
       fileInputRef.current?.click()
     }
   }

@@ -75,7 +75,8 @@ export interface AiConversation {
   created_at: string
 }
 
-export type DeclarationType = 'transit_transport' | 'import_declaration' | 'inventory_list'
+export type DeclarationType = 'transit_transport'
+// Future types to add: 'import_declaration' | 'inventory_list'
 
 export type DeclarationStatus = 'draft' | 'processing' | 'review' | 'done' | 'error'
 
