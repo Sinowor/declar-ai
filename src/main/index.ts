@@ -1,9 +1,22 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import * as path from 'path'
+import { getDb, closeDb } from './db'
+import { loadEnv } from './config'
+import { registerDeclarationIpc } from './ipc/declaration'
+import { registerSchemaIpc } from './ipc/schema'
+import { registerAppIpc } from './ipc/app'
 
 const isDev = process.env.NODE_ENV === 'development'
 
 let mainWindow: BrowserWindow | null = null
+
+function initApp() {
+  loadEnv()
+  getDb()
+  registerDeclarationIpc()
+  registerSchemaIpc()
+  registerAppIpc()
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -33,7 +46,14 @@ function createWindow() {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  initApp()
+  createWindow()
+})
+
+app.on('before-quit', () => {
+  closeDb()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
