@@ -1,4 +1,5 @@
 import type { DeclarationItem } from '../App'
+import { IconSearch, IconChevronLeft, IconPlus } from './Icons'
 
 const statusBadge: Record<string, { label: string; className: string }> = {
   draft: { label: '草稿', className: 'bg-slate-100 text-slate-500' },
@@ -64,7 +65,7 @@ export default function Sidebar({
               display: 'inline-block',
             }}
           >
-            ◀
+            <IconChevronLeft />
           </span>
         </button>
       </div>
@@ -73,8 +74,8 @@ export default function Sidebar({
         <>
           {/* Search */}
           <div className="px-4 pb-3 shrink-0 relative">
-            <span className="absolute left-7 top-1/2 -translate-y-1/2 text-muted text-sm">
-              🔍
+            <span className="absolute left-7 top-1/2 -translate-y-1/2 text-muted">
+              <IconSearch />
             </span>
             <input
               type="text"
@@ -94,7 +95,7 @@ export default function Sidebar({
           >
             {isLocked && (
               <div className="flex items-center justify-center gap-1.5 py-3 text-xs text-muted">
-                🔒 当前正在编辑中
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> 当前正在编辑中
               </div>
             )}
             {declarations.map((d) => {
@@ -126,7 +127,7 @@ export default function Sidebar({
             })}
             {declarations.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-muted text-sm gap-2">
-                <span className="text-2xl opacity-30">📋</span>
+                <IconList />
                 <span>暂无申报单</span>
               </div>
             )}
@@ -146,7 +147,7 @@ export default function Sidebar({
                 onClick={onNewDeclaration}
                 className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-all"
               >
-                <span>+</span> 新建申报单
+                <IconPlus /><span>新建申报单</span>
               </button>
             )}
           </div>

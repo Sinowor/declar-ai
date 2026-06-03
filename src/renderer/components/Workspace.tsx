@@ -3,6 +3,7 @@ import type { DeclarationItem } from '../App'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
 import AiReviewPanel from './AiReviewPanel'
+import { IconSave, IconAI } from './Icons'
 
 interface TransportFormData {
   entry_exit_transport_tool_name: string
@@ -333,7 +334,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     return (
       <main className="flex-1 flex items-center justify-center bg-surface">
         <div className="text-center py-20">
-          <div className="text-5xl mb-4 opacity-20">📑</div>
+          <div className="flex justify-center mb-4"><IconDocument /></div>
           <h3 className="text-lg font-semibold mb-2">选择一个申报单</h3>
           <p className="text-muted text-sm max-w-sm mx-auto">
             从左侧列表中选择一个申报单开始编辑，或点击「新建申报单」创建新的转关运输货物申报单。
@@ -367,7 +368,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
             disabled={isSaving}
             className={`h-[38px] px-5 rounded-sm bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isSaving ? '⏳ 保存中...' : '💾 保存草稿'}
+            {isSaving ? '保存中...' : <><IconSave /><span>保存草稿</span></>}
           </button>
           <button
             onClick={handleAIExtract}
@@ -379,7 +380,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
                 : 'bg-primary-500 hover:bg-primary-600 pulse-ai'
             }`}
           >
-            {isExtracting ? '⏳ 提取中...' : '🤖 AI 提取数据'}
+            {isExtracting ? '提取中...' : <><IconAI /><span>AI 提取数据</span></>}
           </button>
         </div>
       </div>

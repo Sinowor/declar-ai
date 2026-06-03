@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconAI, IconSparkle } from './Icons'
 
 interface ReviewIssue {
   id?: string
@@ -19,9 +20,9 @@ interface AiReviewPanelProps {
 }
 
 const severityColors: Record<string, { icon: string; bg: string; color: string }> = {
-  high: { icon: '⚠️', bg: 'bg-red-50', color: 'text-red-500' },
-  medium: { icon: 'ℹ️', bg: 'bg-amber-50', color: 'text-amber-500' },
-  low: { icon: '💡', bg: 'bg-sky-50', color: 'text-sky-500' },
+  high: { icon: '!', bg: 'bg-red-50', color: 'text-red-500' },
+  medium: { icon: 'i', bg: 'bg-amber-50', color: 'text-amber-500' },
+  low: { icon: '?', bg: 'bg-sky-50', color: 'text-sky-500' },
 }
 
 const severityLabels: Record<string, string> = {
@@ -53,7 +54,7 @@ export default function AiReviewPanel({
       <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
         <div className="px-6 py-[18px] bg-gradient-to-br from-violet-50 via-blue-50 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            🤖 AI 智能审核
+            <IconAI /><span>AI 智能审核</span>
           </h3>
           <button
             onClick={onStartReview}
@@ -64,7 +65,7 @@ export default function AiReviewPanel({
           </button>
         </div>
         <div className="px-6 py-12 text-center text-muted text-sm">
-          <div className="text-3xl mb-2 opacity-20">{reviewCompleted ? '✅' : '✨'}</div>
+          <div className="flex justify-center mb-2">{reviewCompleted ? <span className="text-3xl opacity-20">✓</span> : <IconSparkle />}</div>
           {isReviewing
             ? 'AI 正在审核申报单数据...'
             : reviewCompleted
@@ -118,7 +119,7 @@ export default function AiReviewPanel({
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5 ${sev.bg} ${sev.color}`}
               >
-                {isResolved ? '✓' : sev.icon}
+                {isResolved ? <span className="font-bold">&#10003;</span> : <span className="font-bold">{sev.icon}</span>}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
@@ -133,11 +134,11 @@ export default function AiReviewPanel({
                   {issue.question}
                 </p>
                 {issue.suggestion && !isResolved && (
-                  <p className="text-[12px] text-sky-600 mt-1">💡 {issue.suggestion}</p>
+                  <p className="text-[12px] text-sky-600 mt-1">→ {issue.suggestion}</p>
                 )}
                 {isResolved && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-600">
-                    ✓ 已处理
+                    &#10003; 已处理
                   </span>
                 )}
                 {isResolved && answers[i] && (

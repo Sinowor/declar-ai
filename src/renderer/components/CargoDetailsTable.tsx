@@ -1,3 +1,5 @@
+import { IconTrash, IconBox } from './Icons'
+
 interface CargoDetail {
   id: string
   declaration_id: string
@@ -127,7 +129,7 @@ export default function CargoDetailsTable({
                 <td className="px-3.5 py-3">{renderInput(i, 'quantity', d.quantity, 'w-20', undefined, '1')}</td>
                 <td className="px-2 py-3">
                   {details.length > 1 && (
-                    <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-all" title="删除行">🗑</button>
+                    <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-all" title="删除行"><IconTrash /></button>
                   )}
                 </td>
               </tr>
@@ -135,7 +137,7 @@ export default function CargoDetailsTable({
             {details.length === 0 && (
               <tr>
                 <td colSpan={columns.length + 1} className="px-3.5 py-16 text-center text-muted text-sm">
-                  <div className="text-3xl mb-2 opacity-20">📦</div>
+                  <div className="flex justify-center mb-2"><IconBox /></div>
                   点击「AI 提取数据」自动填充，或点击「+ 添加货物」手动录入
                 </td>
               </tr>

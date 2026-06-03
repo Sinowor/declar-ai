@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { IconFile } from './Icons'
 
 interface ImportedFile {
   id?: string
@@ -77,7 +78,7 @@ export default function FileDropZone({
           onDrop={handleDrop}
           onClick={handleClick}
         >
-          <div className="text-[40px] mb-3 opacity-40">📎</div>
+          <div className="flex justify-center mb-3"><IconFile /></div>
           <div className="font-semibold text-[15px] mb-1.5">
             拖拽单证文件到此处
           </div>
@@ -117,7 +118,7 @@ export default function FileDropZone({
                     : 'bg-white border-gray-200'
                 }`}
               >
-                {f.error ? '⚠️' : '📄'} {f.file_name}
+                {f.error ? '!' : ''} {f.file_name}
                 <button
                   className="text-muted text-base leading-none cursor-pointer hover:text-red-500 ml-0.5"
                   onClick={() => onRemoveFile(i, f.id)}
