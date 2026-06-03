@@ -3,7 +3,7 @@ import type { DeclarationItem } from '../App'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
 import AiReviewPanel from './AiReviewPanel'
-import { IconSave, IconAI } from './Icons'
+import { IconSave, IconAI, IconDocument } from './Icons'
 
 interface TransportFormData {
   entry_exit_transport_tool_name: string

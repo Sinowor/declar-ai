@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
-import { IconDocument } from './components/Icons'
 
 export interface DeclarationItem {
   id: string
