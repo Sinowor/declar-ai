@@ -91,8 +91,8 @@ export default function CargoDetailsTable({
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-        <h3 className="text-base font-semibold">货物明细</h3>
+      <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
+        <h3 className="text-lg font-semibold">货物明细</h3>
         <button
           onClick={addRow}
           className="h-8 px-3 rounded-lg text-muted text-sm font-medium hover:text-ink hover:bg-surface transition-all cursor-pointer border-none bg-transparent"
@@ -141,7 +141,7 @@ export default function CargoDetailsTable({
           </tbody>
           {details.length > 0 && (
             <tfoot>
-              <tr className="border-t-2 border-gray-200 bg-violet-50 font-bold text-primary-700">
+              <tr className="border-t-2 border-gray-200 bg-[#FAFAFE] font-bold text-primary-600">
                 <td className="px-3.5 py-3 font-semibold text-left" colSpan={2}>合计</td>
                 <td className="px-3.5 py-3" />
                 <td className="px-3.5 py-3 text-xs text-muted">提单: {uniqueBills}</td>

@@ -66,8 +66,8 @@ export default function FileDropZone({
         <div
           className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
             dragOver
-              ? 'border-primary-500 bg-primary-50 shadow-[0_0_0_4px_rgba(109,94,247,0.06)]'
-              : 'border-gray-300 bg-surface hover:border-primary-500 hover:bg-primary-50'
+              ? 'border-primary-500 border-solid bg-primary-50 shadow-[0_0_0_4px_rgba(109,94,247,0.06)]'
+              : 'border-gray-300 bg-surface hover:border-primary-500 hover:border-solid hover:bg-primary-50 hover:shadow-[0_0_0_4px_rgba(109,94,247,0.06)]'
           }`}
           onDragOver={(e) => {
             e.preventDefault()

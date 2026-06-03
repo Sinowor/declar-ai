@@ -348,14 +348,14 @@ export default function Workspace({ declaration }: WorkspaceProps) {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`h-[38px] px-5 rounded-lg bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`h-[38px] px-5 rounded-sm bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isSaving ? '⏳ 保存中...' : '💾 保存草稿'}
           </button>
           <button
             onClick={handleAIExtract}
             disabled={isExtracting || files.length === 0}
-            className={`h-[38px] px-5 rounded-lg text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-all ${
+            className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-all ${
               files.length === 0
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-primary-500 hover:bg-primary-600 pulse-ai'
@@ -378,8 +378,8 @@ export default function Workspace({ declaration }: WorkspaceProps) {
 
         {/* Transport Info Form */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 className="text-base font-semibold">运输信息</h3>
+          <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
+            <h3 className="text-lg font-semibold">运输信息</h3>
             {declaration.status !== 'draft' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-500">
                 🤖 AI 已提取

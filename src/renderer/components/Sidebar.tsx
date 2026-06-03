@@ -36,8 +36,8 @@ export default function Sidebar({
   return (
     <aside
       style={{
-        width: collapsed ? 52 : 280,
-        minWidth: collapsed ? 52 : 280,
+        width: collapsed ? 48 : 280,
+        minWidth: collapsed ? 48 : 280,
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
       className="flex flex-col bg-white border-r border-gray-200 z-10"
@@ -46,7 +46,7 @@ export default function Sidebar({
       <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
         {!collapsed && (
           <div className="flex items-center gap-2.5 font-bold text-lg whitespace-nowrap">
-            <div className="w-[34px] h-[34px] rounded-[10px] bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-[15px]">
+            <div className="w-[34px] h-[34px] rounded-md bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white text-[15px]">
               D
             </div>
             <span>DeclarAI</span>
@@ -81,7 +81,7 @@ export default function Sidebar({
               placeholder="搜索申报单..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full h-9 rounded-lg border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-all"
+              className="w-full h-9 rounded-md border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-all"
             />
           </div>
 
@@ -101,7 +101,7 @@ export default function Sidebar({
                 <div
                   key={d.id}
                   onClick={() => onSelect(d.id)}
-                  className={`px-3.5 py-3 rounded-[10px] cursor-pointer transition-all mb-1 border border-transparent ${
+                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 border border-transparent ${
                     isActive
                       ? 'bg-primary-50 border-primary-500 shadow-[inset_3px_0_0_#6D5EF7]'
                       : 'hover:bg-surface'
@@ -134,14 +134,14 @@ export default function Sidebar({
             {isLocked ? (
               <button
                 onClick={onExitDeclaration}
-                className="w-full h-10 rounded-lg border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-all"
+                className="w-full h-10 rounded-sm border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-all"
               >
                 ← 退出当前申报单
               </button>
             ) : (
               <button
                 onClick={onNewDeclaration}
-                className="w-full h-10 rounded-lg bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-all"
+                className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-all"
               >
                 <span>+</span> 新建申报单
               </button>

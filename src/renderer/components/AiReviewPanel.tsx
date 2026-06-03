@@ -47,15 +47,15 @@ export default function AiReviewPanel({
   if (issues.length === 0 && !isReviewing) {
     return (
       <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-br from-violet-50 via-blue-50 to-slate-50 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-[15px] font-semibold flex items-center gap-2">
+        <div className="px-6 py-[18px] bg-gradient-to-br from-violet-50 via-blue-50 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
             🤖 AI 智能审核
           </h3>
           {issues.length === 0 ? (
             <button
               onClick={onStartReview}
               disabled={isReviewing}
-              className="h-7 px-3 rounded-full bg-primary-500 text-white text-xs font-semibold cursor-pointer border-none hover:bg-primary-600 transition-all disabled:opacity-50"
+              className="h-7 px-3 rounded-full bg-white text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-all disabled:opacity-50"
             >
               {isReviewing ? '审核中...' : '开始审核'}
             </button>
@@ -77,8 +77,8 @@ export default function AiReviewPanel({
 
   return (
     <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-br from-violet-50 via-blue-50 to-slate-50 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-[15px] font-semibold flex items-center gap-2">
+      <div className="px-6 py-[18px] bg-gradient-to-br from-violet-50 via-blue-50 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
           🤖 AI 智能审核
         </h3>
         <div className="flex items-center gap-2">
@@ -141,14 +141,14 @@ export default function AiReviewPanel({
                         setAnswers({ ...answers, [i]: e.target.value })
                       }
                       placeholder="输入您的答复..."
-                      className="flex-1 h-9 rounded-lg border border-gray-200 px-3 text-[13px] outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 font-sans"
+                      className="flex-1 h-9 rounded-md border border-gray-200 px-3 text-[13px] outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 font-sans"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleConfirm(i)
                       }}
                     />
                     <button
                       onClick={() => handleConfirm(i)}
-                      className="h-9 px-4 rounded-lg bg-primary-500 text-white border-none text-[13px] font-semibold cursor-pointer hover:bg-primary-600 transition-all whitespace-nowrap"
+                      className="h-9 px-4 rounded-sm bg-primary-500 text-white border-none text-[13px] font-semibold cursor-pointer hover:bg-primary-600 transition-all whitespace-nowrap"
                     >
                       确认
                     </button>
