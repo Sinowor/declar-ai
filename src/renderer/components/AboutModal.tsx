@@ -37,9 +37,7 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
               github.com/Sinowor/declar-ai
             </a>
           </p>
-          <p>
-            <span className="text-muted">MIT License</span>
-          </p>
+          <p className="text-muted">专有软件许可 — 保留所有权利</p>
         </div>
         <button
           onClick={onClose}

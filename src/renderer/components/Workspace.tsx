@@ -3,6 +3,7 @@ import type { DeclarationItem } from '../App'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
 import AiReviewPanel from './AiReviewPanel'
+import DeclarationPreview from './DeclarationPreview'
 import { IconSave, IconAI, IconDocument } from './Icons'
 
 interface TransportFormData {
@@ -63,24 +64,9 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     draft: '草稿', processing: 'AI 提取中', review: '待人工确认', done: '已完成', error: '有错误',
   }
 
-  // Preview mode: selected but not editing
+  // Preview mode: selected but not editing → show full read-only details
   if (!isEditing && selectedDeclaration && !declaration) {
-    return (
-      <main className="flex-1 flex items-center justify-center bg-surface">
-        <div className="text-center py-20 max-w-md">
-          <div className="flex justify-center mb-4"><IconDocument /></div>
-          <h3 className="text-lg font-semibold mb-2">{selectedDeclaration.preEntryNumber || '未编号申报单'}</h3>
-          <p className="text-muted text-sm mb-2">{selectedDeclaration.transportName}</p>
-          <p className="text-muted text-xs mb-6">状态：{statusLabels[selectedDeclaration.status]}</p>
-          <button
-            onClick={onEnterEdit}
-            className="h-10 px-6 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-2 hover:bg-primary-600 transition-all"
-          >
-            进入编辑
-          </button>
-        </div>
-      </main>
-    )
+    return <DeclarationPreview declaration={selectedDeclaration} onEnterEdit={onEnterEdit} />
   }
 
   // No selection at all

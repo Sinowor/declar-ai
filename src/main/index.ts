@@ -4,7 +4,7 @@ import { closeDb } from './db'
 import { loadEnv } from './config'
 import { registerDeclarationIpc } from './ipc/declaration'
 import { registerSchemaIpc } from './ipc/schema'
-import { registerAppIpc } from './ipc/app'
+import { registerAppIpc, setupAppMenu } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
 import { registerAIIpc } from './ipc/ai'
 
@@ -14,6 +14,7 @@ let mainWindow: BrowserWindow | null = null
 
 async function initApp() {
   loadEnv()
+  setupAppMenu()
   registerSchemaIpc()
   registerAppIpc()
   await registerDeclarationIpc()

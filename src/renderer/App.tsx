@@ -77,6 +77,13 @@ export default function App() {
 
   useEffect(() => { loadDeclarations() }, [loadDeclarations])
 
+  // Listen for About menu event from Electron
+  useEffect(() => {
+    if (window.api?.onOpenAbout) {
+      return window.api.onOpenAbout(() => setAboutOpen(true))
+    }
+  }, [])
+
   const editingDeclaration = editingId ? declarations.find(d => d.id === editingId) || null : null
   const selectedDeclaration = selectedId ? declarations.find(d => d.id === selectedId) || null : null
 
