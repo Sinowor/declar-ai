@@ -14,6 +14,8 @@ interface AiReviewPanelProps {
   onAnswer: (index: number, answer: string) => void
   isReviewing: boolean
   onStartReview: () => void
+  reviewCompleted: boolean
+  onConfirmAll?: () => void
 }
 
 const severityColors: Record<string, { icon: string; bg: string; color: string }> = {
@@ -33,6 +35,8 @@ export default function AiReviewPanel({
   onAnswer,
   isReviewing,
   onStartReview,
+  reviewCompleted,
+  onConfirmAll,
 }: AiReviewPanelProps) {
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [resolved, setResolved] = useState<Set<number>>(new Set())
@@ -51,25 +55,21 @@ export default function AiReviewPanel({
           <h3 className="text-lg font-semibold flex items-center gap-2">
             🤖 AI 智能审核
           </h3>
-          {issues.length === 0 ? (
-            <button
-              onClick={onStartReview}
-              disabled={isReviewing}
-              className="h-7 px-3 rounded-full bg-white text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-all disabled:opacity-50"
-            >
-              {isReviewing ? '审核中...' : '开始审核'}
-            </button>
-          ) : (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-600">
-              {issues.length} 个问题
-            </span>
-          )}
+          <button
+            onClick={onStartReview}
+            disabled={isReviewing}
+            className="h-7 px-3 rounded-full bg-white text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-all disabled:opacity-50"
+          >
+            {isReviewing ? '审核中...' : reviewCompleted ? '重新审核' : '开始审核'}
+          </button>
         </div>
         <div className="px-6 py-12 text-center text-muted text-sm">
-          <div className="text-3xl mb-2 opacity-20">✨</div>
+          <div className="text-3xl mb-2 opacity-20">{reviewCompleted ? '✅' : '✨'}</div>
           {isReviewing
             ? 'AI 正在审核申报单数据...'
-            : '点击「开始审核」让 AI 检查数据完整性和一致性'}
+            : reviewCompleted
+              ? 'AI 未发现明显问题，数据质量良好'
+              : '点击「开始审核」让 AI 检查数据完整性和一致性'}
         </div>
       </div>
     )
@@ -85,6 +85,14 @@ export default function AiReviewPanel({
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-600">
             {issues.length - resolved.size} 个待处理
           </span>
+          {onConfirmAll && issues.length - resolved.size > 0 && (
+            <button
+              onClick={onConfirmAll}
+              className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-all"
+            >
+              全部确认
+            </button>
+          )}
           <button
             onClick={onStartReview}
             disabled={isReviewing}
@@ -126,6 +134,11 @@ export default function AiReviewPanel({
                 </p>
                 {issue.suggestion && !isResolved && (
                   <p className="text-[12px] text-sky-600 mt-1">💡 {issue.suggestion}</p>
+                )}
+                {isResolved && (
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-600">
+                    ✓ 已处理
+                  </span>
                 )}
                 {isResolved && answers[i] && (
                   <p className="text-[13px] text-emerald-600 mt-1 font-medium">

@@ -86,6 +86,9 @@ export default function Sidebar({
           </div>
 
           {/* List */}
+          <div className="px-3 pb-1 text-xs text-muted">
+            共 {declarations.length} 份申报单
+          </div>
           <div
             className={`flex-1 overflow-y-auto px-3 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
           >

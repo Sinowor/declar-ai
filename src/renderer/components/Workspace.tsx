@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { DeclarationItem } from '../App'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
@@ -68,8 +68,9 @@ export default function Workspace({ declaration }: WorkspaceProps) {
   })
   const [cargoDetails, setCargoDetails] = useState<CargoDetailData[]>([])
   const [confidenceMap, setConfidenceMap] = useState<Record<number, Record<string, string>>>({})
+  const [reviewCompleted, setReviewCompleted] = useState(false)
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
-  const [toast, setToast] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null)
 
   // Load existing declaration data when switching declarations
   useEffect(() => {
@@ -140,20 +141,8 @@ export default function Workspace({ declaration }: WorkspaceProps) {
     return () => { cancelled = true }
   }, [declaration?.id])
 
-  // Ctrl/Cmd+S keyboard shortcut for save
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        handleSave()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [])
-
-  const showToast = (msg: string) => {
-    setToast(msg)
+  const showToast = (msg: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ msg, type })
     setTimeout(() => setToast(null), 2500)
   }
 
@@ -199,15 +188,29 @@ export default function Workspace({ declaration }: WorkspaceProps) {
         if (result.success) {
           showToast('保存成功')
         } else {
-          showToast(`保存失败: ${result.error}`)
+          showToast(`保存失败: ${result.error}`, 'error')
         }
       }
     } catch (err: any) {
-      showToast(`保存错误: ${err.message}`)
+      showToast(`保存错误: ${err.message}`, 'error')
     } finally {
       setIsSaving(false)
     }
   }, [declaration, isSaving, buildDeclarationData])
+
+  // Ctrl/Cmd+S keyboard shortcut for save (after handleSave defined)
+  const handleSaveRef = useRef(handleSave)
+  handleSaveRef.current = handleSave
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        handleSaveRef.current()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const handleFilesImported = useCallback((newFiles: ImportedFileItem[]) => {
     setFiles((prev) => [...prev, ...newFiles])
@@ -263,11 +266,11 @@ export default function Workspace({ declaration }: WorkspaceProps) {
           }
           showToast('AI 提取完成，数据已填充')
         } else {
-          showToast(`提取失败: ${result.error}`)
+          showToast(`提取失败: ${result.error}`, 'error')
         }
       }
     } catch (err: any) {
-      showToast(`错误: ${err.message}`)
+      showToast(`错误: ${err.message}`, 'error')
     } finally {
       setIsExtracting(false)
     }
@@ -287,13 +290,27 @@ export default function Workspace({ declaration }: WorkspaceProps) {
           showToast('审核完成，未发现问题')
           setReviewIssues([])
         }
+        setReviewCompleted(true)
       }
     } catch (err: any) {
-      showToast(`审核错误: ${err.message}`)
+      showToast(`审核错误: ${err.message}`, 'error')
     } finally {
       setIsReviewing(false)
     }
   }, [declaration])
+
+  const handleConfirmAll = useCallback(async () => {
+    // Confirm all pending issues with a default answer
+    for (let i = 0; i < reviewIssues.length; i++) {
+      if (!reviewIssues[i].id) continue
+      try {
+        if (window.api?.aiAnswer) {
+          await window.api.aiAnswer(reviewIssues[i].id!, '已确认，数据无误')
+        }
+      } catch {}
+    }
+    showToast('全部问题已确认')
+  }, [reviewIssues])
 
   const handleReviewAnswer = useCallback(async (index: number, answer: string) => {
     const issue = reviewIssues[index]
@@ -304,11 +321,11 @@ export default function Workspace({ declaration }: WorkspaceProps) {
         if (result.success) {
           showToast('答复已记录')
         } else {
-          showToast(`保存失败: ${result.error}`)
+          showToast(`保存失败: ${result.error}`, 'error')
         }
       }
     } catch (err: any) {
-      showToast(`保存答复失败: ${err.message}`)
+      showToast(`保存答复失败: ${err.message}`, 'error')
     }
   }, [reviewIssues])
 
@@ -355,6 +372,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
           <button
             onClick={handleAIExtract}
             disabled={isExtracting || files.length === 0}
+            title={files.length === 0 ? '请先导入单证文件' : ''}
             className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-all ${
               files.length === 0
                 ? 'bg-gray-300 cursor-not-allowed'
@@ -391,7 +409,7 @@ export default function Workspace({ declaration }: WorkspaceProps) {
               {formFields.map((f) => (
                 <div key={f.key} className="flex flex-col gap-1.5">
                   <label className="text-[14px] font-medium text-muted uppercase tracking-wider">
-                    {f.label}
+                    {f.label}{f.key === 'entry_exit_transport_tool_name' || f.key === 'pre_entry_number' ? <span className="text-red-400 ml-0.5">*</span> : null}
                   </label>
                   {f.type === 'select' ? (
                     <select
@@ -444,6 +462,8 @@ export default function Workspace({ declaration }: WorkspaceProps) {
           onAnswer={handleReviewAnswer}
           isReviewing={isReviewing}
           onStartReview={handleAIReview}
+          reviewCompleted={reviewCompleted}
+          onConfirmAll={handleConfirmAll}
         />
 
         <div className="pb-4" />
@@ -451,9 +471,9 @@ export default function Workspace({ declaration }: WorkspaceProps) {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-ink text-white px-6 py-3 rounded-xl text-sm font-medium z-[100] shadow-[0_20px_48px_rgba(15,23,42,0.2)] flex items-center gap-2">
-          <span>✓</span>
-          <span>{toast}</span>
+        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-ink text-white px-6 py-3 rounded-xl text-sm font-medium z-[100] shadow-[0_20px_48px_rgba(15,23,42,0.2)] flex items-center gap-2">
+          <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✗' : 'ℹ️'}</span>
+          <span>{toast.msg}</span>
         </div>
       )}
     </main>

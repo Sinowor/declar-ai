@@ -118,6 +118,18 @@ export default function App() {
     }
   }
 
+  // ESC key to exit declaration lock mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && activeId) {
+        setActiveId(null)
+        loadDeclarations()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [activeId])
+
   const handleExitDeclaration = async () => {
     setActiveId(null)
     await loadDeclarations()
@@ -126,7 +138,10 @@ export default function App() {
   if (!ready) {
     return (
       <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
-        <div className="text-muted text-sm">加载中...</div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-muted text-sm">加载中...</div>
+        </div>
       </div>
     )
   }

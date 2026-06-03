@@ -126,7 +126,9 @@ export default function CargoDetailsTable({
                 <td className="px-3.5 py-3">{renderInput(i, 'customs_lock_number', d.customs_lock_number, 'w-24')}</td>
                 <td className="px-3.5 py-3">{renderInput(i, 'quantity', d.quantity, 'w-20', undefined, '1')}</td>
                 <td className="px-2 py-3">
-                  <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-all" title="删除行">🗑</button>
+                  {details.length > 1 && (
+                    <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-all" title="删除行">🗑</button>
+                  )}
                 </td>
               </tr>
             ))}
