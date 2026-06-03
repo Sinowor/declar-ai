@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
 import AboutModal from './components/AboutModal'
+import LicenseModal from './components/LicenseModal'
 
 export interface DeclarationItem {
   id: string
@@ -43,6 +44,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [licenseOpen, setLicenseOpen] = useState(false)
   const [ready, setReady] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -82,6 +84,13 @@ export default function App() {
     if (window.api?.onOpenAbout) {
       return window.api.onOpenAbout(() => setAboutOpen(true))
     }
+  }, [])
+
+  // Listen for license view event from About modal
+  useEffect(() => {
+    const handler = () => setLicenseOpen(true)
+    window.addEventListener('app:show-license', handler)
+    return () => window.removeEventListener('app:show-license', handler)
   }, [])
 
   const editingDeclaration = editingId ? declarations.find(d => d.id === editingId) || null : null
@@ -173,6 +182,7 @@ export default function App() {
         isEditing={!!editingId}
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <LicenseModal open={licenseOpen} onClose={() => setLicenseOpen(false)} />
     </div>
   )
 }

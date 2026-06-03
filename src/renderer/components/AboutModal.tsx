@@ -27,17 +27,21 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
         </p>
         <div className="text-xs text-muted space-y-1">
           <p>Copyright 2026 Sinowor</p>
+          <p>专有软件许可 — 保留所有权利</p>
           <p>
-            <a
-              href="https://github.com/Sinowor/declar-ai"
-              className="text-primary-500 hover:underline"
-              target="_blank"
-              rel="noreferrer"
+            <span
+              className="text-primary-500 hover:underline cursor-pointer"
+              onClick={() => {
+                onClose()
+                setTimeout(() => {
+                  const evt = new CustomEvent('app:show-license')
+                  window.dispatchEvent(evt)
+                }, 200)
+              }}
             >
-              github.com/Sinowor/declar-ai
-            </a>
+              查看许可与隐私声明
+            </span>
           </p>
-          <p className="text-muted">专有软件许可 — 保留所有权利</p>
         </div>
         <button
           onClick={onClose}
