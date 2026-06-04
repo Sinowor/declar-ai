@@ -113,29 +113,56 @@ export default function HsClassifier() {
     return (
       <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <style>{`
-          @keyframes breathe { 0%,100% { box-shadow: 0 0 0 0 ${p(0.15)}; } 50% { box-shadow: 0 0 0 24px ${p(0)}; } }
-          @keyframes stepIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-          .pulse-ring { animation: breathe 2s ease-in-out infinite; }
-          .step-enter { animation: stepIn 0.35s ease-out both; }
+          @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+          @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+          @keyframes stepIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+          @keyframes progressBar { from { width: 0%; } to { width: 100%; } }
+          .float-icon { animation: float 3s ease-in-out infinite; }
+          .step-enter { animation: stepIn 0.4s ease-out both; }
         `}</style>
-        <div className="flex flex-col items-center -mt-12">
-          <div className="w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8" style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
+
+        <div className="flex flex-col items-center -mt-8 max-w-[420px] w-full px-8">
+          {/* Animated icon */}
+          <div className="float-icon w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
+            style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})`, boxShadow: `0 8px 32px ${p(0.25)}` }}>
             <span className="text-2xl">🧠</span>
           </div>
-          <div className="text-sm font-medium mb-8 px-4 py-2 rounded-xl" style={{ background: p(0.06), color: theme.primary }}>
-            {input.length > 40 ? input.slice(0, 40) + '...' : input}
+
+          {/* Product name */}
+          <div className="text-[15px] font-semibold mb-8 text-center px-4 py-2 rounded-xl" style={{ background: p(0.04), color: theme.primary }}>
+            {input.length > 50 ? input.slice(0, 50) + '...' : input}
           </div>
-          <div className="flex flex-col gap-3">
+
+          {/* Progress bar */}
+          <div className="w-full h-1 rounded-full mb-8 overflow-hidden" style={{ background: p(0.08) }}>
+            <div className="h-full rounded-full transition-all duration-700 ease-out" style={{
+              background: `linear-gradient(90deg, ${theme.primary}, ${theme.accentForeground})`,
+              width: `${((processingStep + 1) / processingSteps.length) * 100}%`,
+            }} />
+          </div>
+
+          {/* Steps */}
+          <div className="w-full flex flex-col gap-2.5">
             {processingSteps.map((label, i) => {
               const done = processingStep > i; const active = processingStep === i
               return (
-                <div key={label} className="step-enter flex items-center gap-3" style={{ animationDelay: `${i * 0.1}s` }}>
-                  <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all duration-500"
-                    style={done ? { background: p(0.1) } : active ? { background: p(0.08) } : {}}>
-                    {done ? <span style={{ color: theme.primary }}>✓</span> : <span style={{ color: '#94a3b8' }}>{i + 1}</span>}
+                <div key={label} className="step-enter flex items-center gap-3" style={{ animationDelay: `${i * 0.12}s` }}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-500 ${
+                    done ? '' : active ? '' : ''
+                  }`} style={done ? { background: p(0.15), color: theme.primary } : active ? { background: theme.primary, color: '#fff' } : { color: '#cbd5e1' }}>
+                    {done ? '✓' : active ? '' : i + 1}
                   </span>
-                  <span className="text-sm transition-colors duration-500" style={{ color: done || active ? theme.primary : '#94a3b8' }}>{label}</span>
-                  {active && <span className="w-1.5 h-1.5 rounded-full animate-pulse ml-1" style={{ background: theme.primary }} />}
+                  <span className={`text-[13px] transition-colors duration-500 ${active ? 'font-medium' : ''}`}
+                    style={{ color: done ? theme.primary : active ? theme.primary : '#94a3b8' }}>
+                    {label}
+                  </span>
+                  {active && (
+                    <span className="flex gap-1 ml-1">
+                      <span className="w-1 h-1 rounded-full animate-pulse" style={{ background: theme.primary, animationDelay: '0s' }} />
+                      <span className="w-1 h-1 rounded-full animate-pulse" style={{ background: theme.primary, animationDelay: '0.2s' }} />
+                      <span className="w-1 h-1 rounded-full animate-pulse" style={{ background: theme.primary, animationDelay: '0.4s' }} />
+                    </span>
+                  )}
                 </div>
               )
             })}
