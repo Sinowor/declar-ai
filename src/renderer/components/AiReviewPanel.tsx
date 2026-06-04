@@ -52,7 +52,7 @@ export default function AiReviewPanel({
   if (issues.length === 0 && !isReviewing) {
     return (
       <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
-        <div className="px-6 py-[18px] bg-gradient-to-br from-violet-50 via-blue-50 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-[18px] bg-gradient-to-br from-primary-50 via-blue-50/30 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <IconAI /><span>AI 智能审核</span>
           </h3>
@@ -78,7 +78,7 @@ export default function AiReviewPanel({
 
   return (
     <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
-      <div className="px-6 py-[18px] bg-gradient-to-br from-violet-50 via-blue-50 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
+      <div className="px-6 py-[18px] bg-gradient-to-br from-primary-50 via-blue-50/30 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <IconAI /><span>AI 智能审核</span>
         </h3>
