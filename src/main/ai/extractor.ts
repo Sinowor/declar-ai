@@ -26,9 +26,22 @@ export async function runAIExtraction(declarationId: string): Promise<{
   execute("UPDATE declarations SET status = 'processing', updated_at = datetime('now','localtime') WHERE id = ?", [declarationId])
 
   try {
-    const fileContents = files
-      .map((f: any) => `### 文件: ${f.file_name}\n${f.extracted_text || '(文本未提取)'}`)
-      .join('\n\n---\n\n')
+    // Separate unreadable files (error placeholders) from valid content
+    const codeWarnings: Array<{ file_name: string; reason: string }> = []
+    const validFiles = files.filter((f: any) => {
+      const text = f.extracted_text || ''
+      if (text.startsWith('[')) {
+        codeWarnings.push({ file_name: f.file_name, reason: text.replace(/^\[|\]$/g, '') })
+        return false
+      }
+      return true
+    })
+
+    const fileContents = validFiles.length > 0
+      ? validFiles
+          .map((f: any) => `### 文件: ${f.file_name}\n${f.extracted_text || '(文本未提取)'}`)
+          .join('\n\n---\n\n')
+      : '(所有文件均无法解析文本内容)'
 
     const systemPrompt = getExtractionPrompt()
     const client = getAIClient()
@@ -93,6 +106,11 @@ export async function runAIExtraction(declarationId: string): Promise<{
         )
       }
     })
+
+    // Merge code-level file warnings with AI-detected file warnings
+    if (codeWarnings.length > 0) {
+      extractedData.file_warnings = [...codeWarnings, ...(extractedData.file_warnings || [])]
+    }
 
     // Auto-run review after successful extraction
     let issues: ReviewIssue[] = []

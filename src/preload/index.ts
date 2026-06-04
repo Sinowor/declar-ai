@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const api = {
   // Declaration CRUD
@@ -14,6 +14,7 @@ const api = {
   extractText: (fileId: string) => ipcRenderer.invoke('file:extract-text', fileId),
   getFiles: (declarationId: string) => ipcRenderer.invoke('file:list', declarationId),
   deleteFile: (fileId: string) => ipcRenderer.invoke('file:delete', fileId),
+  getFilePath: (file: File) => webUtils.getPathForFile(file),
 
   // AI operations
   aiExtract: (declarationId: string) => ipcRenderer.invoke('ai:extract', declarationId),

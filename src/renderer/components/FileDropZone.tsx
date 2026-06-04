@@ -34,7 +34,15 @@ export default function FileDropZone({
       const droppedFiles = Array.from(e.dataTransfer.files)
       if (!droppedFiles.length) return
 
-      const paths = droppedFiles.map((f) => (f as any).path).filter(Boolean)
+      const paths: string[] = []
+      for (const f of droppedFiles) {
+        try {
+          const p = window.api.getFilePath(f)
+          if (p) paths.push(p)
+        } catch {
+          // skip files without a path
+        }
+      }
       if (paths.length) {
         try {
           const result = await window.api.importFiles(declarationId, paths)
@@ -93,7 +101,13 @@ export default function FileDropZone({
             accept=".pdf,.xlsx,.xls,.doc,.docx,.txt,.csv,.zip,.rar,.jpg,.png,.jpeg"
             onChange={async (e) => {
               const selectedFiles = Array.from(e.target.files || [])
-              const paths = selectedFiles.map((f) => (f as any).path).filter(Boolean)
+              const paths: string[] = []
+              for (const f of selectedFiles) {
+                try {
+                  const p = window.api.getFilePath(f)
+                  if (p) paths.push(p)
+                } catch {}
+              }
               if (paths.length) {
                 try {
                   const result = await window.api.importFiles(declarationId, paths)
