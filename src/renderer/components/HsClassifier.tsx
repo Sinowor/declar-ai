@@ -32,7 +32,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hr / 24)} 天前`
 }
 
-export default function HsClassifier() {
+export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void }) {
   const { theme } = useTheme()
   const p = (alpha: number) => `rgba(${theme.primaryRgb},${alpha})`
   const confDot: Record<string, string> = { high: theme.primary, medium: p(0.45), low: '#cbd5e1' }
@@ -301,6 +301,15 @@ export default function HsClassifier() {
               ))}
             </span>
           </div>
+
+          {onBatchMode && (
+            <div className="mt-6 pt-5 border-t border-gray-100 text-center">
+              <button onClick={onBatchMode}
+                className="text-[13px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors"
+                style={{ color: '#94a3b8' }}
+              >📊 批量归类：上传 Excel 清单，一次性处理多个品名 →</button>
+            </div>
+          )}
 
           {recentHistory.length > 0 && (
             <div className="mt-8">

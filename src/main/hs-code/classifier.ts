@@ -8,7 +8,7 @@ import { v4 as uuid } from 'uuid'
 import { getDb, queryAll, queryOne, execute } from '../db'
 
 // ═══ Tariff file paths ═══
-function loadSkillPrompt(): string {
+export function loadSkillPrompt(): string {
   const candidates = [
     path.join(app.getAppPath(), 'prompts', 'hs-classifier-skill.md'),
     path.join(process.cwd(), 'prompts', 'hs-classifier-skill.md'),

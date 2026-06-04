@@ -3,6 +3,7 @@ import NavRail, { type ModuleId } from './components/NavRail'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
 import HsClassifier from './components/HsClassifier'
+import BatchClassifier from './components/BatchClassifier'
 import Settings from './components/Settings'
 import AboutModal from './components/AboutModal'
 import LicenseModal from './components/LicenseModal'
@@ -166,6 +167,9 @@ export default function App() {
     setActiveModule('hs-classifier')
   }, [])
 
+  // ═══ Batch mode ═══
+  const [batchMode, setBatchMode] = useState(false)
+
   if (!ready) {
     return (
       <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
@@ -211,8 +215,11 @@ export default function App() {
           onNavigateToHs={navigateToHsClassifier}
         />
       )}
-      {activeModule === 'hs-classifier' && (
-        <HsClassifier />
+      {activeModule === 'hs-classifier' && !batchMode && (
+        <HsClassifier onBatchMode={() => setBatchMode(true)} />
+      )}
+      {activeModule === 'hs-classifier' && batchMode && (
+        <BatchClassifier onBack={() => setBatchMode(false)} />
       )}
       {activeModule === 'settings' && (
         <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />

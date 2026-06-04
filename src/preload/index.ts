@@ -23,6 +23,9 @@ const api = {
 
   // HS Code
   hsClassify: (productDescription: string, skipInfoCheck?: boolean) => ipcRenderer.invoke('hs:classify', productDescription, skipInfoCheck),
+  hsBatchClassify: (filePath: string) => ipcRenderer.invoke('hs:batchClassify', filePath),
+  hsExportExcel: (results: any[]) => ipcRenderer.invoke('hs:exportExcel', results),
+  hsOpenBatchFile: () => ipcRenderer.invoke('hs:openBatchFile'),
   hsHistory: () => ipcRenderer.invoke('hs:history'),
 
   // Schema

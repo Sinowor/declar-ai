@@ -1,5 +1,6 @@
-import { ipcMain } from 'electron'
+import { ipcMain, dialog } from 'electron'
 import { classifyHsCode, saveToHistory, getHistory, initHsClassifierDb } from '../hs-code/classifier'
+import { batchClassify, exportToExcel } from '../hs-code/batch-classifier'
 
 export async function registerHsCodeIpc() {
   await initHsClassifierDb()
@@ -17,6 +18,17 @@ export async function registerHsCodeIpc() {
     }
   })
 
+  ipcMain.handle('hs:batchClassify', async (_event, filePath: string) => {
+    try {
+      const { parseExcel } = require('../hs-code/batch-classifier')
+      const { text } = parseExcel(filePath)
+      return await batchClassify(text)
+    } catch (err: any) {
+      console.error('[ipc:hs:batchClassify]', err.message)
+      return { success: false, error: `批量归类失败: ${err.message}` }
+    }
+  })
+
   ipcMain.handle('hs:history', async () => {
     try {
       return getHistory()
@@ -24,5 +36,29 @@ export async function registerHsCodeIpc() {
       console.error('[ipc:hs:history]', err.message)
       return []
     }
+  })
+
+  ipcMain.handle('hs:exportExcel', async (_event, results: any[]) => {
+    try {
+      const result = await dialog.showSaveDialog({
+        title: '导出 HS 归类结果',
+        defaultPath: 'HS归类结果.xlsx',
+        filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+      })
+      if (result.canceled || !result.filePath) return { success: false, error: '取消导出' }
+      exportToExcel(results, result.filePath)
+      return { success: true, path: result.filePath }
+    } catch (err: any) {
+      console.error('[ipc:hs:exportExcel]', err.message)
+      return { success: false, error: `导出失败: ${err.message}` }
+    }
+  })
+
+  ipcMain.handle('hs:openBatchFile', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [{ name: 'Excel', extensions: ['xlsx', 'xls'] }],
+    })
+    return result.canceled ? null : result.filePaths[0]
   })
 }
