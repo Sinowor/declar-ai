@@ -31,7 +31,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
   if (!declaration && !selectedDeclaration) {
     return (
-      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.04) 0%, #EEF4FF 45%, #FFF7ED 100%)` }}>
+      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.04) 0%, rgba(var(--primary-rgb), 0.02) 50%, #F8FAFC 100%)` }}>
         <div className="text-center py-16 px-8 w-full max-w-[480px]">
           <div className="flex justify-center mb-5">
             <span className="w-16 h-16 rounded-2xl flex items-center justify-center bg-primary-100">
@@ -73,6 +73,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [files, setFiles] = useState<{ id?: string; file_name: string; extracted_text?: string; error?: string }[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [saveDone, setSaveDone] = useState(false)
+  const [showDropZone, setShowDropZone] = useState(false)
   const savingRef = useRef(false)
   const [fields, setFields] = useState<Record<string, any>>({})
   const [cargoDetails, setCargoDetails] = useState<Record<string, any>[]>([])
@@ -170,6 +172,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         const result = await window.api.updateDeclaration(declaration.id, data)
         if (result.success) {
           dirtyRef.current = false
+          setSaveDone(true)
+          setTimeout(() => setSaveDone(false), 1800)
           showToast('保存成功')
         } else if (retry < maxRetries) {
           showToast(`保存失败，正在重试 (${retry + 1}/${maxRetries})...`, 'info')
@@ -347,23 +351,30 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
       </div>
       {/* Step progress */}
       <div className="px-8 pb-3 shrink-0 flex items-center gap-2">
-        {[
-          { n: 1, label: '导入', done: extractionCompleted },
-          { n: 2, label: '提取', done: extractionCompleted },
-          { n: 3, label: '编辑', done: false },
-        ].map((step, i) => (
-          <div key={step.n} className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium ${
-              step.done ? '' : i === 2 ? '' : 'text-muted'
-            }`} style={{ color: step.done ? '#22C55E' : i === 2 ? 'var(--primary)' : undefined }}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
-                step.done ? 'bg-emerald-400' : i === 2 ? 'bg-primary-500' : 'bg-gray-300'
-              }`}>{step.done ? '✓' : step.n}</span>
-              {step.label}
-            </span>
-            {i < 2 && <span className="w-5 h-px bg-gray-200" />}
-          </div>
-        ))}
+        {(() => {
+          const activeIdx = extractionCompleted ? 2 : 0
+          const steps = [
+            { n: 1, label: '导入', done: extractionCompleted },
+            { n: 2, label: '提取', done: extractionCompleted },
+            { n: 3, label: '编辑', done: false },
+          ]
+          return steps.map((step, i) => {
+            const isActive = i === activeIdx
+            return (
+              <div key={step.n} className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-medium"
+                  style={{ color: step.done ? '#22C55E' : isActive ? 'var(--primary)' : undefined }}
+                >
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
+                    step.done ? 'bg-emerald-400' : isActive ? 'bg-primary-500' : 'bg-gray-300'
+                  }`}>{step.done ? '✓' : step.n}</span>
+                  {step.label}
+                </span>
+                {i < 2 && <span className={`w-5 h-px ${extractionCompleted ? 'bg-emerald-400' : 'bg-gray-200'}`} />}
+              </div>
+            )
+          })
+        })()}
       </div>
 
       <div className="px-8 pb-12 flex flex-col gap-6 flex-1 max-w-[1200px] mx-auto w-full">
@@ -378,21 +389,33 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           </div>
           <div className={extractionCompleted ? 'p-4' : 'p-6'}>
             {extractionCompleted ? (
-              <div className="flex items-center justify-between">
-                <div className="flex flex-wrap gap-2 flex-1 min-w-0">
-                  {files.length > 0 ? files.map((f, i) => (
-                    <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] bg-surface border border-gray-200">
-                      {f.file_name}
-                      <button className="text-muted text-sm leading-none cursor-pointer hover:text-red-500" onClick={() => handleRemoveFile(i, f.id)}>&times;</button>
-                    </span>
-                  )) : <span className="text-muted text-sm">暂未导入文件</span>}
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap gap-2 flex-1 min-w-0 items-center">
+                    {files.length > 0 ? files.map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] bg-surface border border-gray-200">
+                        {f.file_name}
+                        <button className="text-muted text-sm leading-none cursor-pointer hover:text-red-500" onClick={() => handleRemoveFile(i, f.id)}>&times;</button>
+                      </span>
+                    )) : <span className="text-muted text-sm">暂未导入文件</span>}
+                    <button
+                      onClick={() => setShowDropZone(v => !v)}
+                      className={`h-[30px] px-2.5 rounded-full text-[13px] font-medium cursor-pointer transition-all border ${showDropZone ? 'border-primary-300 text-primary-500 bg-primary-50' : 'border-dashed border-gray-300 text-muted hover:border-gray-400 hover:text-ink'}`}
+                      title="追加文件"
+                    >+ 添加文件</button>
+                  </div>
+                  <button onClick={handleAIExtract} disabled={isExtracting || files.length === 0}
+                    title={files.length === 0 ? '请先导入单证文件' : ''}
+                    className={`shrink-0 ml-4 h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-all ${files.length === 0 ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600'}`}
+                  >
+                    {isExtracting ? '提取+审核中...' : <><IconAI /><span>重新提取</span></>}
+                  </button>
                 </div>
-                <button onClick={handleAIExtract} disabled={isExtracting || files.length === 0}
-                  title={files.length === 0 ? '请先导入单证文件' : ''}
-                  className={`shrink-0 ml-4 h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-all ${files.length === 0 ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600'}`}
-                >
-                  {isExtracting ? '提取+审核中...' : <><IconAI /><span>重新提取</span></>}
-                </button>
+                {showDropZone && (
+                  <div className="mt-3">
+                    <FileDropZone declarationId={declaration!.id} onFilesImported={(newFiles) => { handleFilesImported(newFiles); setShowDropZone(false) }} files={[]} onRemoveFile={() => {}} isExtracting={false} />
+                  </div>
+                )}
               </div>
             ) : (
               <FileDropZone declarationId={declaration!.id} onFilesImported={handleFilesImported} files={files} onRemoveFile={handleRemoveFile} isExtracting={isExtracting} />
@@ -407,7 +430,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
               </div>
             )}
             {isExtracting && (
-              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-violet-50 via-blue-50 to-[#FAFAFE] border border-violet-100">
+              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.06), rgba(var(--primary-rgb), 0.02), #FAFAFE)`, borderColor: `rgba(var(--primary-rgb), 0.12)` }}>
                 <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                 <div className="text-sm text-muted">AI 正在提取单证数据并审核，请稍候...</div>
               </div>
@@ -534,9 +557,9 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
                 </div>
                 <button onClick={() => handleSave()} disabled={isSaving}
-                  className={`h-[34px] px-4 rounded-sm bg-primary-500 text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 hover:bg-primary-600 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-all ${saveDone ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-primary-500 hover:bg-primary-600'} ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isSaving ? '保存中...' : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
+                  {isSaving ? '保存中...' : saveDone ? <><span>✓</span><span>已保存</span></> : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
                 </button>
               </div>
             </div>
