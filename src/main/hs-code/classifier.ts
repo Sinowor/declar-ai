@@ -71,6 +71,33 @@ export function verifyHsCode(code: string | null): boolean {
   }
 }
 
+// ═══ AI Keyword Extraction (dynamic, not static dictionary) ═══
+async function extractKeywordsWithAI(productDescription: string): Promise<string[]> {
+  try {
+    const client = getAIClient()
+    const response = await client.chat.completions.create({
+      model: getModel(),
+      messages: [
+        { role: 'system', content: `你是一个关键词提取器。根据商品描述，提取5-8个用于搜索税则的关键词。规则：提取核心名称、材质、用途、技术特征；优先使用税则中的规范术语而非口语；包含同义词；每个词2-6字。返回JSON：{"keywords":["词1","词2",...]}。只返回JSON。` },
+        { role: 'user', content: productDescription },
+      ],
+      temperature: 0.1, max_tokens: 256,
+      response_format: { type: 'json_object' },
+    })
+    const content = response.choices[0]?.message?.content
+    if (content) {
+      const parsed = JSON.parse(content)
+      if (Array.isArray(parsed.keywords) && parsed.keywords.length > 0) {
+        return parsed.keywords.slice(0, 8)
+      }
+    }
+    throw new Error('Invalid keyword response')
+  } catch (err: any) {
+    console.warn('[hs-code] AI keyword extraction failed, fallback to static:', err.message)
+    return extractKeywords(productDescription)
+  }
+}
+
 // ═══ AI Classification ═══
 export interface HsClassificationResult {
   id: string
@@ -95,10 +122,11 @@ export async function classifyHsCode(productDescription: string): Promise<{
   error?: string
 }> {
   try {
-    const keywords = extractKeywords(productDescription)
-    console.log('[hs-code] Keywords:', keywords)
+    // Step 1: AI extracts search keywords (dynamic, not static dictionary)
+    const keywords = await extractKeywordsWithAI(productDescription)
+    console.log('[hs-code] AI Keywords:', keywords)
 
-    const tariffResults = searchTariff(keywords, 30)
+    const tariffResults = searchTariff(keywords, 40)
     const resultsCount = tariffResults ? tariffResults.split('\n').filter(l => l.trim()).length : 0
     console.log(`[hs-code] Tariff search: ${resultsCount} matching lines`)
 
