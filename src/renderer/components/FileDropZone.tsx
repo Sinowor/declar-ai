@@ -32,6 +32,7 @@ export default function FileDropZone({
       setDragOver(false)
 
       const droppedFiles = Array.from(e.dataTransfer.files)
+      console.log('[FileDropZone] drop event, files:', droppedFiles.length, droppedFiles.map(f => f.name))
       if (!droppedFiles.length) return
 
       const paths: string[] = []
@@ -39,8 +40,8 @@ export default function FileDropZone({
         try {
           const p = window.api.getFilePath(f)
           if (p) paths.push(p)
-        } catch {
-          // skip files without a path
+        } catch (err: any) {
+          console.error('[FileDropZone] getFilePath failed:', err?.message || err)
         }
       }
       if (paths.length) {
