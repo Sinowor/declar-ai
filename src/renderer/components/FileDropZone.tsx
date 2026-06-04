@@ -14,6 +14,7 @@ interface FileDropZoneProps {
   files: ImportedFile[]
   onRemoveFile: (index: number, fileId?: string) => void
   isExtracting: boolean
+  embedded?: boolean
 }
 
 export default function FileDropZone({
@@ -22,6 +23,7 @@ export default function FileDropZone({
   files,
   onRemoveFile,
   isExtracting,
+  embedded,
 }: FileDropZoneProps) {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -69,11 +71,9 @@ export default function FileDropZone({
     }
   }
 
-  return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-      <div className="p-6">
-        {/* Drop zone */}
-        <div
+  const dropZone = (
+    <>
+    <div
           className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
             dragOver
               ? 'border-primary-500 border-solid bg-primary-50 shadow-[0_0_0_4px_rgba(var(--primary-rgb), 0.06)]'
@@ -144,6 +144,14 @@ export default function FileDropZone({
             ))}
           </div>
         )}
+    </>
+  )
+
+  if (embedded) return dropZone
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
+      <div className="p-6">
+        {dropZone}
       </div>
     </div>
   )

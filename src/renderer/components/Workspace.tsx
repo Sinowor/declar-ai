@@ -413,7 +413,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 </div>
                 {showDropZone && (
                   <div className="mt-3">
-                    <FileDropZone declarationId={declaration!.id} onFilesImported={(newFiles) => { handleFilesImported(newFiles); setShowDropZone(false) }} files={[]} onRemoveFile={() => {}} isExtracting={false} />
+                    <FileDropZone embedded declarationId={declaration!.id} onFilesImported={(newFiles) => { handleFilesImported(newFiles); setShowDropZone(false) }} files={[]} onRemoveFile={() => {}} isExtracting={false} />
                   </div>
                 )}
               </div>
