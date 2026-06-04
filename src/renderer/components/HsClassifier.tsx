@@ -7,7 +7,7 @@ interface HsResult {
   hs_description: string | null; confidence: string | null
   mfn_rate: string | null; vat_rate: string | null
   supervision_conditions: string | null; rationale: string | null
-  alternatives: string | null; created_at: string
+  alternatives: string | null; tariff_text: string | null; created_at: string
 }
 
 const confLabel: Record<string, string> = { high: '高置信度', medium: '中置信度', low: '低置信度' }
@@ -181,10 +181,7 @@ export default function HsClassifier() {
     return (
       <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <div className="w-full max-w-[600px] px-8 overflow-y-auto flex flex-col items-center" style={{ maxHeight: 'calc(100vh - 40px)', paddingTop: '10vh', paddingBottom: '6vh' }}>
-          <h1 className="text-center text-[24px] font-bold mb-2 shrink-0">
-            <span className="text-transparent bg-clip-text" style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}>AI</span>
-            <span className="text-ink"> 编码归类</span>
-          </h1>
+          <h1 className="text-center text-[24px] font-bold mb-2 shrink-0 text-ink">AI 预归类</h1>
           <p className="text-center text-[13px] text-muted mb-8 shrink-0">智能检索《进出口税则》，结果仅供参考</p>
 
           <div className={`w-full bg-white border-2 rounded-2xl transition-all duration-200 shrink-0 ${
@@ -266,16 +263,15 @@ export default function HsClassifier() {
 
   // ═══ Results ═══
   return (
-    <main className="flex-1 overflow-y-auto flex flex-col" style={{ background: `linear-gradient(180deg, ${p(0.02)} 0%, #F8FAFC 100%)` }}>
-      <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${p(0.1)}, ${p(0.04)})` }}>
-            <IconSearchNav />
-          </span>
+    <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
+      {/* Top bar with back button */}
+      <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center gap-3">
+        <button onClick={handleNewQuery}
+          className="shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all inline-flex items-center gap-1"
+        >← 返回</button>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-sm text-muted truncate">{result.product_description}</span>
         </div>
-        <button onClick={handleNewQuery}
-          className="shrink-0 ml-4 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all">新查询</button>
       </div>
 
       <div className="px-8 pb-12 flex flex-col gap-4 flex-1 max-w-[960px] mx-auto w-full">
@@ -284,6 +280,7 @@ export default function HsClassifier() {
           .result-enter { animation: resultIn 0.45s ease-out both; }
         `}</style>
 
+        {/* Hero: HS Code */}
         <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card overflow-hidden" style={{ animationDelay: '0s' }}>
           <div className="p-6 flex items-start justify-between">
             <div>
@@ -298,7 +295,7 @@ export default function HsClassifier() {
                   </span>
                 )}
               </div>
-              <div className="text-sm text-muted mt-2">{result.hs_description || ''}</div>
+              <div className="text-sm text-muted mt-2">{result.hs_description || '—'}</div>
             </div>
             <button onClick={handleCopyCode}
               className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-all shrink-0"
@@ -308,11 +305,12 @@ export default function HsClassifier() {
             >复制编码</button>
           </div>
 
+          {/* Tax info */}
           <div className="grid grid-cols-4 border-t border-gray-100">
             {[
               { label: '最惠国关税', value: result.mfn_rate || '—' },
               { label: '增值税率', value: result.vat_rate || '—' },
-              { label: '监管条件', value: result.supervision_conditions || '无' },
+              { label: '监管条件', value: result.supervision_conditions || '—' },
               { label: '法定单位', value: '—' },
             ].map((item, i) => (
               <div key={item.label} className={`px-6 py-4 ${i < 3 ? 'border-r border-gray-100' : ''}`}>
@@ -321,22 +319,51 @@ export default function HsClassifier() {
               </div>
             ))}
           </div>
-
-          {result.rationale && (
-            <div className="border-t border-gray-100 px-6 py-4">
-              <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类依据</div>
-              <div className="text-[14px] leading-relaxed" style={{ color: '#475569' }}>{result.rationale}</div>
-            </div>
-          )}
-
-          {result.alternatives && (
-            <div className="border-t border-gray-100 px-6 py-4">
-              <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码及排除理由</div>
-              <div className="text-[14px] leading-relaxed" style={{ color: '#475569' }}>{result.alternatives}</div>
-            </div>
-          )}
         </div>
 
+        {/* Rationale */}
+        {result.rationale && (
+          <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card" style={{ animationDelay: '0.1s' }}>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+              <span className="text-sm">📋</span>
+              <h3 className="text-sm font-semibold">归类推导过程</h3>
+            </div>
+            <div className="px-6 py-4">
+              <div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.rationale}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Alternatives */}
+        {result.alternatives && (
+          <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card" style={{ animationDelay: '0.15s' }}>
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+              <span className="text-sm">🔍</span>
+              <h3 className="text-sm font-semibold">候选编码与排除理由</h3>
+            </div>
+            <div className="px-6 py-4">
+              <div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.alternatives}</div>
+            </div>
+          </div>
+        )}
+
+        {/* Tariff original text */}
+        <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card" style={{ animationDelay: '0.2s' }}>
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+            <span className="text-sm">📖</span>
+            <h3 className="text-sm font-semibold">税则原文参考</h3>
+          </div>
+          <div className="px-6 py-4">
+            <div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border overflow-x-auto whitespace-pre-wrap" style={{ background: '#F8FAFC', borderColor: '#e2e8f0', color: '#475569', maxHeight: 320, overflowY: 'auto' }}>
+              {result.tariff_text || '税则原文未包含在结果中'}
+            </div>
+            <p className="text-[11px] mt-2" style={{ color: '#94a3b8' }}>
+              以上内容检索自《中华人民共和国进出口税则(2026)》，由 AI 提取并整理。请以海关最新公告为准。
+            </p>
+          </div>
+        </div>
+
+        {/* Disclaimer */}
         <p className="result-enter text-center text-[11px] mt-2" style={{ color: '#cbd5e1', animationDelay: '0.4s' }}>
           基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
         </p>

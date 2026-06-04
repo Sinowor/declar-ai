@@ -67,6 +67,7 @@ export interface HsClassificationResult {
   supervision_conditions: string | null
   rationale: string | null
   alternatives: string | null
+  tariff_text: string | null
   full_result_json: string
   created_at: string
 }
@@ -102,13 +103,14 @@ export async function classifyHsCode(productDescription: string): Promise<{
 返回 JSON 对象：
 {
   "hs_code": "推荐HS编码（10位，如8414.10.00.00）",
-  "hs_description": "官方货品名称",
+  "hs_description": "官方货品名称（从税则中提取的原文描述）",
   "confidence": "high|medium|low",
   "mfn_rate": "最惠国关税税率",
   "vat_rate": "增值税率",
   "supervision_conditions": "监管条件",
-  "rationale": "归类依据，引用税则原文和归类规则",
-  "alternatives": "候选编码及排除理由"
+  "rationale": "归类推导过程，按归类总规则一至六逐步分析，引用税则原文和行号作为依据",
+  "alternatives": "候选编码及排除理由，列出其他可能的编码及其被排除的原因",
+  "tariff_text": "归类所依据的税则原文片段，从检索结果中直接引用，保留行号"
 }
 只返回 JSON，不要其他文字。${tariffSection}`
 
@@ -146,6 +148,7 @@ export async function classifyHsCode(productDescription: string): Promise<{
       supervision_conditions: parsed.supervision_conditions || null,
       rationale: parsed.rationale || null,
       alternatives: parsed.alternatives || null,
+      tariff_text: parsed.tariff_text || null,
       full_result_json: content,
       created_at: new Date().toISOString(),
     }
