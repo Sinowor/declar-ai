@@ -134,10 +134,12 @@ export interface HsClassifyResponse {
   needsMoreInfo?: boolean
   missingFields?: string[]
   question?: string
+  infoAssumed?: boolean
+  assumptions?: string
   error?: string
 }
 
-export async function classifyHsCode(productDescription: string): Promise<HsClassifyResponse> {
+export async function classifyHsCode(productDescription: string, skipInfoCheck = false): Promise<HsClassifyResponse> {
   try {
     // Step 1: AI extracts search keywords (dynamic, not static dictionary)
     const keywords = await extractKeywordsWithAI(productDescription)
@@ -151,7 +153,11 @@ export async function classifyHsCode(productDescription: string): Promise<HsClas
       ? `\n\n## 从税则检索到的相关内容\n\n基于关键词「${keywords.join('、')}」检索到以下内容（格式：行号:内容）：\n\n\`\`\`\n${tariffResults}\n\`\`\`\n\n请优先基于上述税则原文进行归类。如果检索结果不充分，请根据你的专业知识补充，并在 confidence 中标为 "low"。`
       : '\n\n## ⚠ 税则检索无结果\n\n未能从税则文件中检索到匹配内容。请根据你对《中华人民共和国进出口税则》的专业知识给出最佳归类建议，confidence 必须标为 "low"，并在 rationale 中说明"税则检索无匹配，基于通用知识归类"。'
 
-    const systemPrompt = `${loadSkillPrompt()}${tariffSection}`
+    const skipInstruction = skipInfoCheck
+      ? '\n\n## ⚠ 跳过信息完整性检查\n\n用户已选择跳过信息补充。缺失的信息（材质、技术参数、用途等）请根据商品名称和常识进行合理假设。不要返回 needs_more_info。直接进行归类。在输出的 JSON 中增加 "assumptions" 字段，详细列出你做了哪些假设（例如："假设材质为常见不锈钢"、"假设为通用工业用途"）。confidence 标为 "low"。'
+      : ''
+
+    const systemPrompt = `${loadSkillPrompt()}${skipInstruction}${tariffSection}`
 
     const client = getAIClient()
     const response = await client.chat.completions.create({
@@ -175,8 +181,8 @@ export async function classifyHsCode(productDescription: string): Promise<HsClas
       throw new Error('AI 返回格式错误')
     }
 
-    // Check if AI requests more information
-    if (parsed.needs_more_info) {
+    // Check if AI requests more information (only in non-skip mode)
+    if (parsed.needs_more_info && !skipInfoCheck) {
       return {
         success: true,
         needsMoreInfo: true,
@@ -184,6 +190,10 @@ export async function classifyHsCode(productDescription: string): Promise<HsClas
         question: parsed.question || '请补充更多商品信息以便准确归类',
       }
     }
+
+    // Skip mode: capture AI's assumptions
+    const infoAssumed = skipInfoCheck || parsed.confidence === 'low'
+    const assumptions = parsed.assumptions || null
 
     const id = uuid()
     const result: HsClassificationResult = {
@@ -203,7 +213,7 @@ export async function classifyHsCode(productDescription: string): Promise<HsClas
       created_at: new Date().toISOString(),
     }
 
-    return { success: true, result }
+    return { success: true, result, infoAssumed: infoAssumed || false, assumptions }
   } catch (err: any) {
     console.error('[hs-code] Classification failed:', err.message)
     return { success: false, error: err.message }

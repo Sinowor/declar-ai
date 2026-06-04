@@ -22,7 +22,7 @@ const api = {
   aiAnswer: (conversationId: string, answer: string) => ipcRenderer.invoke('ai:answer', conversationId, answer),
 
   // HS Code
-  hsClassify: (productDescription: string) => ipcRenderer.invoke('hs:classify', productDescription),
+  hsClassify: (productDescription: string, skipInfoCheck?: boolean) => ipcRenderer.invoke('hs:classify', productDescription, skipInfoCheck),
   hsHistory: () => ipcRenderer.invoke('hs:history'),
 
   // Schema

@@ -45,6 +45,8 @@ export default function HsClassifier() {
   const [needsMoreInfo, setNeedsMoreInfo] = useState(false)
   const [missingFields, setMissingFields] = useState<string[]>([])
   const [aiQuestion, setAiQuestion] = useState('')
+  const [infoAssumed, setInfoAssumed] = useState(false)
+  const [assumptions, setAssumptions] = useState('')
   const [history, setHistory] = useState<HsResult[]>([])
   const [showAllHistory, setShowAllHistory] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -71,14 +73,14 @@ export default function HsClassifier() {
     if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
   }, [input])
 
-  const doClassify = async () => {
+  const doClassify = async (skipInfo = false) => {
     if (!input.trim() || analyzing) return
-    setAnalyzing(true); setProcessingStep(0); setNeedsMoreInfo(false); setShowAllHistory(false)
+    setAnalyzing(true); setProcessingStep(0); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions(''); setShowAllHistory(false)
     const s1 = setTimeout(() => setProcessingStep(1), 700)
     const s2 = setTimeout(() => setProcessingStep(2), 1500)
     try {
       if (window.api?.hsClassify) {
-        const res = await window.api.hsClassify(input.trim())
+        const res = await window.api.hsClassify(input.trim(), skipInfo)
         clearTimeout(s1); clearTimeout(s2); setProcessingStep(3)
         await new Promise(r => setTimeout(r, 400))
         if (res.needsMoreInfo) {
@@ -87,6 +89,8 @@ export default function HsClassifier() {
           setAiQuestion(res.question || '')
         } else if (res.success && res.result) {
           setResult(res.result)
+          setInfoAssumed(res.infoAssumed || false)
+          setAssumptions(res.assumptions || '')
         } else {
           showToast(`归类失败: ${res.error || '未知错误'}`)
         }
@@ -104,7 +108,7 @@ export default function HsClassifier() {
   }
 
   const handleNewQuery = () => {
-    setResult(null); setInput(''); setShowAllHistory(false); setNeedsMoreInfo(false)
+    setResult(null); setInput(''); setShowAllHistory(false); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions('')
     setTimeout(() => textareaRef.current?.focus(), 100)
   }
 
@@ -207,11 +211,11 @@ export default function HsClassifier() {
               style={{ color: '#1e293b' }} autoFocus
             />
             <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-100">
-              <button onClick={doClassify}
+              <button onClick={() => doClassify(true)}
                 className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer transition-all bg-white border"
                 style={{ borderColor: p(0.2), color: theme.primary }}
               >跳过，直接归类</button>
-              <button onClick={doClassify}
+              <button onClick={() => doClassify(false)}
                 className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
               >补充信息并归类</button>
@@ -278,7 +282,7 @@ export default function HsClassifier() {
               .hs-ph:focus::placeholder { animation: none; opacity: 0.3 }
             `}</style>
             <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100">
-              <button onClick={doClassify} disabled={!input.trim()}
+              <button onClick={() => doClassify()} disabled={!input.trim()}
                 className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : '#94a3b8' }}
               >开始归类分析 <span className="text-[10px] opacity-40 ml-0.5">⌘↵</span></button>
@@ -364,8 +368,15 @@ export default function HsClassifier() {
               </div>
               <div className="text-sm text-muted mt-2">{result.hs_description || '—'}</div>
               {!result.code_verified && (
-                <div className="flex items-center gap-1.5 mt-2 text-[12px] px-3 py-1.5 rounded-lg" style={{ background: p(0.06), color: theme.primary }}>
+                <div className="flex items-center gap-1.5 mt-3 text-[12px] px-3 py-1.5 rounded-lg" style={{ background: p(0.06), color: theme.primary }}>
                   <span className="font-bold">!</span> 该编码未在税则原文中精确匹配，请人工核实
+                </div>
+              )}
+              {infoAssumed && assumptions && (
+                <div className="mt-3 text-[12px] leading-relaxed px-4 py-3 rounded-xl border" style={{ borderColor: p(0.15), background: p(0.03), color: '#475569' }}>
+                  <div className="font-semibold mb-1.5" style={{ color: theme.primary }}>基于 AI 假设信息归类</div>
+                  <div className="whitespace-pre-wrap">{assumptions}</div>
+                  <div className="mt-2 text-[11px]" style={{ color: '#94a3b8' }}>以上信息非用户提供的真实完整数据，归类仅供报关参考</div>
                 </div>
               )}
             </div>

@@ -4,9 +4,9 @@ import { classifyHsCode, saveToHistory, getHistory, initHsClassifierDb } from '.
 export async function registerHsCodeIpc() {
   await initHsClassifierDb()
 
-  ipcMain.handle('hs:classify', async (_event, productDescription: string) => {
+  ipcMain.handle('hs:classify', async (_event, productDescription: string, skipInfoCheck?: boolean) => {
     try {
-      const result = await classifyHsCode(productDescription)
+      const result = await classifyHsCode(productDescription, skipInfoCheck)
       if (result.success && result.result) {
         saveToHistory(result.result)
       }
