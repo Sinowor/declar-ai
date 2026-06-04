@@ -423,6 +423,37 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                       {pendingCount > 0 && <button onClick={resolveAll} className="h-7 px-3 rounded-sm text-xs font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-all">全部确认</button>}
                     </div>
                   </div>
+                  <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
+                    {reviewIssues.map((issue, i) => {
+                      const isResolved = resolvedIssues.has(i)
+                      return (
+                        <div key={i}
+                          className={`flex items-start gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-50 ${isResolved ? 'opacity-40' : ''}`}
+                        >
+                          <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                            isResolved ? 'bg-emerald-100 text-emerald-600' : issue.severity === 'high' ? 'bg-red-100 text-red-600' : issue.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-sky-100 text-sky-600'
+                          }`}>
+                            {isResolved ? '✓' : '!'}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-medium">{issue.field_path}</span>
+                              {sevBadge(issue.severity)}
+                            </div>
+                            <div className={`text-[12px] mt-0.5 ${isResolved ? 'text-muted line-through' : 'text-muted'}`}>{issue.question}</div>
+                            {issue.suggestion && !isResolved && (
+                              <div className="text-[12px] text-sky-600 mt-0.5">→ {issue.suggestion}</div>
+                            )}
+                          </div>
+                          {!isResolved && (
+                            <button onClick={() => resolveIssue(i)}
+                              className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-all"
+                            >确认</button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 px-4 py-3 rounded-xl"><span className="font-bold">&#10003;</span> 未发现明显问题，数据质量良好</div>
