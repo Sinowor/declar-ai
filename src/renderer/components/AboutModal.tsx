@@ -26,7 +26,7 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
           基于 AI LLM 的过境转关报关单自动化制单系统
         </p>
         <div className="text-xs text-muted space-y-1">
-          <p>Copyright 2026 Sinowor</p>
+          <p>Copyright 2026 Pan Yuhang</p>
           <p>专有软件许可 — 保留所有权利</p>
           <p>
             <span
