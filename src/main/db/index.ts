@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid'
 let SQL: SqlJsStatic | null = null
 let db: SqlJsDatabase | null = null
 let dbPath: string = ''
+let transactionDepth = 0
 
 async function getSQL(): Promise<SqlJsStatic> {
   if (SQL) return SQL
@@ -115,6 +116,7 @@ function initSchema() {
 
 function saveDb() {
   if (!db || !dbPath) return
+  if (transactionDepth > 0) return // defer save to COMMIT
   try {
     const data = db.export()
     const buffer = Buffer.from(data)
@@ -158,13 +160,17 @@ export function execute(sql: string, params: any[] = []): void {
 
 export function transaction(fn: () => void): void {
   if (!db) throw new Error('数据库未初始化')
-  execute('BEGIN')
+  transactionDepth++
   try {
+    db.run('BEGIN')
     fn()
-    execute('COMMIT')
+    db.run('COMMIT')
+    saveDb()
   } catch (err) {
-    execute('ROLLBACK')
+    try { db.run('ROLLBACK') } catch {}
     throw err
+  } finally {
+    transactionDepth--
   }
 }
 
