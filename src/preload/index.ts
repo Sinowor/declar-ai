@@ -33,6 +33,9 @@ const api = {
 
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),
+  getConfig: () => ipcRenderer.invoke('app:getConfig'),
+  saveConfig: (updates: Record<string, any>) => ipcRenderer.invoke('app:saveConfig', updates),
+  selectFolder: () => ipcRenderer.invoke('app:selectFolder'),
   showAbout: () => ipcRenderer.invoke('app:about'),
   onOpenAbout: (callback: () => void) => {
     ipcRenderer.on('app:open-about', callback)

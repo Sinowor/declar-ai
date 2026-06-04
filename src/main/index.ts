@@ -2,7 +2,7 @@ import { app, BrowserWindow } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
 import { closeDb } from './db'
-import { loadEnv } from './config'
+import { loadEnv, loadConfig } from './config'
 import { registerDeclarationIpc } from './ipc/declaration'
 import { registerSchemaIpc } from './ipc/schema'
 import { registerAppIpc, setupAppMenu } from './ipc/app'
@@ -16,6 +16,7 @@ let mainWindow: BrowserWindow | null = null
 
 async function initApp() {
   loadEnv()
+  loadConfig()
 
   // Cleanup legacy v1/v2 data (old userData-based storage)
   try {

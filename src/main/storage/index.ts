@@ -1,11 +1,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { app } from 'electron'
-
-const ROOT_NAME = 'DeclarAI'
+import { getStorageRoot as getConfiguredRoot } from '../config'
 
 export function getStorageRoot(): string {
-  return path.join(app.getPath('documents'), ROOT_NAME)
+  return getConfiguredRoot()
 }
 
 export function ensureStorageRoot(): string {
