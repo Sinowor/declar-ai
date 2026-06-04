@@ -85,7 +85,7 @@ export async function batchClassify(excelText: string): Promise<BatchClassifyRes
 
 ## 批量归类任务
 
-你是批量归类模式。以下是 Excel 清单的全部文本（第一行为表头，后续每行为一个商品）。
+以下是 Excel 清单的全部文本。第一行为表头（列名），后续每行为一个商品。**自行判断哪一列是品名/商品名称**，其他列作为辅助信息（规格、数量、材质等）。
 
 ${tariffSection}
 

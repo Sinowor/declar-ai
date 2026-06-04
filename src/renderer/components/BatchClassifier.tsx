@@ -129,7 +129,7 @@ export default function BatchClassifier({ onBack }: Props) {
           </div>
 
           <p className="text-[12px] mt-5" style={{ color: '#94a3b8' }}>
-            表格第一列应为品名，其他列为规格、数量等辅助信息。AI 将自动识别表头并逐行归类。
+            AI 将自动识别表头中的品名列和辅助信息列，无需手动指定列顺序。
           </p>
 
           <button onClick={onBack} className="mt-8 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all no-drag">← 返回</button>
