@@ -58,14 +58,15 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+      <div className="overflow-auto" style={{ maxHeight: '60vh' }}>
+        <table className="min-w-full border-collapse text-sm table-auto">
           <thead>
             <tr>
               <th className="px-3.5 py-2.5 text-xs font-semibold text-muted uppercase tracking-wider border-b border-gray-200 bg-surface text-left w-10">#</th>
               {columns.map(col => (
                 <th key={col.source_key}
-                  className={`px-3.5 py-2.5 text-xs font-semibold text-muted uppercase tracking-wider border-b border-gray-200 bg-surface ${col.field_type === 'number' ? 'text-right' : 'text-left'}`}
+                  className={`px-3.5 py-2.5 text-xs font-semibold text-muted uppercase tracking-wider border-b border-gray-200 bg-surface whitespace-nowrap ${col.field_type === 'number' ? 'text-right' : 'text-left'}`}
+                  style={{ minWidth: col.field_type === 'number' ? 80 : 120 }}
                 >
                   {col.display_label}
                 </th>
@@ -78,7 +79,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
               <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50">
                 <td className="px-3.5 py-2.5 text-muted text-xs">{i + 1}</td>
                 {columns.map(col => (
-                  <td key={col.source_key} className={`px-3.5 py-2.5 ${col.field_type === 'number' ? 'text-right tabular-nums' : ''}`}>
+                  <td key={col.source_key} className={`px-3.5 py-2.5 ${col.field_type === 'number' ? 'text-right tabular-nums' : 'whitespace-nowrap'}`}>
                     {renderInput(i, col.source_key, d[col.source_key], col.field_type === 'number')}
                   </td>
                 ))}
