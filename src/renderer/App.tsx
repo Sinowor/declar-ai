@@ -196,7 +196,6 @@ export default function App() {
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onNewDeclaration={handleNewDeclaration}
           onExitDeclaration={handleExitEdit}
-          onShowAbout={() => setAboutOpen(true)}
           onDelete={handleDelete}
         />
       )}

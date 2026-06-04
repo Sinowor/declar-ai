@@ -1,7 +1,5 @@
-import { useState } from 'react'
 import type { DeclarationItem } from '../App'
 import Logo from './Logo'
-import ThemeColorPicker from './ThemeColorPicker'
 import { IconSearch, IconChevronLeft, IconPlus, IconList } from './Icons'
 
 const statusBadge: Record<string, { label: string; className: string }> = {
@@ -23,7 +21,6 @@ interface SidebarProps {
   onToggleCollapse: () => void
   onNewDeclaration: () => void
   onExitDeclaration: () => void
-  onShowAbout: () => void
   onDelete: (id: string) => void
 }
 
@@ -38,11 +35,9 @@ export default function Sidebar({
   onToggleCollapse,
   onNewDeclaration,
   onExitDeclaration,
-  onShowAbout,
   onDelete,
 }: SidebarProps) {
   const isLocked = editingId !== null
-  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <aside
@@ -162,34 +157,8 @@ export default function Sidebar({
           </div>
 
           {/* Settings Panel */}
-          {showSettings && (
-            <div className="px-4 pb-3 border-t border-gray-200 pt-3">
-              <ThemeColorPicker />
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={onShowAbout}
-                  className="flex-1 h-8 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-all"
-                >
-                  关于 DeclarAI
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Footer */}
           <div className="p-4 border-t border-gray-200 shrink-0 flex gap-2">
-            {!isLocked && (
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={`w-10 h-10 rounded-sm border border-gray-200 flex items-center justify-center cursor-pointer transition-all shrink-0 ${showSettings ? 'bg-primary-50 border-primary-500 text-primary-500' : 'bg-white text-muted hover:bg-surface'}`}
-                title="系统设置"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-              </button>
-            )}
             <div className="flex-1">
               {isLocked ? (
                 <button

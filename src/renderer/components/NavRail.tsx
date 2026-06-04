@@ -47,12 +47,15 @@ export default function NavRail({ active, onChange }: Props) {
       className="flex flex-col shrink-0 items-center bg-white border-r border-gray-200 z-20"
       style={{ width: 48 }}
     >
-      {/* Top items */}
-      <div className="flex flex-col items-center pt-3 gap-1">
+      {/* Top spacer */}
+      <div className="flex-1" />
+
+      {/* Center items */}
+      <div className="flex flex-col items-center gap-1">
         {navItems.map(renderItem)}
       </div>
 
-      {/* Spacer */}
+      {/* Bottom spacer */}
       <div className="flex-1" />
 
       {/* Bottom items */}
