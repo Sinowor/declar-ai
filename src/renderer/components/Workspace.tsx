@@ -242,15 +242,24 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     if (selectedConfig) {
       return selectedConfig.field_mappings
     }
-    // Universal view: show all fields grouped by section order
+    // Universal view: show ALL extracted fields, grouped by inferred section
     const allMappings: FieldMapping[] = []
+    // Build a lookup of section-per-key from all configs
+    const sectionLookup: Record<string, string> = {}
+    for (const c of typeConfigs) {
+      for (const m of c.field_mappings) {
+        if (!sectionLookup[m.source_key]) sectionLookup[m.source_key] = m.section
+      }
+    }
     for (const section of SECTION_ORDER) {
       for (const [key] of Object.entries(FIELD_LABELS)) {
         if (fields[key] !== undefined) {
-          // Determine which section this key belongs to by checking all configs
-          const mapping = typeConfigs.flatMap(c => c.field_mappings).find(m => m.source_key === key && m.section === section)
-          if (mapping) {
-            allMappings.push({ ...mapping, required: false })
+          const inferredSection = sectionLookup[key] || 'header'
+          if (inferredSection === section) {
+            allMappings.push({
+              source_key: key, display_label: FIELD_LABELS[key], section: inferredSection as FieldSection,
+              required: false, editable: true, field_type: 'text',
+            })
           }
         }
       }
@@ -282,7 +291,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const missingFields = useMemo(() => {
     if (!selectedConfig) return []
     return selectedConfig.field_mappings
-      .filter(m => m.required && !fields[m.source_key])
+      .filter(m => m.required && (fields[m.source_key] === undefined || fields[m.source_key] === null || (typeof fields[m.source_key] === 'string' && fields[m.source_key].trim() === '')))
       .map(m => m.display_label)
   }, [selectedConfig, fields])
 
@@ -469,7 +478,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <div className="grid grid-cols-3 gap-4">
                     {mappings.map(m => {
                       const value = fields[m.source_key]
-                      const isMissing = selectedConfig && m.required && (value === undefined || value === '' || value === null)
+                      const isMissing = selectedConfig && m.required && (value === undefined || value === null || (typeof value === 'string' && value.trim() === ''))
                       return (
                         <div key={m.source_key} className="flex flex-col gap-1">
                           <label className="text-[13px] font-medium text-muted">
