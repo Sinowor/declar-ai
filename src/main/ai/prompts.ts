@@ -2,6 +2,16 @@ import { readFileSync } from 'fs'
 import * as path from 'path'
 import { app } from 'electron'
 
+export function getSystemDateContext(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+  const weekday = weekdays[now.getDay()]
+  return `当前系统日期: ${year}年${month}月${day}日 (星期${weekday})。请基于此日期判断时间相关的信息，如日期格式校验、单据日期合理性、税率适用年份等。`
+}
+
 function loadExtractionPrompt(): string {
   const promptPath = path.join(app.getAppPath(), 'prompts', 'extraction-system-prompt.md')
 
@@ -30,7 +40,7 @@ function loadExtractionPrompt(): string {
 }
 
 export function getExtractionPrompt(): string {
-  return loadExtractionPrompt()
+  return `${getSystemDateContext()}\n\n${loadExtractionPrompt()}`
 }
 
 function loadReviewPrompt(): string {
@@ -62,5 +72,5 @@ function loadReviewPrompt(): string {
 }
 
 export function getReviewPrompt(declarationData: string): string {
-  return `${loadReviewPrompt()}\n\n## 申报单数据\n${declarationData}`
+  return `${getSystemDateContext()}\n\n${loadReviewPrompt()}\n\n## 申报单数据\n${declarationData}`
 }

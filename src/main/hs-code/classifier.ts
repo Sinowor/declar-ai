@@ -4,20 +4,22 @@ import * as path from 'path'
 import { app } from 'electron'
 import { extractKeywords } from './keywords'
 import { getAIClient, getModel } from '../ai/client'
+import { getSystemDateContext } from '../ai/prompts'
 import { v4 as uuid } from 'uuid'
 import { getDb, queryAll, queryOne, execute } from '../db'
 
 // ═══ Tariff file paths ═══
 export function loadSkillPrompt(): string {
+  const dateContext = getSystemDateContext()
   const candidates = [
     path.join(app.getAppPath(), 'prompts', 'hs-classifier-skill.md'),
     path.join(process.cwd(), 'prompts', 'hs-classifier-skill.md'),
   ]
   for (const p of candidates) {
-    if (existsSync(p)) return readFileSync(p, 'utf-8').trim()
+    if (existsSync(p)) return `${dateContext}\n\n${readFileSync(p, 'utf-8').trim()}`
   }
   // Inline fallback (minimal)
-  return `# Role: 海关商品归类专家\n\n根据商品描述和税则检索结果，推荐HS编码。返回JSON。`
+  return `${dateContext}\n\n# Role: 海关商品归类专家\n\n根据商品描述和税则检索结果，推荐HS编码。返回JSON。`
 }
 
 function findTariffPath(): string {
@@ -90,7 +92,7 @@ async function extractKeywordsWithAI(productDescription: string): Promise<string
     const response = await client.chat.completions.create({
       model: getModel(),
       messages: [
-        { role: 'system', content: `你是一个关键词提取器。根据商品描述，提取5-8个用于搜索税则的关键词。规则：提取核心名称、材质、用途、技术特征；优先使用税则中的规范术语而非口语；包含同义词；每个词2-6字。返回JSON：{"keywords":["词1","词2",...]}。只返回JSON。` },
+        { role: 'system', content: `${getSystemDateContext()}\n\n你是一个关键词提取器。根据商品描述，提取5-8个用于搜索税则的关键词。规则：提取核心名称、材质、用途、技术特征；优先使用税则中的规范术语而非口语；包含同义词；每个词2-6字。返回JSON：{"keywords":["词1","词2",...]}。只返回JSON。` },
         { role: 'user', content: productDescription },
       ],
       temperature: 0.1, max_tokens: 256,

@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx'
 import { searchTariff, loadSkillPrompt } from './classifier'
 import { extractKeywords } from './keywords'
 import { getAIClient, getModel } from '../ai/client'
+import { getSystemDateContext } from '../ai/prompts'
 
 // ═══ Excel Parsing ═══
 export function parseExcel(filePath: string): { text: string; rows: string[]; rowCount: number } {
@@ -25,7 +26,7 @@ async function extractBatchKeywords(allText: string): Promise<string[]> {
     const response = await client.chat.completions.create({
       model: getModel(),
       messages: [
-        { role: 'system', content: `你是一个关键词提取器。从以下商品清单中提取5-10个用于搜索《中华人民共和国进出口税则》的关键词。清单可能包含多种不同类型的商品。提取最具代表性、覆盖面最广的关键词。优先使用税则中的规范术语。返回JSON：{"keywords":["词1","词2",...]}。只返回JSON。` },
+        { role: 'system', content: `${getSystemDateContext()}\n\n你是一个关键词提取器。从以下商品清单中提取5-10个用于搜索《中华人民共和国进出口税则》的关键词。清单可能包含多种不同类型的商品。提取最具代表性、覆盖面最广的关键词。优先使用税则中的规范术语。返回JSON：{"keywords":["词1","词2",...]}。只返回JSON。` },
         { role: 'user', content: allText.slice(0, 6000) }, // limit to avoid token overflow
       ],
       temperature: 0.1, max_tokens: 256,
