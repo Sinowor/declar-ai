@@ -128,11 +128,16 @@ export interface HsClassificationResult {
   created_at: string
 }
 
-export async function classifyHsCode(productDescription: string): Promise<{
+export interface HsClassifyResponse {
   success: boolean
   result?: HsClassificationResult
+  needsMoreInfo?: boolean
+  missingFields?: string[]
+  question?: string
   error?: string
-}> {
+}
+
+export async function classifyHsCode(productDescription: string): Promise<HsClassifyResponse> {
   try {
     // Step 1: AI extracts search keywords (dynamic, not static dictionary)
     const keywords = await extractKeywordsWithAI(productDescription)
@@ -168,6 +173,16 @@ export async function classifyHsCode(productDescription: string): Promise<{
       parsed = JSON.parse(content)
     } catch {
       throw new Error('AI 返回格式错误')
+    }
+
+    // Check if AI requests more information
+    if (parsed.needs_more_info) {
+      return {
+        success: true,
+        needsMoreInfo: true,
+        missingFields: parsed.missing_fields || [],
+        question: parsed.question || '请补充更多商品信息以便准确归类',
+      }
     }
 
     const id = uuid()

@@ -46,6 +46,9 @@ export default function HsClassifier() {
   const [analyzing, setAnalyzing] = useState(false)
   const [processingStep, setProcessingStep] = useState(0)
   const [result, setResult] = useState<HsResult | null>(null)
+  const [needsMoreInfo, setNeedsMoreInfo] = useState(false)
+  const [missingFields, setMissingFields] = useState<string[]>([])
+  const [aiQuestion, setAiQuestion] = useState('')
   const [history, setHistory] = useState<HsResult[]>([])
   const [showAllHistory, setShowAllHistory] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -83,8 +86,15 @@ export default function HsClassifier() {
         clearTimeout(s1); clearTimeout(s2)
         setProcessingStep(3)
         await new Promise(r => setTimeout(r, 400))
-        if (res.success && res.result) setResult(res.result)
-        else showToast(`归类失败: ${res.error || '未知错误'}`)
+        if (res.needsMoreInfo) {
+          setNeedsMoreInfo(true)
+          setMissingFields(res.missingFields || [])
+          setAiQuestion(res.question || '')
+        } else if (res.success && res.result) {
+          setResult(res.result)
+        } else {
+          showToast(`归类失败: ${res.error || '未知错误'}`)
+        }
       }
     } catch (err: any) { showToast(`错误: ${err.message}`) }
     finally { setAnalyzing(false); setProcessingStep(0) }
@@ -99,8 +109,13 @@ export default function HsClassifier() {
   }
 
   const handleNewQuery = () => {
-    setResult(null); setInput(''); setShowAllHistory(false)
+    setResult(null); setInput(''); setShowAllHistory(false); setNeedsMoreInfo(false)
     setTimeout(() => textareaRef.current?.focus(), 100)
+  }
+
+  const handleSupplement = () => {
+    setNeedsMoreInfo(false)
+    handleClassify() // re-run with supplemented info
   }
 
   // ═══ Processing ═══
@@ -183,7 +198,24 @@ export default function HsClassifier() {
       <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <div className="w-full max-w-[600px] px-8 overflow-y-auto flex flex-col items-center" style={{ maxHeight: 'calc(100vh - 40px)', paddingTop: '10vh', paddingBottom: '6vh' }}>
           <h1 className="text-center text-[24px] font-bold mb-2 shrink-0 text-ink">AI 预归类</h1>
-          <p className="text-center text-[13px] text-muted mb-8 shrink-0">智能检索《进出口税则》，结果仅供参考</p>
+          <p className="text-center text-[13px] text-muted mb-6 shrink-0">智能检索《进出口税则》，结果仅供参考</p>
+
+          {needsMoreInfo && (
+            <div className="w-full mb-6 bg-white border rounded-2xl p-5 shrink-0" style={{ borderColor: p(0.3) }}>
+              <div className="flex items-start gap-3">
+                <span className="text-lg shrink-0 mt-0.5">🧠</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold mb-2" style={{ color: theme.primary }}>需要补充信息</div>
+                  <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{aiQuestion}</div>
+                  <div className="flex gap-2 mt-3">
+                    {missingFields.map(f => (
+                      <span key={f} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: p(0.06), color: theme.primary }}>{f}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={`w-full bg-white border-2 rounded-2xl transition-all duration-200 shrink-0 ${
             focused ? 'border-primary-500 shadow-[0_0_0_4px_var(--primary-rgb)_0.06]' : 'border-gray-200 shadow-card'
