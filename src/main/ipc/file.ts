@@ -1,12 +1,14 @@
 import { ipcMain, dialog } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
-import { queryOne, queryAll, execute, uuid } from '../db'
+import { getDb, queryOne, queryAll, execute, uuid } from '../db'
 import { extractText, isArchive, detectFileType } from '../file/extractor'
 import { extractArchive } from '../file/archive'
 import { importFileToFolder, filesDir, ensureFolder } from '../storage'
 
 export async function registerFileIpc() {
+  await getDb()
+
   ipcMain.handle('file:dialog', async () => {
     const result = await dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],

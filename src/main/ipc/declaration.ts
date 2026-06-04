@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import { queryAll, queryOne, execute, transaction, uuid, nextSequenceNo } from '../db'
+import { getDb, queryAll, queryOne, execute, transaction, uuid, nextSequenceNo } from '../db'
 import {
   folderPath, ensureFolder, declarationJsonPath,
   readJsonFile, writeJsonFile, deleteFolder,
@@ -8,6 +8,8 @@ import {
 const EMPTY_DATA = { fields: {}, cargo_details: [], extraction_notes: [], file_warnings: [] }
 
 export async function registerDeclarationIpc() {
+  await getDb()
+
   ipcMain.handle('declaration:list', async (_event, search?: string) => {
     let sql = `SELECT id, sequence_no, display_name, type, status, folder_path, created_at, updated_at
                FROM declarations ORDER BY updated_at DESC`
