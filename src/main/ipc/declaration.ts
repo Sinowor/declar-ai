@@ -4,28 +4,14 @@ import * as path from 'path'
 import { getDb, queryAll, queryOne, execute, transaction, uuid } from '../db'
 
 const EMPTY_DATA = {
-  document_title: '中华人民共和国海关进口转关运输货物申报单',
-  pre_entry_number: null,
-  document_number: null,
-  transport_info: {
-    entry_exit_transport_tool_name: null,
-    voyage_flight_number: null,
-    customs_transfer_method: null,
-    domestic_transport_method: null,
-  },
-  cargo_summary: {
-    bill_of_lading_total: 0,
-    cargo_total_pieces: 0,
-    cargo_total_weight: 0,
-    container_total: 0,
-    domestic_transport_tool: null,
-  },
+  fields: {},
   cargo_details: [],
   extraction_notes: [],
+  file_warnings: [],
 }
 
 export async function registerDeclarationIpc() {
-  const db = await getDb()
+  await getDb()
 
   ipcMain.handle('declaration:list', async (_event, search?: string) => {
     let sql = `SELECT id, type, status, data, created_at, updated_at FROM declarations ORDER BY updated_at DESC`
@@ -41,16 +27,16 @@ export async function registerDeclarationIpc() {
     const rows = queryAll(sql, params)
     return rows.map((r: any) => {
       const parsed = JSON.parse(r.data)
+      const fields = parsed.fields || {}
       return {
         id: r.id,
-        type: r.type,
+        type: r.type || null,
         status: r.status,
-        data: parsed,
-        created_at: r.created_at,
+        fields,
+        cargoCount: (parsed.cargo_details || []).length,
+        displayName: fields.contract_number || fields.invoice_number || fields.bill_of_lading_number || fields.pre_entry_number || '(未编号)',
         updated_at: r.updated_at,
-        transportName: getTransportName(parsed),
-        preEntryNumber: getPreEntryNumber(parsed),
-        displayNumber: getDisplayNumber(parsed),
+        created_at: r.created_at,
       }
     })
   })
@@ -58,15 +44,13 @@ export async function registerDeclarationIpc() {
   ipcMain.handle('declaration:get', async (_event, id: string) => {
     const row = queryOne('SELECT * FROM declarations WHERE id = ?', [id])
     if (!row) return null
-
-    const cargoDetails = queryAll('SELECT * FROM cargo_details WHERE declaration_id = ? ORDER BY sort_order', [id])
-    return { ...row, data: JSON.parse(row.data), cargo_details: cargoDetails }
+    return { ...row, data: JSON.parse(row.data) }
   })
 
   ipcMain.handle('declaration:create', async () => {
     const id = uuid()
-    execute('INSERT INTO declarations (id, type, status, data) VALUES (?, ?, ?, ?)', [
-      id, 'transit_transport', 'draft', JSON.stringify(EMPTY_DATA),
+    execute('INSERT INTO declarations (id, status, data) VALUES (?, ?, ?)', [
+      id, 'draft', JSON.stringify(EMPTY_DATA),
     ])
     return { id, status: 'draft', data: EMPTY_DATA }
   })
@@ -76,32 +60,22 @@ export async function registerDeclarationIpc() {
     if (!d || typeof d !== 'object') {
       return { success: false, error: '无效的申报单数据' }
     }
-    if (!d.transport_info || !Array.isArray(d.cargo_details)) {
-      return { success: false, error: '数据缺少必要字段（transport_info 或 cargo_details）' }
+    const sanitized = {
+      fields: d.fields || {},
+      cargo_details: Array.isArray(d.cargo_details) ? d.cargo_details : [],
+      extraction_notes: Array.isArray(d.extraction_notes) ? d.extraction_notes : [],
+      file_warnings: Array.isArray(d.file_warnings) ? d.file_warnings : [],
     }
+    execute(
+      "UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?",
+      [JSON.stringify(sanitized), id]
+    )
+    return { success: true }
+  })
 
-    transaction(() => {
-      execute("UPDATE declarations SET data = ?, updated_at = datetime('now','localtime') WHERE id = ?", [
-        JSON.stringify(data), id,
-      ])
-      execute('DELETE FROM cargo_details WHERE declaration_id = ?', [id])
-      const details = d.cargo_details || []
-      for (let i = 0; i < details.length; i++) {
-        const cd = details[i]
-        execute(
-          `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
-            container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [uuid(), id,
-            cd.domestic_transport_tool_name || null, cd.bill_of_lading_number || null,
-            cd.container_number || null, cd.cargo_name || null,
-            cd.pieces || 0, cd.weight || 0,
-            cd.customs_lock_number || null, cd.quantity || 1, i,
-          ]
-        )
-      }
-    })
-
+  ipcMain.handle('declaration:setType', async (_event, id: string, typeKey: string) => {
+    execute("UPDATE declarations SET type = ?, updated_at = datetime('now','localtime') WHERE id = ?", [typeKey, id])
+    execute('INSERT INTO declaration_outputs (declaration_id, type_key) VALUES (?, ?)', [id, typeKey])
     return { success: true }
   })
 
@@ -115,26 +89,4 @@ export async function registerDeclarationIpc() {
     execute('DELETE FROM declarations WHERE id = ?', [id])
     return { success: true }
   })
-}
-
-function getTransportName(data: any): string {
-  const t = data?.transport_info
-  if (!t) return ''
-  const name = t.entry_exit_transport_tool_name || ''
-  const voyage = t.voyage_flight_number || ''
-  return voyage ? `${name} / ${voyage}` : name
-}
-
-function getPreEntryNumber(data: any): string | null {
-  return data?.pre_entry_number || null
-}
-
-// Use bill of lading number as primary display ID; fall back to pre-entry number
-function getDisplayNumber(data: any): string | null {
-  const details = data?.cargo_details
-  if (Array.isArray(details) && details.length > 0) {
-    const firstBl = details[0]?.bill_of_lading_number
-    if (firstBl) return firstBl
-  }
-  return data?.pre_entry_number || null
 }

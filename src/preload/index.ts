@@ -23,6 +23,9 @@ const api = {
 
   // Schema
   getSchema: (type: string) => ipcRenderer.invoke('schema:get', type),
+  getSchemaList: () => ipcRenderer.invoke('schema:list'),
+  getSchemaAll: () => ipcRenderer.invoke('schema:all'),
+  setDeclarationType: (id: string, typeKey: string) => ipcRenderer.invoke('declaration:setType', id, typeKey),
 
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),

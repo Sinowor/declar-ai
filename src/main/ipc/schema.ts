@@ -1,14 +1,16 @@
 import { ipcMain } from 'electron'
-import { schemaRegistry } from '../../shared/schemas/transit-transport'
+import { getType, getTypeLabels, getAllTypes } from '../declaration-types'
 
 export function registerSchemaIpc() {
   ipcMain.handle('schema:get', (_event, type: string) => {
-    return schemaRegistry[type] || null
+    return getType(type as any) || null
   })
 
   ipcMain.handle('schema:list', () => {
-    return Object.values(schemaRegistry).map((s) => ({
-      type: s.type, title: s.title, description: s.description,
-    }))
+    return getTypeLabels()
+  })
+
+  ipcMain.handle('schema:all', () => {
+    return getAllTypes()
   })
 }

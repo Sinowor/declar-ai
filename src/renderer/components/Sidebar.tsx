@@ -126,13 +126,13 @@ export default function Sidebar({
                 >
                   <div className="flex items-center justify-between">
                     <div className="font-semibold text-sm min-w-0 flex-1">
-                      {d.displayNumber || d.preEntryNumber || '(未编号)'}
+                      {d.displayName}
                     </div>
                     {!isEditing && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (confirm(`确定删除申报单「${d.displayNumber || d.preEntryNumber || '未编号'}」吗？此操作不可撤销。`)) {
+                          if (confirm(`确定删除申报单「${d.displayName}」吗？此操作不可撤销。`)) {
                             onDelete(d.id)
                           }
                         }}
@@ -144,10 +144,8 @@ export default function Sidebar({
                     )}
                   </div>
                   <div className="text-xs text-muted mt-1 flex gap-2 items-center">
-                    {d.preEntryNumber && d.displayNumber !== d.preEntryNumber && (
-                      <span className="text-[10px] text-muted opacity-60">预录入: {d.preEntryNumber}</span>
-                    )}
-                    <span>{d.transportName}</span>
+                    {d.type && <span className="text-[10px] text-muted opacity-60">{d.type}</span>}
+                    <span>{d.cargoCount} 行货物</span>
                     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}>
                       {badge.label}
                     </span>

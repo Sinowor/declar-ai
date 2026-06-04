@@ -6,10 +6,10 @@ import LicenseModal from './components/LicenseModal'
 
 export interface DeclarationItem {
   id: string
-  preEntryNumber: string | null
-  displayNumber: string | null
-  transportName: string
+  displayName: string
+  type: string | null
   status: 'draft' | 'processing' | 'review' | 'done' | 'error'
+  cargoCount: number
   updatedAt: string
 }
 
@@ -33,7 +33,7 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 const mockDeclarations: DeclarationItem[] = [
-  { id: '1', preEntryNumber: '2002029999509318', displayNumber: 'COSU6245837190', transportName: 'COSCO HAIFA / 072N', status: 'review', updatedAt: '2 分钟前' },
+  { id: '1', displayName: 'INV-2024-001', type: null, status: 'review', cargoCount: 3, updatedAt: '2 分钟前' },
 ]
 
 export default function App() {
@@ -60,10 +60,11 @@ export default function App() {
         const result = await window.api.getDeclarations(debouncedSearch || undefined)
         if (Array.isArray(result)) {
           setDeclarations(result.map((r: any) => ({
-            id: r.id, preEntryNumber: r.preEntryNumber,
-            transportName: r.transportName || '',
-            displayNumber: r.displayNumber || null,
+            id: r.id,
+            displayName: r.displayName || '(未编号)',
+            type: r.type || null,
             status: r.status,
+            cargoCount: r.cargoCount || 0,
             updatedAt: formatRelativeTime(r.updated_at),
           })))
         }
@@ -98,9 +99,7 @@ export default function App() {
 
   const filteredDeclarations = searchQuery
     ? declarations.filter(d =>
-        (d.displayNumber || '').includes(searchQuery) ||
-        (d.preEntryNumber || '').includes(searchQuery) ||
-        d.transportName.toLowerCase().includes(searchQuery.toLowerCase()))
+        d.displayName.toLowerCase().includes(searchQuery.toLowerCase()))
     : declarations
 
   const handleSelect = (id: string) => {

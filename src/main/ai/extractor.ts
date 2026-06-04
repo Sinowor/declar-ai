@@ -1,18 +1,16 @@
 import { v4 as uuid } from 'uuid'
-import { getDb, queryAll, queryOne, execute, transaction } from '../db'
+import { getDb, queryAll, queryOne, execute } from '../db'
 import { getAIClient, getModel } from './client'
 import { getExtractionPrompt, getReviewPrompt } from './prompts'
-import type { DeclarationData, ExtractionNote, ReviewIssue } from '../../shared/types'
+import type { UniversalDeclarationData, ExtractionNote, ReviewIssue } from '../../shared/types'
 
 export async function runAIExtraction(declarationId: string): Promise<{
   success: boolean
-  data?: DeclarationData
+  data?: UniversalDeclarationData
   extraction_notes?: ExtractionNote[]
   issues?: ReviewIssue[]
   error?: string
 }> {
-  const db = await getDb()
-
   const declaration = queryOne('SELECT * FROM declarations WHERE id = ?', [declarationId])
   if (!declaration) {
     return { success: false, error: '申报单不存在' }
@@ -26,7 +24,7 @@ export async function runAIExtraction(declarationId: string): Promise<{
   execute("UPDATE declarations SET status = 'processing', updated_at = datetime('now','localtime') WHERE id = ?", [declarationId])
 
   try {
-    // Separate unreadable files (error placeholders) from valid content
+    // Separate unreadable files from valid content
     const codeWarnings: Array<{ file_name: string; reason: string }> = []
     const validFiles = files.filter((f: any) => {
       const text = f.extracted_text || ''
@@ -60,57 +58,29 @@ export async function runAIExtraction(declarationId: string): Promise<{
     const content = response.choices[0]?.message?.content
     if (!content) throw new Error('AI 未返回有效响应')
 
-    let extractedData: DeclarationData
+    let extractedData: UniversalDeclarationData
     try {
       const parsed = JSON.parse(content)
-      extractedData = parsed.data || parsed
-      if (!extractedData.transport_info || !extractedData.cargo_details) {
-        throw new Error('返回的 JSON 缺少必要字段（transport_info 或 cargo_details）')
-      }
-      if (!extractedData.cargo_summary) {
-        extractedData.cargo_summary = { bill_of_lading_total: 0, cargo_total_pieces: 0, cargo_total_weight: 0, container_total: 0, domestic_transport_tool: null }
-      }
-      if (!extractedData.extraction_notes) {
-        extractedData.extraction_notes = []
-      }
-      if (!extractedData.file_warnings) {
-        extractedData.file_warnings = []
+      const data = parsed.data || parsed
+      extractedData = {
+        fields: data.fields || {},
+        cargo_details: Array.isArray(data.cargo_details) ? data.cargo_details : [],
+        extraction_notes: Array.isArray(data.extraction_notes) ? data.extraction_notes : [],
+        file_warnings: Array.isArray(data.file_warnings) ? data.file_warnings : [],
       }
     } catch (parseErr: any) {
       throw new Error(`AI 返回的 JSON 解析失败: ${parseErr.message}`)
     }
 
-    // Recalculate summaries
-    extractedData.cargo_summary.cargo_total_pieces = extractedData.cargo_details.reduce((sum, d) => sum + (d.pieces || 0), 0)
-    extractedData.cargo_summary.cargo_total_weight = extractedData.cargo_details.reduce((sum, d) => sum + (d.weight || 0), 0)
-    extractedData.cargo_summary.container_total = new Set(extractedData.cargo_details.map(d => d.container_number).filter(Boolean)).size
-    extractedData.cargo_summary.bill_of_lading_total = new Set(extractedData.cargo_details.map(d => d.bill_of_lading_number).filter(Boolean)).size
-
-    transaction(() => {
-      execute(
-        "UPDATE declarations SET data = ?, status = 'review', updated_at = datetime('now','localtime') WHERE id = ?",
-        [JSON.stringify(extractedData), declarationId]
-      )
-      execute('DELETE FROM cargo_details WHERE declaration_id = ?', [declarationId])
-      for (let i = 0; i < extractedData.cargo_details.length; i++) {
-        const d = extractedData.cargo_details[i]
-        execute(
-          `INSERT INTO cargo_details (id, declaration_id, domestic_transport_tool_name, bill_of_lading_number,
-            container_number, cargo_name, pieces, weight, customs_lock_number, quantity, sort_order)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [uuid(), declarationId,
-            d.domestic_transport_tool_name || null, d.bill_of_lading_number || null,
-            d.container_number || null, d.cargo_name || null,
-            d.pieces || 0, d.weight || 0,
-            d.customs_lock_number || null, d.quantity || 1, i]
-        )
-      }
-    })
-
-    // Merge code-level file warnings with AI-detected file warnings
+    // Merge code-level file warnings with AI-detected ones
     if (codeWarnings.length > 0) {
-      extractedData.file_warnings = [...codeWarnings, ...(extractedData.file_warnings || [])]
+      extractedData.file_warnings = [...codeWarnings, ...extractedData.file_warnings]
     }
+
+    execute(
+      "UPDATE declarations SET data = ?, status = 'review', updated_at = datetime('now','localtime') WHERE id = ?",
+      [JSON.stringify(extractedData), declarationId]
+    )
 
     // Auto-run review after successful extraction
     let issues: ReviewIssue[] = []
@@ -132,10 +102,9 @@ export async function runAIExtraction(declarationId: string): Promise<{
 
 export async function runAIReview(declarationId: string): Promise<{
   success: boolean
-  issues?: Array<{ id: string; field_path: string; issue_type: string; question: string; severity: string; suggestion: string }>
+  issues?: ReviewIssue[]
   error?: string
 }> {
-  const db = await getDb()
   const declaration = queryOne('SELECT * FROM declarations WHERE id = ?', [declarationId])
   if (!declaration) return { success: false, error: '申报单不存在' }
 
@@ -180,7 +149,6 @@ export async function runAIReview(declarationId: string): Promise<{
 }
 
 export async function submitAnswer(conversationId: string, answer: string): Promise<{ success: boolean; error?: string }> {
-  const db = await getDb()
   const conv = queryOne('SELECT * FROM ai_conversations WHERE id = ?', [conversationId])
   if (!conv) return { success: false, error: '对话记录不存在' }
 

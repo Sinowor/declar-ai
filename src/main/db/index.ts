@@ -22,9 +22,17 @@ export async function getDb(): Promise<SqlJsDatabase> {
   const sql = await getSQL()
 
   try {
+    // Delete old DB if it has the legacy schema (v1 → v2 breaking change)
     if (fs.existsSync(dbPath)) {
       const buffer = fs.readFileSync(dbPath)
       db = new sql.Database(buffer)
+      const hasOldSchema = queryOne("SELECT sql FROM sqlite_master WHERE name='cargo_details' AND type='table'")
+      if (hasOldSchema) {
+        console.log('[db] Legacy schema detected — recreating database')
+        db.close()
+        fs.unlinkSync(dbPath)
+        db = new sql.Database()
+      }
     } else {
       db = new sql.Database()
     }
@@ -54,7 +62,7 @@ function initSchema() {
   db.run(`
     CREATE TABLE IF NOT EXISTS declarations (
       id TEXT PRIMARY KEY,
-      type TEXT NOT NULL DEFAULT 'transit_transport',
+      type TEXT,
       status TEXT NOT NULL DEFAULT 'draft',
       data TEXT NOT NULL DEFAULT '{}',
       created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
@@ -63,18 +71,11 @@ function initSchema() {
   `)
 
   db.run(`
-    CREATE TABLE IF NOT EXISTS cargo_details (
-      id TEXT PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS declaration_outputs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       declaration_id TEXT NOT NULL,
-      domestic_transport_tool_name TEXT,
-      bill_of_lading_number TEXT,
-      container_number TEXT,
-      cargo_name TEXT,
-      pieces INTEGER NOT NULL DEFAULT 0,
-      weight REAL NOT NULL DEFAULT 0,
-      customs_lock_number TEXT,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      sort_order INTEGER NOT NULL DEFAULT 0,
+      type_key TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (declaration_id) REFERENCES declarations(id) ON DELETE CASCADE
     )
   `)
@@ -107,7 +108,7 @@ function initSchema() {
     )
   `)
 
-  db.run('CREATE INDEX IF NOT EXISTS idx_cargo_details_decl ON cargo_details(declaration_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_outputs_decl ON declaration_outputs(declaration_id)')
   db.run('CREATE INDEX IF NOT EXISTS idx_files_decl ON declaration_files(declaration_id)')
   db.run('CREATE INDEX IF NOT EXISTS idx_conversations_decl ON ai_conversations(declaration_id)')
 
