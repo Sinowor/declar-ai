@@ -7,7 +7,8 @@ interface HsResult {
   hs_description: string | null; confidence: string | null
   mfn_rate: string | null; vat_rate: string | null
   supervision_conditions: string | null; rationale: string | null
-  alternatives: string | null; tariff_text: string | null; created_at: string
+  alternatives: string | null; tariff_text: string | null
+  code_verified: boolean; created_at: string
 }
 
 const confLabel: Record<string, string> = { high: '高置信度', medium: '中置信度', low: '低置信度' }
@@ -296,6 +297,11 @@ export default function HsClassifier() {
                 )}
               </div>
               <div className="text-sm text-muted mt-2">{result.hs_description || '—'}</div>
+              {!result.code_verified && (
+                <div className="flex items-center gap-1.5 mt-2 text-[12px] px-3 py-1.5 rounded-lg" style={{ background: p(0.06), color: theme.primary }}>
+                  <span className="font-bold">!</span> 该编码未在税则原文中精确匹配，请人工核实
+                </div>
+              )}
             </div>
             <button onClick={handleCopyCode}
               className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-all shrink-0"

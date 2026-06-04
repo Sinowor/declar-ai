@@ -55,6 +55,22 @@ export function searchTariff(keywords: string[], limit: number = 30): string {
   }
 }
 
+// ═══ HS Code Verification ═══
+// Verify AI-returned code actually exists in tariff. Non-LLM safety net against hallucination.
+export function verifyHsCode(code: string | null): boolean {
+  if (!code) return false
+  try {
+    const tariffPath = findTariffPath()
+    // Search for 8-digit prefix (more likely to match than exact 10-digit)
+    const prefix = code.replace(/\./g, '\\.').slice(0, 10)
+    const command = `grep -c "${prefix}" "${tariffPath}"`
+    const result = execSync(command, { encoding: 'utf-8', timeout: 3000 })
+    return parseInt(result.trim()) > 0
+  } catch {
+    return false
+  }
+}
+
 // ═══ AI Classification ═══
 export interface HsClassificationResult {
   id: string
@@ -68,6 +84,7 @@ export interface HsClassificationResult {
   rationale: string | null
   alternatives: string | null
   tariff_text: string | null
+  code_verified: boolean
   full_result_json: string
   created_at: string
 }
@@ -86,8 +103,8 @@ export async function classifyHsCode(productDescription: string): Promise<{
     console.log(`[hs-code] Tariff search: ${resultsCount} matching lines`)
 
     const tariffSection = tariffResults
-      ? `\n\n## 从税则检索到的相关内容\n\n基于关键词「${keywords.join('、')}」检索到以下内容（格式：行号:内容）：\n\n\`\`\`\n${tariffResults}\n\`\`\`\n\n请基于上述税则原文进行归类分析，引用行号作为依据。`
-      : ''
+      ? `\n\n## 从税则检索到的相关内容\n\n基于关键词「${keywords.join('、')}」检索到以下内容（格式：行号:内容）：\n\n\`\`\`\n${tariffResults}\n\`\`\`\n\n请优先基于上述税则原文进行归类。如果检索结果不充分，请根据你的专业知识补充，并在 confidence 中标为 "low"。`
+      : '\n\n## ⚠ 税则检索无结果\n\n未能从税则文件中检索到匹配内容。请根据你对《中华人民共和国进出口税则》的专业知识给出最佳归类建议，confidence 必须标为 "low"，并在 rationale 中说明"税则检索无匹配，基于通用知识归类"。'
 
     const systemPrompt = `# Role: 海关商品归类专家
 
@@ -149,6 +166,7 @@ export async function classifyHsCode(productDescription: string): Promise<{
       rationale: parsed.rationale || null,
       alternatives: parsed.alternatives || null,
       tariff_text: parsed.tariff_text || null,
+      code_verified: verifyHsCode(parsed.hs_code),
       full_result_json: content,
       created_at: new Date().toISOString(),
     }
