@@ -217,6 +217,9 @@ export default function App() {
           onEnterEdit={() => selectedId && handleEnterEdit(selectedId)}
           isEditing={!!editingId}
           onNavigateToHs={navigateToHsClassifier}
+          recentDeclarations={declarations}
+          onSelectDeclaration={handleSelect}
+          onNewDeclaration={handleNewDeclaration}
         />
       )}
       {activeModule === 'hs-classifier' && !batchMode && (

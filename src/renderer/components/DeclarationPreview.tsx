@@ -68,6 +68,24 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
       </div>
 
       <div className="px-8 py-6 flex flex-col gap-6 max-w-[1200px] mx-auto">
+        {/* KPI strip */}
+        <div className="grid grid-cols-5 gap-3">
+          {[
+            { label: '文件', value: files.length, unit: '个', color: '#6D5EF7' },
+            { label: '字段', value: fieldEntries.length, unit: '个', color: '#0EA5E9' },
+            { label: '货物', value: cargoDetails.length, unit: '行', color: '#22C55E' },
+            { label: '总件数', value: totalPieces, unit: '', color: '#F59E0B' },
+            { label: '总毛重', value: totalWeight.toFixed(0), unit: 'KG', color: '#EF4444' },
+          ].map(kpi => (
+            <div key={kpi.label} className="bg-white border border-gray-100 rounded-xl p-4 shadow-card">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: kpi.color }} />
+                <span className="text-[11px] uppercase tracking-wider text-muted font-medium">{kpi.label}</span>
+              </div>
+              <div className="text-2xl font-bold tabular-nums">{typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}{kpi.unit && <span className="text-sm text-muted font-normal ml-0.5">{kpi.unit}</span>}</div>
+            </div>
+          ))}
+        </div>
         {/* Fields by section */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
           <div className="px-6 py-[18px] border-b border-gray-200"><h3 className="text-lg font-semibold">提取字段</h3></div>

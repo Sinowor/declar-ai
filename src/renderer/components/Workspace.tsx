@@ -13,11 +13,14 @@ interface WorkspaceProps {
   onEnterEdit: () => void
   isEditing: boolean
   onNavigateToHs?: () => void
+  recentDeclarations?: DeclarationItem[]
+  onSelectDeclaration?: (id: string) => void
+  onNewDeclaration?: () => void
 }
 
 const SECTION_ORDER: FieldSection[] = ['header', 'transport', 'party', 'port', 'trade', 'customs', 'package']
 
-export default function Workspace({ declaration, selectedDeclaration, onEnterEdit, isEditing }: WorkspaceProps) {
+export default function Workspace({ declaration, selectedDeclaration, onEnterEdit, isEditing, onNavigateToHs, recentDeclarations, onSelectDeclaration, onNewDeclaration }: WorkspaceProps) {
   const statusLabels: Record<string, string> = {
     draft: '草稿', processing: 'AI 提取中', review: '待人工确认', done: '已完成', error: '有错误',
   }
@@ -28,13 +31,39 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
   if (!declaration && !selectedDeclaration) {
     return (
-      <main className="flex-1 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F5EEFF 0%, #EEF4FF 45%, #FFF7ED 100%)' }}>
-        <div className="text-center py-20">
-          <div className="flex justify-center mb-4"><IconDocument /></div>
-          <h3 className="text-lg font-semibold mb-2">选择一个申报单</h3>
-          <p className="text-muted text-sm max-w-sm mx-auto">
-            从左侧列表中选择一个申报单查看详情，或点击「新建申报单」创建新的转关运输货物申报单。
-          </p>
+      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: 'linear-gradient(135deg, #F5EEFF 0%, #EEF4FF 45%, #FFF7ED 100%)' }}>
+        <div className="text-center py-16 px-8 w-full max-w-[480px]">
+          <div className="flex justify-center mb-5">
+            <span className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(109,94,247,0.08)' }}>
+              <IconDocument />
+            </span>
+          </div>
+          <h3 className="text-xl font-bold mb-2">准备开始制单</h3>
+          <p className="text-muted text-sm mb-8">从左侧选择申报单，或创建新的申报单</p>
+          <button onClick={onNewDeclaration}
+            className="h-10 px-6 rounded-lg text-white border-none font-semibold text-sm cursor-pointer transition-all hover:opacity-90 active:scale-[0.98] mb-10"
+            style={{ background: 'linear-gradient(135deg, #6D5EF7, #5B4EDB)' }}
+          >新建申报单</button>
+          {(recentDeclarations || []).slice(0, 5).length > 0 && (
+            <div className="text-left">
+              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold mb-3" style={{ color: '#94a3b8' }}>最近使用</div>
+              <div className="space-y-1">
+                {(recentDeclarations || []).slice(0, 5).map(d => (
+                  <button key={d.id}
+                    onClick={() => onSelectDeclaration?.(d.id)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white/80 hover:bg-white border border-white/50 hover:border-gray-200 hover:shadow-sm transition-all"
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      d.status === 'done' ? 'bg-emerald-400' : d.status === 'review' ? 'bg-amber-400' : d.status === 'draft' ? 'bg-slate-300' : 'bg-sky-400'
+                    }`} />
+                    <span className="flex-1 text-[13px] font-medium truncate">{d.displayName}</span>
+                    <span className="text-[11px] text-muted">{d.cargoCount} 行</span>
+                    <span className="text-[11px] text-muted">{d.updatedAt}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
     )
@@ -308,13 +337,33 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   return (
     <main className="flex-1 overflow-y-auto flex flex-col">
       {/* Page Header */}
-      <div className="flex items-start justify-between px-8 pt-6 pb-4 shrink-0 drag-region workspace-header">
+      <div className="flex items-start justify-between px-8 pt-6 pb-2 shrink-0 drag-region workspace-header">
         <div>
           <h1 className="text-[28px] font-bold">报关单数据</h1>
           <p className="text-muted text-sm mt-1">
             {fields.invoice_number || fields.contract_number || '(未命名)'} · 状态：{statusLabels[declaration!.status]}
           </p>
         </div>
+      </div>
+      {/* Step progress */}
+      <div className="px-8 pb-3 shrink-0 flex items-center gap-2">
+        {[
+          { n: 1, label: '导入', done: extractionCompleted },
+          { n: 2, label: '提取', done: extractionCompleted },
+          { n: 3, label: '编辑', done: false },
+        ].map((step, i) => (
+          <div key={step.n} className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium ${
+              step.done ? '' : i === 2 ? '' : 'text-muted'
+            }`} style={{ color: step.done ? '#22C55E' : i === 2 ? '#6D5EF7' : undefined }}>
+              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
+                step.done ? 'bg-emerald-400' : i === 2 ? 'bg-primary-500' : 'bg-gray-300'
+              }`}>{step.done ? '✓' : step.n}</span>
+              {step.label}
+            </span>
+            {i < 2 && <span className="w-5 h-px bg-gray-200" />}
+          </div>
+        ))}
       </div>
 
       <div className="px-8 pb-12 flex flex-col gap-6 flex-1 max-w-[1200px] mx-auto w-full">
