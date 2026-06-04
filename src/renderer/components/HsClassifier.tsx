@@ -302,15 +302,6 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             </span>
           </div>
 
-          {onBatchMode && (
-            <div className="mt-6 pt-5 border-t border-gray-100 text-center">
-              <button onClick={onBatchMode}
-                className="text-[13px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors"
-                style={{ color: '#94a3b8' }}
-              >📊 批量归类：上传 Excel 清单，一次性处理多个品名 →</button>
-            </div>
-          )}
-
           {recentHistory.length > 0 && (
             <div className="mt-8">
               <div className="flex items-center justify-between mb-3">
@@ -337,6 +328,18 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           <p className="text-center text-[11px] mt-8" style={{ color: '#cbd5e1' }}>
             基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
           </p>
+
+          {onBatchMode && (
+            <button onClick={onBatchMode}
+              className="mt-5 h-10 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98] mx-auto"
+              style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              批量归类
+            </button>
+          )}
         </div>
 
         {toast && (
