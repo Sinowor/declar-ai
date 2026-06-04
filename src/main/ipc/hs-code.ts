@@ -1,6 +1,6 @@
 import { ipcMain, dialog } from 'electron'
 import { classifyHsCode, saveToHistory, getHistory, initHsClassifierDb } from '../hs-code/classifier'
-import { batchClassify, exportToExcel } from '../hs-code/batch-classifier'
+import { batchClassify, parseExcel, exportToExcel } from '../hs-code/batch-classifier'
 
 export async function registerHsCodeIpc() {
   await initHsClassifierDb()
@@ -20,7 +20,6 @@ export async function registerHsCodeIpc() {
 
   ipcMain.handle('hs:batchClassify', async (_event, filePath: string) => {
     try {
-      const { parseExcel } = require('../hs-code/batch-classifier')
       const { text } = parseExcel(filePath)
       return await batchClassify(text)
     } catch (err: any) {
