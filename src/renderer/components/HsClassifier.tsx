@@ -331,13 +331,18 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
 
           {onBatchMode && (
             <button onClick={onBatchMode}
-              className="mt-5 h-10 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98] mx-auto"
-              style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
+              className="w-full mt-5 flex items-center justify-between px-5 py-3.5 rounded-xl cursor-pointer border transition-all hover:shadow-sm text-left"
+              style={{ background: `linear-gradient(135deg, ${p(0.04)}, ${p(0.01)})`, borderColor: p(0.12) }}
+              onMouseEnter={e => { (e.target as HTMLElement).style.borderColor = p(0.25); (e.target as HTMLElement).style.background = `linear-gradient(135deg, ${p(0.07)}, ${p(0.02)})` }}
+              onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = p(0.12); (e.target as HTMLElement).style.background = `linear-gradient(135deg, ${p(0.04)}, ${p(0.01)})` }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div>
+                <div className="text-[13px] font-semibold" style={{ color: theme.primary }}>批量归类</div>
+                <div className="text-[12px] text-muted mt-0.5">上传 Excel 清单，一次性处理多个品名</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: theme.primary, opacity: 0.5 }}>
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
-              批量归类
             </button>
           )}
         </div>
