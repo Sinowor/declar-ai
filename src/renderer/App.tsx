@@ -33,7 +33,7 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 const mockDeclarations: DeclarationItem[] = [
-  { id: '1', preEntryNumber: '2002029999509318', transportName: 'COSCO HAIFA / 072N', status: 'review', updatedAt: '2 分钟前' },
+  { id: '1', preEntryNumber: '2002029999509318', displayNumber: 'COSU6245837190', transportName: 'COSCO HAIFA / 072N', status: 'review', updatedAt: '2 分钟前' },
 ]
 
 export default function App() {

@@ -54,7 +54,7 @@ export default function Sidebar({
       className="flex flex-col bg-white border-r border-gray-200 z-10"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-3 shrink-0 drag-region sidebar-header">
+      <div className="flex items-center justify-between px-4 pt-5 pb-3 shrink-0 drag-region sidebar-header">
         {!collapsed && (
           <div className="flex items-center gap-2.5 font-bold text-lg whitespace-nowrap">
             <Logo size={34} />
@@ -97,11 +97,11 @@ export default function Sidebar({
           </div>
 
           {/* List */}
-          <div className="px-3 pb-1 text-xs text-muted">
+          <div className="px-4 pb-1 text-xs text-muted">
             共 {declarations.length} 份申报单
           </div>
           <div
-            className={`flex-1 overflow-y-auto px-3 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
+            className={`flex-1 overflow-y-auto px-4 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
           >
             {isLocked && (
               <div className="flex items-center justify-center gap-1.5 py-3 text-xs text-muted">

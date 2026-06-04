@@ -115,3 +115,12 @@ export interface AiExtractionResponse {
   data?: DeclarationData
   error?: string
 }
+
+export interface ReviewIssue {
+  id: string
+  field_path: string
+  issue_type: string
+  question: string
+  severity: string
+  suggestion: string
+}

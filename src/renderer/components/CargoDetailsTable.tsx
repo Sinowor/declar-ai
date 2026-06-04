@@ -1,4 +1,5 @@
 import { IconTrash, IconBox } from './Icons'
+import type { ReviewIssue } from '../../shared/types'
 
 interface CargoDetail {
   id: string
@@ -18,6 +19,7 @@ interface CargoDetailsTableProps {
   details: CargoDetail[]
   onUpdate: (details: CargoDetail[]) => void
   confidenceMap?: Record<number, Record<string, string>>
+  cargoIssues?: Record<number, Record<string, ReviewIssue[]>>
 }
 
 const columns = [
@@ -36,6 +38,7 @@ export default function CargoDetailsTable({
   details,
   onUpdate,
   confidenceMap = {},
+  cargoIssues = {},
 }: CargoDetailsTableProps) {
   const totalPieces = details.reduce((sum, d) => sum + (d.pieces || 0), 0)
   const totalWeight = details.reduce((sum, d) => sum + (d.weight || 0), 0)
@@ -74,20 +77,29 @@ export default function CargoDetailsTable({
     return <span className={`inline-block w-1.5 h-1.5 rounded-full ml-1 ${colors[level] || ''}`} title={`置信度: ${level}`} />
   }
 
+  const fieldIssues = (index: number, field: string): ReviewIssue[] => {
+    return cargoIssues[index]?.[field] || []
+  }
+
   const renderInput = (index: number, field: string, value: any, width: string, placeholder = '—', step?: string) => {
     const isNumber = columns.find(c => c.key === field)?.type === 'number'
+    const issues = fieldIssues(index, field)
+    const hasIssue = issues.length > 0
+    const issueTooltip = hasIssue ? issues.map(i => i.question).join('; ') : undefined
     return (
-      <>
+      <span className="relative inline-flex items-center">
         <input
           type={isNumber ? 'number' : 'text'}
           value={value ?? ''}
           step={step}
           onChange={(e) => updateRow(index, field, isNumber ? (parseFloat(e.target.value) || 0) : e.target.value)}
-          className={`${width} h-8 rounded-md border border-transparent hover:border-gray-200 focus:border-primary-500 px-2 text-sm outline-none bg-transparent focus:bg-white transition-all font-sans ${isNumber ? 'text-right tabular-nums' : ''}`}
+          className={`${width} h-8 rounded-md border px-2 text-sm outline-none bg-transparent hover:bg-slate-50 focus:bg-white transition-all font-sans ${isNumber ? 'text-right tabular-nums' : ''} ${hasIssue ? 'border-amber-400 bg-amber-50/50' : 'border-transparent focus:border-primary-500'}`}
           placeholder={placeholder}
+          title={issueTooltip}
         />
+        {hasIssue && <span className="text-amber-500 text-xs leading-none ml-0.5 shrink-0" title={issueTooltip}>&#9888;</span>}
         {confidenceDot(index, field)}
-      </>
+      </span>
     )
   }
 
@@ -97,7 +109,7 @@ export default function CargoDetailsTable({
         <h3 className="text-lg font-semibold">货物明细</h3>
         <button
           onClick={addRow}
-          className="h-8 px-3 rounded-lg text-muted text-sm font-medium hover:text-ink hover:bg-surface transition-all cursor-pointer border-none bg-transparent"
+          className="h-8 px-3 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface transition-all cursor-pointer border-none bg-transparent"
         >
           + 添加货物
         </button>
@@ -138,7 +150,7 @@ export default function CargoDetailsTable({
               <tr>
                 <td colSpan={columns.length + 1} className="px-3.5 py-16 text-center text-muted text-sm">
                   <div className="flex justify-center mb-2"><IconBox /></div>
-                  点击「AI 提取数据」自动填充，或点击「+ 添加货物」手动录入
+                  点击「AI 提取并审核」自动填充，或点击「+ 添加货物」手动录入
                 </td>
               </tr>
             )}

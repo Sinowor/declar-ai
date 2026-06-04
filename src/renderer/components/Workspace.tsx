@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { DeclarationItem } from '../App'
+import type { ReviewIssue } from '../../shared/types'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
-import AiReviewPanel from './AiReviewPanel'
 import DeclarationPreview from './DeclarationPreview'
-import { IconSave, IconAI, IconDocument } from './Icons'
+import { IconSave, IconAI, IconDocument, IconChevronLeft } from './Icons'
 
 interface TransportFormData {
   entry_exit_transport_tool_name: string
@@ -35,15 +35,6 @@ interface CargoDetailData {
   sort_order: number
 }
 
-interface ReviewIssue {
-  id?: string
-  field_path: string
-  issue_type: string
-  question: string
-  severity: string
-  suggestion: string
-}
-
 interface WorkspaceProps {
   declaration: DeclarationItem | null | undefined
   selectedDeclaration: DeclarationItem | null | undefined
@@ -72,7 +63,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   // No selection at all
   if (!declaration && !selectedDeclaration) {
     return (
-      <main className="flex-1 flex items-center justify-center bg-surface">
+      <main className="flex-1 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F5EEFF 0%, #EEF4FF 45%, #FFF7ED 100%)' }}>
         <div className="text-center py-20">
           <div className="flex justify-center mb-4"><IconDocument /></div>
           <h3 className="text-lg font-semibold mb-2">选择一个申报单</h3>
@@ -86,8 +77,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
   const [files, setFiles] = useState<ImportedFileItem[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
-  const [isReviewing, setIsReviewing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const savingRef = useRef(false)
   const [transportForm, setTransportForm] = useState<TransportFormData>({
     entry_exit_transport_tool_name: '',
     voyage_flight_number: '',
@@ -97,9 +88,17 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   })
   const [cargoDetails, setCargoDetails] = useState<CargoDetailData[]>([])
   const [confidenceMap, setConfidenceMap] = useState<Record<number, Record<string, string>>>({})
-  const [reviewCompleted, setReviewCompleted] = useState(false)
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
+  const [resolvedIssues, setResolvedIssues] = useState<Set<number>>(new Set())
+  const [showIssuesPanel, setShowIssuesPanel] = useState(false)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null)
+  const dirtyRef = useRef(false)
+  const transportSectionRef = useRef<HTMLDivElement>(null)
+  const cargoSectionRef = useRef<HTMLDivElement>(null)
+
+  const markDirty = useCallback(() => {
+    dirtyRef.current = true
+  }, [])
 
   // Load existing declaration data when switching declarations
   useEffect(() => {
@@ -108,9 +107,12 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
     const loadData = async () => {
       // Reset state for the new declaration
+      dirtyRef.current = false
       setFiles([])
       setConfidenceMap({})
       setReviewIssues([])
+      setResolvedIssues(new Set())
+      setShowIssuesPanel(false)
 
       try {
         if (window.api?.getDeclaration && window.api?.getFiles) {
@@ -207,25 +209,54 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     }
   }, [transportForm, cargoDetails])
 
-  const handleSave = useCallback(async () => {
-    if (!declaration || isSaving) return
+  const handleSave = useCallback(async (retry = 0) => {
+    if (!declaration || savingRef.current) return
+    savingRef.current = true
     setIsSaving(true)
+    const maxRetries = 2
     try {
       const data = buildDeclarationData()
       if (window.api?.updateDeclaration) {
         const result = await window.api.updateDeclaration(declaration.id, data)
         if (result.success) {
+          dirtyRef.current = false
           showToast('保存成功')
+        } else if (retry < maxRetries) {
+          showToast(`保存失败，正在重试 (${retry + 1}/${maxRetries})...`, 'info')
+          savingRef.current = false
+          setIsSaving(false)
+          setTimeout(() => handleSaveRef.current(retry + 1), 1000)
+          return
         } else {
           showToast(`保存失败: ${result.error}`, 'error')
         }
       }
     } catch (err: any) {
+      if (retry < maxRetries) {
+        showToast(`保存出错，正在重试 (${retry + 1}/${maxRetries})...`, 'info')
+        savingRef.current = false
+        setIsSaving(false)
+        setTimeout(() => handleSaveRef.current(retry + 1), 1000)
+        return
+      }
       showToast(`保存错误: ${err.message}`, 'error')
     } finally {
+      savingRef.current = false
       setIsSaving(false)
     }
-  }, [declaration, isSaving, buildDeclarationData])
+  }, [declaration, buildDeclarationData])
+
+  // Unsaved changes warning
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (dirtyRef.current) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [])
 
   // Ctrl/Cmd+S keyboard shortcut for save (after handleSave defined)
   const handleSaveRef = useRef(handleSave)
@@ -271,7 +302,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             pre_entry_number: d.pre_entry_number || '',
           })
           setCargoDetails(
-            (d.cargo_details || []).map((cd, i) => ({
+            (d.cargo_details || []).map((cd: any, i: number) => ({
               id: '',
               declaration_id: declaration.id,
               ...cd,
@@ -293,7 +324,15 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             }
             setConfidenceMap(cmap)
           }
-          showToast('AI 提取完成，数据已填充')
+          // Store auto-review issues
+          if (result.issues && result.issues.length > 0) {
+            setReviewIssues(result.issues)
+            setResolvedIssues(new Set())
+            showToast(`AI 提取完成，发现 ${result.issues.length} 个待确认项`)
+          } else {
+            setReviewIssues([])
+            showToast('AI 提取完成，数据已填充')
+          }
         } else {
           showToast(`提取失败: ${result.error}`, 'error')
         }
@@ -305,58 +344,61 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     }
   }, [declaration])
 
-  const handleAIReview = useCallback(async () => {
-    if (!declaration) return
-    setIsReviewing(true)
-
-    try {
-      if (window.api?.aiReview) {
-        const result = await window.api.aiReview(declaration.id)
-        if (result.success && result.issues) {
-          setReviewIssues(result.issues)
-          showToast(`发现 ${result.issues.length} 个问题`)
-        } else {
-          showToast('审核完成，未发现问题')
-          setReviewIssues([])
-        }
-        setReviewCompleted(true)
+  // Build issue maps: transport fields vs cargo detail cells
+  const { transportIssues, cargoIssues } = useMemo(() => {
+    const tMap: Record<string, ReviewIssue[]> = {}
+    const cMap: Record<number, Record<string, ReviewIssue[]>> = {}
+    for (const issue of reviewIssues) {
+      // Transport info field: "transport_info.entry_exit_transport_tool_name"
+      const tMatch = issue.field_path.match(/^transport_info\.(.+)$/)
+      if (tMatch) {
+        const field = tMatch[1]
+        if (!tMap[field]) tMap[field] = []
+        tMap[field].push(issue)
+        continue
       }
-    } catch (err: any) {
-      showToast(`审核错误: ${err.message}`, 'error')
-    } finally {
-      setIsReviewing(false)
+      // Cargo detail cell: "cargo_details[0].cargo_name"
+      const cMatch = issue.field_path.match(/^cargo_details\[(\d+)\]\.(.+)$/)
+      if (cMatch) {
+        const idx = parseInt(cMatch[1])
+        const field = cMatch[2]
+        if (!cMap[idx]) cMap[idx] = {}
+        if (!cMap[idx][field]) cMap[idx][field] = []
+        cMap[idx][field].push(issue)
+      }
     }
-  }, [declaration])
-
-  const handleConfirmAll = useCallback(async () => {
-    // Confirm all pending issues with a default answer
-    for (let i = 0; i < reviewIssues.length; i++) {
-      if (!reviewIssues[i].id) continue
-      try {
-        if (window.api?.aiAnswer) {
-          await window.api.aiAnswer(reviewIssues[i].id!, '已确认，数据无误')
-        }
-      } catch {}
-    }
-    showToast('全部问题已确认')
+    return { transportIssues: tMap, cargoIssues: cMap }
   }, [reviewIssues])
 
-  const handleReviewAnswer = useCallback(async (index: number, answer: string) => {
+  const pendingCount = reviewIssues.length - resolvedIssues.size
+
+  const resolveIssue = (index: number) => {
+    const next = new Set(resolvedIssues)
+    next.add(index)
+    setResolvedIssues(next)
+  }
+
+  const resolveAll = () => {
+    setResolvedIssues(new Set(reviewIssues.map((_, i) => i)))
+  }
+
+  const scrollToIssue = (index: number) => {
     const issue = reviewIssues[index]
-    if (!issue?.id) return
-    try {
-      if (window.api?.aiAnswer) {
-        const result = await window.api.aiAnswer(issue.id, answer)
-        if (result.success) {
-          showToast('答复已记录')
-        } else {
-          showToast(`保存失败: ${result.error}`, 'error')
-        }
-      }
-    } catch (err: any) {
-      showToast(`保存答复失败: ${err.message}`, 'error')
+    if (!issue) return
+    if (issue.field_path.startsWith('transport_info')) {
+      transportSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else {
+      cargoSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-  }, [reviewIssues])
+  }
+
+  const sevBadge = (severity: string) => {
+    const colors: Record<string, string> = {
+      high: 'bg-red-50 text-red-600', medium: 'bg-amber-50 text-amber-600', low: 'bg-sky-50 text-sky-600',
+    }
+    const labels: Record<string, string> = { high: '高', medium: '中', low: '低' }
+    return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${colors[severity] || colors.medium}`}>{labels[severity] || severity}</span>
+  }
 
   return (
     <main className="flex-1 overflow-y-auto flex flex-col">
@@ -365,16 +407,30 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         <div>
           <h1 className="text-[28px] font-bold">转关运输货物申报单</h1>
           <p className="text-muted text-sm mt-1">
-            预录入编号：{transportForm.pre_entry_number || '(待填写)'} · 状态：{statusLabels[declaration.status]}
+            预录入编号：{transportForm.pre_entry_number || '(待填写)'} · 状态：{statusLabels[declaration!.status]}
           </p>
         </div>
-        <div className="flex gap-2.5 no-drag">
+        <div className="flex gap-2.5 no-drag items-start">
+          {pendingCount > 0 && (
+            <button
+              onClick={() => setShowIssuesPanel(!showIssuesPanel)}
+              className={`h-[38px] px-3 rounded-sm border font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-all ${
+                showIssuesPanel
+                  ? 'bg-amber-50 border-amber-300 text-amber-700'
+                  : 'bg-white border-amber-200 text-amber-600 hover:bg-amber-50'
+              }`}
+            >
+              <span className="text-base leading-none">&#9888;</span>
+              <span>{pendingCount} 个待确认</span>
+              <span style={{ transform: showIssuesPanel ? 'rotate(-90deg)' : 'rotate(90deg)', transition: 'transform 0.2s', display: 'inline-block' }}><IconChevronLeft /></span>
+            </button>
+          )}
           <button
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={isSaving}
             className={`h-[38px] px-5 rounded-sm bg-white text-ink border border-gray-200 font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isSaving ? '保存中...' : <><IconSave /><span>保存草稿</span></>}
+            {isSaving ? '保存中...' : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
           </button>
           <button
             onClick={handleAIExtract}
@@ -382,19 +438,58 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             title={files.length === 0 ? '请先导入单证文件' : ''}
             className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-all ${
               files.length === 0
-                ? 'bg-gray-300 cursor-not-allowed'
+                ? 'bg-primary-300 cursor-not-allowed'
                 : 'bg-primary-500 hover:bg-primary-600 pulse-ai'
             }`}
           >
-            {isExtracting ? '提取中...' : <><IconAI /><span>AI 提取数据</span></>}
+            {isExtracting ? '提取+审核中...' : <><IconAI /><span>AI 提取并审核</span></>}
           </button>
         </div>
       </div>
 
-      <div className="px-8 py-6 flex flex-col gap-6 flex-1">
+      {/* Issues dropdown panel */}
+      {showIssuesPanel && pendingCount > 0 && (
+        <div className="mx-8 mb-0 bg-white border border-amber-200 rounded-xl shadow-panel overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 bg-amber-50 border-b border-amber-100">
+            <span className="text-sm font-semibold">待确认项 ({pendingCount})</span>
+            <button
+              onClick={resolveAll}
+              className="h-6 px-3 rounded-sm text-xs font-medium border border-amber-200 bg-white text-amber-700 cursor-pointer hover:bg-amber-100 transition-all"
+            >
+              全部确认
+            </button>
+          </div>
+          <div className="max-h-[240px] overflow-y-auto">
+            {reviewIssues.map((issue, i) => {
+              if (resolvedIssues.has(i)) return null
+              return (
+                <div
+                  key={i}
+                  className="px-5 py-2.5 border-b border-slate-50 last:border-b-0 flex items-start gap-3 hover:bg-slate-50 cursor-pointer transition-all"
+                  onClick={() => { scrollToIssue(i); setShowIssuesPanel(false) }}
+                >
+                  {sevBadge(issue.severity)}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-medium truncate">{issue.field_path}</div>
+                    <div className="text-[12px] text-muted truncate">{issue.question}</div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); resolveIssue(i) }}
+                    className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-all"
+                  >
+                    确认
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="px-8 py-6 flex flex-col gap-6 flex-1 max-w-[1200px] mx-auto w-full">
         {/* File Drop Zone */}
         <FileDropZone
-          declarationId={declaration.id}
+          declarationId={declaration!.id}
           onFilesImported={handleFilesImported}
           files={files}
           onRemoveFile={handleRemoveFile}
@@ -402,18 +497,21 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         />
 
         {/* Transport Info Form */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
+        <div ref={transportSectionRef} className="bg-white border border-gray-200 rounded-2xl shadow-card">
           <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
             <h3 className="text-lg font-semibold">运输信息</h3>
-            {declaration.status !== 'draft' && (
+            {declaration!.status !== 'draft' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-500">
-                🤖 AI 已提取
+                <IconAI /><span className="ml-1">AI 已提取</span>
               </span>
             )}
           </div>
           <div className="p-6">
             <div className="grid grid-cols-3 gap-5">
-              {formFields.map((f) => (
+              {formFields.map((f) => {
+                const fieldIssues = transportIssues[f.key]
+                const hasIssue = fieldIssues && fieldIssues.length > 0
+                return (
                 <div key={f.key} className="flex flex-col gap-1.5">
                   <label className="text-[14px] font-medium text-muted uppercase tracking-wider">
                     {f.label}{f.key === 'entry_exit_transport_tool_name' || f.key === 'pre_entry_number' ? <span className="text-red-400 ml-0.5">*</span> : null}
@@ -421,8 +519,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   {f.type === 'select' ? (
                     <select
                       value={transportForm[f.key] || ''}
-                      onChange={(e) => setTransportForm({ ...transportForm, [f.key]: e.target.value })}
-                      className="h-10 rounded-[10px] border border-gray-200 px-3.5 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans"
+                      onChange={(e) => { markDirty(); setTransportForm({ ...transportForm, [f.key]: e.target.value }) }}
+                      className={`h-10 rounded-[10px] border px-3.5 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${hasIssue ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
                     >
                       {(f.options || []).map((opt: string) => (
                         <option key={opt} value={opt}>
@@ -434,12 +532,21 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                     <input
                       type="text"
                       value={transportForm[f.key] || ''}
-                      onChange={(e) => setTransportForm({ ...transportForm, [f.key]: e.target.value })}
-                      className="h-10 rounded-[10px] border border-gray-200 px-3.5 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans"
+                      onChange={(e) => { markDirty(); setTransportForm({ ...transportForm, [f.key]: e.target.value }) }}
+                      className={`h-10 rounded-[10px] border px-3.5 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${hasIssue ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
                     />
                   )}
+                  {hasIssue && (
+                    <div className="flex flex-col gap-0.5">
+                      {fieldIssues!.map((issue, ji) => (
+                        <div key={ji} className="text-[11px] text-amber-700 flex items-center gap-1">
+                          <span className="font-bold">&#9888;</span> {issue.question}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              )})}
               {/* Document number — readonly */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[14px] font-medium text-muted uppercase tracking-wider">
@@ -457,23 +564,16 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         </div>
 
         {/* Cargo Details Table */}
-        <CargoDetailsTable
-          details={cargoDetails}
-          onUpdate={setCargoDetails}
-          confidenceMap={confidenceMap}
-        />
+        <div ref={cargoSectionRef}>
+          <CargoDetailsTable
+            details={cargoDetails}
+            onUpdate={(details) => { markDirty(); setCargoDetails(details) }}
+            confidenceMap={confidenceMap}
+            cargoIssues={cargoIssues}
+          />
+        </div>
 
-        {/* AI Review Panel */}
-        <AiReviewPanel
-          issues={reviewIssues}
-          onAnswer={handleReviewAnswer}
-          isReviewing={isReviewing}
-          onStartReview={handleAIReview}
-          reviewCompleted={reviewCompleted}
-          onConfirmAll={handleConfirmAll}
-        />
-
-        <div className="pb-4" />
+        <div className="pb-12" />
       </div>
 
       {/* Toast */}

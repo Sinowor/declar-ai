@@ -1,5 +1,5 @@
 import * as path from 'path'
-import { mkdirSync, existsSync } from 'fs'
+import { mkdirSync, existsSync, renameSync } from 'fs'
 
 export async function extractArchive(
   filePath: string,
@@ -27,9 +27,24 @@ export async function extractArchive(
         continue
       }
 
-      // Use adm-zip's built-in extraction with path structure preserved
+      // Avoid silent overwrite: append suffix on name collision
+      let destPath = resolvedPath
+      if (existsSync(destPath)) {
+        const dir = path.dirname(destPath)
+        const ext = path.extname(destPath)
+        const base = path.basename(destPath, ext)
+        let counter = 1
+        while (existsSync(destPath)) {
+          destPath = path.join(dir, `${base}_${counter}${ext}`)
+          counter++
+        }
+      }
       zip.extractEntryTo(entry, normalizedDest, true, true)
-      extractedFiles.push(resolvedPath)
+      // If the default extract path collided, rename to the deduped path
+      if (destPath !== resolvedPath && existsSync(resolvedPath)) {
+        renameSync(resolvedPath, destPath)
+      }
+      extractedFiles.push(destPath)
     }
   } else if (ext === '.rar') {
     throw new Error(`RAR 格式暂不支持: ${path.basename(filePath)}。请解压为 ZIP 后重试。`)

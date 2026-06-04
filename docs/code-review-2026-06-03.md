@@ -158,7 +158,9 @@ Electron 安全最佳实践要求启用 sandbox。当前有 `contextIsolation: t
 
 导入文件时不检查 declarationId 对应的申报单是否存在，可创建孤儿记录。
 
-### 14. `file/archive.ts:26` — ZIP 解压静默覆盖
+### 14. `file/archive.ts:26` — ZIP 解压静默覆盖 ✅
+
+> **已修复 (2026-06-04)**: 解压前检查目标路径是否存在，冲突时自动追加 `_1`, `_2` 等后缀避免覆盖。
 
 ```ts
 zip.extractEntryTo(entry, destDir, false, true)
@@ -178,7 +180,7 @@ CommonJS require 与 ES import 混用，风格不一致。
 |---|------|------|
 | 16 | `CargoDetailsTable.tsx:1` | `useState` 导入但未使用 |
 | 17 | `ipc/declaration.ts:97` | `getTransportName` 对每行两次 `JSON.parse(r.data)` |
-| 18 | `ai/prompts.ts:7` | prompt 缓存在内存，修改文件需重启 |
+| 18 | `ai/prompts.ts:7` | prompt 缓存在内存，修改文件需重启 | ✅ 已修复: 每次调用重新从磁盘加载 |
 | 19 | `ipc/file.ts:55` | RAR 错误用字符串匹配 `startsWith('[')` 判断，脆弱 |
 | 20 | `App.tsx:106` | `handleExitDeclaration` 缺少 `await` |
 

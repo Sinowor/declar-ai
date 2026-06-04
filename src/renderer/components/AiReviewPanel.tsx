@@ -80,7 +80,7 @@ export default function AiReviewPanel({
     <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
       <div className="px-6 py-[18px] bg-gradient-to-br from-violet-50 via-blue-50 to-[#FAFAFE] border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
-          🤖 AI 智能审核
+          <IconAI /><span>AI 智能审核</span>
         </h3>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-100 text-primary-600">

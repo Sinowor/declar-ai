@@ -2,12 +2,13 @@ import { v4 as uuid } from 'uuid'
 import { getDb, queryAll, queryOne, execute, transaction } from '../db'
 import { getAIClient, getModel } from './client'
 import { getExtractionPrompt, getReviewPrompt } from './prompts'
-import type { DeclarationData, ExtractionNote } from '../../shared/types'
+import type { DeclarationData, ExtractionNote, ReviewIssue } from '../../shared/types'
 
 export async function runAIExtraction(declarationId: string): Promise<{
   success: boolean
   data?: DeclarationData
   extraction_notes?: ExtractionNote[]
+  issues?: ReviewIssue[]
   error?: string
 }> {
   const db = await getDb()
@@ -90,7 +91,18 @@ export async function runAIExtraction(declarationId: string): Promise<{
       }
     })
 
-    return { success: true, data: extractedData, extraction_notes: extractedData.extraction_notes }
+    // Auto-run review after successful extraction
+    let issues: ReviewIssue[] = []
+    try {
+      const reviewResult = await runAIReview(declarationId)
+      if (reviewResult.success && reviewResult.issues) {
+        issues = reviewResult.issues
+      }
+    } catch (reviewErr: any) {
+      console.warn('[extractor] Auto-review failed (non-fatal):', reviewErr.message)
+    }
+
+    return { success: true, data: extractedData, extraction_notes: extractedData.extraction_notes, issues }
   } catch (err: any) {
     execute("UPDATE declarations SET status = 'error', updated_at = datetime('now','localtime') WHERE id = ?", [declarationId])
     return { success: false, error: err.message }
