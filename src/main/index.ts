@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import * as path from 'path'
+import * as fs from 'fs'
 import { closeDb } from './db'
 import { loadEnv } from './config'
 import { registerDeclarationIpc } from './ipc/declaration'
@@ -14,6 +15,15 @@ let mainWindow: BrowserWindow | null = null
 
 async function initApp() {
   loadEnv()
+
+  // Cleanup legacy v1/v2 data (old userData-based storage)
+  try {
+    const oldDb = path.join(app.getPath('userData'), 'declarai.db')
+    if (fs.existsSync(oldDb)) fs.unlinkSync(oldDb)
+    const oldFiles = path.join(app.getPath('userData'), 'files')
+    if (fs.existsSync(oldFiles)) fs.rmSync(oldFiles, { recursive: true, force: true })
+  } catch {}
+
   setupAppMenu()
   registerSchemaIpc()
   registerAppIpc()

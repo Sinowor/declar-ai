@@ -1,7 +1,8 @@
 import { v4 as uuid } from 'uuid'
-import { getDb, queryAll, queryOne, execute } from '../db'
+import { queryAll, queryOne, execute } from '../db'
 import { getAIClient, getModel } from './client'
 import { getExtractionPrompt, getReviewPrompt } from './prompts'
+import { declarationJsonPath, readJsonFile, writeJsonFile } from '../storage'
 import type { UniversalDeclarationData, ExtractionNote, ReviewIssue } from '../../shared/types'
 
 export async function runAIExtraction(declarationId: string): Promise<{
@@ -77,9 +78,13 @@ export async function runAIExtraction(declarationId: string): Promise<{
       extractedData.file_warnings = [...codeWarnings, ...extractedData.file_warnings]
     }
 
+    const row: any = queryOne('SELECT folder_path FROM declarations WHERE id = ?', [declarationId])
+    if (row) {
+      writeJsonFile(declarationJsonPath(row.folder_path), extractedData)
+    }
     execute(
-      "UPDATE declarations SET data = ?, status = 'review', updated_at = datetime('now','localtime') WHERE id = ?",
-      [JSON.stringify(extractedData), declarationId]
+      "UPDATE declarations SET status = 'review', updated_at = datetime('now','localtime') WHERE id = ?",
+      [declarationId]
     )
 
     // Auto-run review after successful extraction
@@ -105,11 +110,11 @@ export async function runAIReview(declarationId: string): Promise<{
   issues?: ReviewIssue[]
   error?: string
 }> {
-  const declaration = queryOne('SELECT * FROM declarations WHERE id = ?', [declarationId])
-  if (!declaration) return { success: false, error: '申报单不存在' }
+  const row: any = queryOne('SELECT folder_path FROM declarations WHERE id = ?', [declarationId])
+  if (!row) return { success: false, error: '申报单不存在' }
 
   try {
-    const data = JSON.parse(declaration.data)
+    const data = readJsonFile(declarationJsonPath(row.folder_path))
     const client = getAIClient()
 
     const response = await client.chat.completions.create({

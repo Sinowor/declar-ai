@@ -1,8 +1,8 @@
-import initSqlJs, { Database as SqlJsDatabase, Statement, SqlJsStatic } from 'sql.js'
-import * as path from 'path'
+import initSqlJs, { Database as SqlJsDatabase, SqlJsStatic } from 'sql.js'
 import * as fs from 'fs'
-import { app } from 'electron'
+import * as path from 'path'
 import { v4 as uuid } from 'uuid'
+import { ensureStorageRoot, folderPath } from '../storage'
 
 let SQL: SqlJsStatic | null = null
 let db: SqlJsDatabase | null = null
@@ -18,21 +18,14 @@ async function getSQL(): Promise<SqlJsStatic> {
 export async function getDb(): Promise<SqlJsDatabase> {
   if (db) return db
 
-  dbPath = path.join(app.getPath('userData'), 'declarai.db')
+  const root = ensureStorageRoot()
+  dbPath = path.join(root, 'declaraidb.sqlite')
   const sql = await getSQL()
 
   try {
-    // Delete old DB if it has the legacy schema (v1 → v2 breaking change)
     if (fs.existsSync(dbPath)) {
       const buffer = fs.readFileSync(dbPath)
       db = new sql.Database(buffer)
-      const hasOldSchema = queryOne("SELECT sql FROM sqlite_master WHERE name='cargo_details' AND type='table'")
-      if (hasOldSchema) {
-        console.log('[db] Legacy schema detected — recreating database')
-        db.close()
-        fs.unlinkSync(dbPath)
-        db = new sql.Database()
-      }
     } else {
       db = new sql.Database()
     }
@@ -48,8 +41,7 @@ export async function getDb(): Promise<SqlJsDatabase> {
     initSchema()
   } catch (err: any) {
     console.error('[db] Schema initialization failed:', err.message)
-    db.close()
-    db = null
+    db.close(); db = null
     throw new Error(`数据库初始化失败: ${err.message}`)
   }
 
@@ -62,9 +54,11 @@ function initSchema() {
   db.run(`
     CREATE TABLE IF NOT EXISTS declarations (
       id TEXT PRIMARY KEY,
-      type TEXT,
+      sequence_no INTEGER UNIQUE NOT NULL,
+      display_name TEXT NOT NULL DEFAULT '(未命名)',
       status TEXT NOT NULL DEFAULT 'draft',
-      data TEXT NOT NULL DEFAULT '{}',
+      type TEXT,
+      folder_path TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
     )
@@ -86,7 +80,7 @@ function initSchema() {
       declaration_id TEXT NOT NULL,
       file_name TEXT NOT NULL,
       file_path TEXT NOT NULL,
-      file_type TEXT NOT NULL,
+      file_type TEXT NOT NULL DEFAULT 'unknown',
       file_size INTEGER NOT NULL DEFAULT 0,
       extracted_text TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
@@ -117,33 +111,25 @@ function initSchema() {
 
 function saveDb() {
   if (!db || !dbPath) return
-  if (transactionDepth > 0) return // defer save to COMMIT
+  if (transactionDepth > 0) return
   try {
     const data = db.export()
-    const buffer = Buffer.from(data)
-    fs.writeFileSync(dbPath, buffer)
+    fs.writeFileSync(dbPath, Buffer.from(data))
   } catch (err: any) {
     console.error('[db] Failed to save database:', err.message)
   }
 }
 
 export function closeDb() {
-  if (db) {
-    saveDb()
-    db.close()
-    db = null
-  }
+  if (db) { saveDb(); db.close(); db = null }
 }
 
-// sql.js wrapper: prepare, bind, get all rows
 export function queryAll(sql: string, params: any[] = []): any[] {
   if (!db) throw new Error('数据库未初始化')
   const stmt = db.prepare(sql)
   if (params.length > 0) stmt.bind(params)
   const results: any[] = []
-  while (stmt.step()) {
-    results.push(stmt.getAsObject())
-  }
+  while (stmt.step()) results.push(stmt.getAsObject())
   stmt.free()
   return results
 }
@@ -163,16 +149,19 @@ export function transaction(fn: () => void): void {
   if (!db) throw new Error('数据库未初始化')
   transactionDepth++
   try {
-    db.run('BEGIN')
-    fn()
-    db.run('COMMIT')
-    saveDb()
+    db.run('BEGIN'); fn(); db.run('COMMIT'); saveDb()
   } catch (err) {
     try { db.run('ROLLBACK') } catch {}
     throw err
   } finally {
     transactionDepth--
   }
+}
+
+/** Get next sequence number for new declarations */
+export function nextSequenceNo(): number {
+  const row = queryOne('SELECT COALESCE(MAX(sequence_no), 0) + 1 AS next_no FROM declarations')
+  return (row as any)?.next_no || 1
 }
 
 export { uuid, saveDb }
