@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 import { IconSearchNav } from './Icons'
 
 interface HsResult {
@@ -9,9 +10,6 @@ interface HsResult {
   alternatives: string | null; created_at: string
 }
 
-const confDot: Record<string, string> = {
-  high: '#6D5EF7', medium: 'rgba(109,94,247,0.45)', low: '#cbd5e1',
-}
 const confLabel: Record<string, string> = { high: '高置信度', medium: '中置信度', low: '低置信度' }
 
 const placeholders = [
@@ -35,6 +33,12 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function HsClassifier() {
+  const { theme } = useTheme()
+  const p = (alpha: number) => `rgba(${theme.primaryRgb},${alpha})` // primary with alpha
+  const confDot: Record<string, string> = {
+    high: theme.primary, medium: p(0.45), low: '#cbd5e1',
+  }
+
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
@@ -48,14 +52,13 @@ export default function HsClassifier() {
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
-  // Load history
   useEffect(() => {
     if (window.api?.hsHistory) {
       window.api.hsHistory().then((data: HsResult[]) => {
         if (Array.isArray(data)) setHistory(data.slice(0, 20))
       }).catch(() => {})
     }
-  }, [result]) // refresh when result changes
+  }, [result])
 
   useEffect(() => {
     if (input || focused) return
@@ -102,20 +105,21 @@ export default function HsClassifier() {
   // ═══ Processing ═══
   if (analyzing) {
     return (
-      <main className="flex-1 flex flex-col items-center justify-center" style={{ background: 'linear-gradient(180deg, #F8F6FF 0%, #F8FAFC 50%, #FAFAFE 100%)' }}>
+      <main className="flex-1 flex flex-col items-center justify-center" style={{ background: `linear-gradient(180deg, ${p(0.04)} 0%, #F8FAFC 50%, #FAFAFE 100%)` }}>
         <style>{`
-          @keyframes breathe { 0%,100% { box-shadow: 0 0 0 0 rgba(109,94,247,0.15); } 50% { box-shadow: 0 0 0 24px rgba(109,94,247,0); } }
+          @keyframes breathe { 0%,100% { box-shadow: 0 0 0 0 ${p(0.15)}; } 50% { box-shadow: 0 0 0 24px ${p(0)}; } }
           @keyframes stepIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
           .pulse-ring { animation: breathe 2s ease-in-out infinite; }
           .step-enter { animation: stepIn 0.35s ease-out both; }
         `}</style>
 
         <div className="flex flex-col items-center -mt-12">
-          <div className="w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8" style={{ background: 'linear-gradient(135deg, rgba(109,94,247,0.12), rgba(109,94,247,0.04))' }}>
+          <div className="w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8"
+            style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
             <span className="text-2xl">🧠</span>
           </div>
 
-          <div className="text-sm font-medium mb-6 px-4 py-2 rounded-xl" style={{ background: 'rgba(109,94,247,0.06)', color: '#6D5EF7' }}>
+          <div className="text-sm font-medium mb-6 px-4 py-2 rounded-xl" style={{ background: p(0.06), color: theme.primary }}>
             {input.length > 40 ? input.slice(0, 40) + '...' : input}
           </div>
 
@@ -125,16 +129,12 @@ export default function HsClassifier() {
               const active = processingStep === i
               return (
                 <div key={label} className="step-enter flex items-center gap-3" style={{ animationDelay: `${i * 0.1}s` }}>
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all duration-500 ${
-                    done ? '' : active ? '' : 'bg-gray-100'
-                  }`} style={done ? { background: 'rgba(109,94,247,0.1)' } : active ? { background: 'rgba(109,94,247,0.08)' } : {}}>
-                    {done ? <span style={{ color: '#6D5EF7' }}>✓</span> : <span style={{ color: '#94a3b8' }}>{i + 1}</span>}
+                  <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all duration-500"
+                    style={done ? { background: p(0.1) } : active ? { background: p(0.08) } : {}}>
+                    {done ? <span style={{ color: theme.primary }}>✓</span> : <span style={{ color: '#94a3b8' }}>{i + 1}</span>}
                   </span>
-                  <span className={`text-sm transition-colors duration-500 ${done ? '' : active ? 'font-medium' : ''}`}
-                    style={done ? { color: '#6D5EF7' } : active ? { color: '#6D5EF7' } : { color: '#94a3b8' }}>
-                    {label}
-                  </span>
-                  {active && <span className="w-1.5 h-1.5 rounded-full animate-pulse ml-1" style={{ background: '#6D5EF7' }} />}
+                  <span className="text-sm transition-colors duration-500" style={{ color: done || active ? theme.primary : '#94a3b8' }}>{label}</span>
+                  {active && <span className="w-1.5 h-1.5 rounded-full animate-pulse ml-1" style={{ background: theme.primary }} />}
                 </div>
               )
             })}
@@ -151,8 +151,7 @@ export default function HsClassifier() {
         <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
           <h2 className="text-lg font-semibold">归类历史</h2>
           <button onClick={() => setShowAllHistory(false)}
-            className="h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all"
-          >返回</button>
+            className="h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all">返回</button>
         </div>
         <div className="px-8 pb-12 flex-1 max-w-[900px] mx-auto w-full">
           {history.length === 0 ? (
@@ -160,13 +159,12 @@ export default function HsClassifier() {
           ) : (
             <div className="space-y-1">
               {history.map(item => (
-                <button key={item.id}
-                  onClick={() => handleHistoryClick(item)}
+                <button key={item.id} onClick={() => handleHistoryClick(item)}
                   className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
                 >
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
                   <span className="flex-1 min-w-0 text-sm font-medium truncate">{item.product_description}</span>
-                  <span className="text-[13px] font-mono font-semibold shrink-0" style={{ color: '#6D5EF7' }}>{item.hs_code || '—'}</span>
+                  <span className="text-[13px] font-mono font-semibold shrink-0" style={{ color: theme.primary }}>{item.hs_code || '—'}</span>
                   <span className="text-[11px] text-muted shrink-0 w-16 text-right">{timeAgo(item.created_at)}</span>
                 </button>
               ))}
@@ -181,18 +179,17 @@ export default function HsClassifier() {
   if (!result) {
     const recentHistory = history.slice(0, 5)
     return (
-      <main className="flex-1 flex flex-col items-center justify-center bg-surface" style={{ paddingTop: 0 }}>
-        {/* Scrollable wrapper for when history is long */}
+      <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <div className="w-full max-w-[600px] px-8 overflow-y-auto flex flex-col items-center" style={{ maxHeight: 'calc(100vh - 40px)', paddingTop: '10vh', paddingBottom: '6vh' }}>
           <h1 className="text-center text-[24px] font-bold mb-2 shrink-0">
-            <span className="text-transparent bg-clip-text" style={{ background: 'linear-gradient(135deg, #6D5EF7, #8B7EF7)' }}>AI</span>
+            <span className="text-transparent bg-clip-text" style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}>AI</span>
             <span className="text-ink"> 编码归类</span>
           </h1>
           <p className="text-center text-[13px] text-muted mb-8 shrink-0">智能检索《进出口税则》，结果仅供参考</p>
 
           <div className={`w-full bg-white border-2 rounded-2xl transition-all duration-200 shrink-0 ${
-            focused ? 'border-primary-500 shadow-[0_0_0_4px_rgba(109,94,247,0.06)]' : 'border-gray-200 shadow-card'
-          }`}>
+            focused ? 'border-primary-500 shadow-[0_0_0_4px_var(--primary-rgb)_0.06]' : 'border-gray-200 shadow-card'
+          }`} style={focused ? { boxShadow: `0 0 0 4px ${p(0.06)}` } : {}}>
             <textarea ref={textareaRef} value={input}
               onChange={e => setInput(e.target.value)}
               onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
@@ -209,7 +206,7 @@ export default function HsClassifier() {
             <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100">
               <button onClick={handleClassify} disabled={!input.trim()}
                 className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #6D5EF7, #5B4EDB)' }}
+                style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
               >开始归类分析 <span className="text-[10px] opacity-40 ml-0.5">⌘↵</span></button>
             </div>
           </div>
@@ -228,7 +225,6 @@ export default function HsClassifier() {
             </span>
           </div>
 
-          {/* Recent history */}
           {recentHistory.length > 0 && (
             <div className="w-full mt-8 shrink-0">
               <div className="flex items-center justify-between mb-3">
@@ -236,19 +232,17 @@ export default function HsClassifier() {
                 {history.length > 5 && (
                   <button onClick={() => setShowAllHistory(true)}
                     className="text-[11px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors"
-                    style={{ color: '#94a3b8' }}
-                  >查看全部 →</button>
+                    style={{ color: '#94a3b8' }}>查看全部 →</button>
                 )}
               </div>
               <div className="space-y-0.5">
                 {recentHistory.map(item => (
-                  <button key={item.id}
-                    onClick={() => handleHistoryClick(item)}
+                  <button key={item.id} onClick={() => handleHistoryClick(item)}
                     className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
                     <span className="flex-1 min-w-0 text-[13px] font-medium truncate">{item.product_description}</span>
-                    <span className="text-[13px] font-mono font-semibold shrink-0" style={{ color: '#6D5EF7' }}>{item.hs_code || '—'}</span>
+                    <span className="text-[13px] font-mono font-semibold shrink-0" style={{ color: theme.primary }}>{item.hs_code || '—'}</span>
                     <span className="text-[11px] text-muted shrink-0 w-14 text-right">{timeAgo(item.created_at)}</span>
                   </button>
                 ))}
@@ -272,17 +266,16 @@ export default function HsClassifier() {
 
   // ═══ Results ═══
   return (
-    <main className="flex-1 overflow-y-auto flex flex-col" style={{ background: 'linear-gradient(180deg, #FAFAFE 0%, #F8FAFC 100%)' }}>
+    <main className="flex-1 overflow-y-auto flex flex-col" style={{ background: `linear-gradient(180deg, ${p(0.02)} 0%, #F8FAFC 100%)` }}>
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(109,94,247,0.1), rgba(109,94,247,0.04))' }}>
+          <span className="shrink-0 w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${p(0.1)}, ${p(0.04)})` }}>
             <IconSearchNav />
           </span>
           <span className="text-sm text-muted truncate">{result.product_description}</span>
         </div>
         <button onClick={handleNewQuery}
-          className="shrink-0 ml-4 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all"
-        >新查询</button>
+          className="shrink-0 ml-4 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all">新查询</button>
       </div>
 
       <div className="px-8 pb-12 flex flex-col gap-4 flex-1 max-w-[960px] mx-auto w-full">
@@ -296,10 +289,10 @@ export default function HsClassifier() {
             <div>
               <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-3">推荐 HS 编码</div>
               <div className="flex items-baseline gap-3">
-                <span className="text-[48px] font-bold tracking-tight font-mono" style={{ color: '#6D5EF7', letterSpacing: '-0.03em' }}>{result.hs_code || '—'}</span>
+                <span className="text-[48px] font-bold tracking-tight font-mono" style={{ color: theme.primary, letterSpacing: '-0.03em' }}>{result.hs_code || '—'}</span>
                 {result.confidence && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
-                    style={{ background: 'rgba(109,94,247,0.08)', color: '#6D5EF7' }}>
+                    style={{ background: p(0.08), color: theme.primary }}>
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: confDot[result.confidence] || confDot.low }} />
                     {confLabel[result.confidence] || result.confidence}
                   </span>
@@ -309,9 +302,9 @@ export default function HsClassifier() {
             </div>
             <button onClick={handleCopyCode}
               className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-all shrink-0"
-              style={{ borderColor: 'rgba(109,94,247,0.2)', color: '#6D5EF7', background: 'rgba(109,94,247,0.03)' }}
-              onMouseEnter={e => { (e.target as HTMLElement).style.background = 'rgba(109,94,247,0.07)' }}
-              onMouseLeave={e => { (e.target as HTMLElement).style.background = 'rgba(109,94,247,0.03)' }}
+              style={{ borderColor: p(0.2), color: theme.primary, background: p(0.03) }}
+              onMouseEnter={e => { (e.target as HTMLElement).style.background = p(0.07) }}
+              onMouseLeave={e => { (e.target as HTMLElement).style.background = p(0.03) }}
             >复制编码</button>
           </div>
 
