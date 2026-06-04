@@ -1,18 +1,21 @@
+import type { FC } from 'react'
+import { IconDocNav, IconSearchNav, IconGearNav } from './Icons'
+
 type ModuleId = 'declarations' | 'hs-classifier' | 'settings'
 
 interface NavItem {
   id: ModuleId
   label: string
-  icon: string
+  icon: FC
 }
 
 const navItems: NavItem[] = [
-  { id: 'declarations', label: '申报制单', icon: '📋' },
-  { id: 'hs-classifier', label: 'HS 归类', icon: '🔍' },
+  { id: 'declarations', label: '申报制单', icon: IconDocNav },
+  { id: 'hs-classifier', label: 'HS 归类', icon: IconSearchNav },
 ]
 
 const bottomItems: NavItem[] = [
-  { id: 'settings', label: '设置', icon: '⚙' },
+  { id: 'settings', label: '设置', icon: IconGearNav },
 ]
 
 interface Props {
@@ -25,19 +28,24 @@ export type { ModuleId }
 export default function NavRail({ active, onChange }: Props) {
   const renderItem = (item: NavItem) => {
     const isActive = active === item.id
+    const Icon = item.icon
     return (
       <button
         key={item.id}
         onClick={() => onChange(item.id)}
         title={item.label}
-        className={`relative w-full h-11 flex items-center justify-center transition-all cursor-pointer border-none bg-transparent ${
-          isActive ? 'text-primary-500' : 'text-muted hover:text-ink'
-        }`}
+        className="relative w-full h-10 flex items-center justify-center cursor-pointer border-none bg-transparent group"
+        style={{ color: isActive ? 'var(--primary)' : '#94a3b8' }}
       >
         {isActive && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-primary-500 rounded-r-sm" />
+          <span
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-sm"
+            style={{ backgroundColor: 'var(--primary)' }}
+          />
         )}
-        <span className="text-xl leading-none">{item.icon}</span>
+        <span className="transition-colors duration-150">
+          <Icon />
+        </span>
       </button>
     )
   }
@@ -47,19 +55,19 @@ export default function NavRail({ active, onChange }: Props) {
       className="flex flex-col shrink-0 items-center bg-white border-r border-gray-200 z-20"
       style={{ width: 48 }}
     >
-      {/* Top spacer */}
-      <div className="flex-1" />
+      {/* Top spacer — slightly smaller than bottom to place icons above center */}
+      <div style={{ flex: '1 1 40%' }} />
 
       {/* Center items */}
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-col items-center gap-0.5">
         {navItems.map(renderItem)}
       </div>
 
-      {/* Bottom spacer */}
-      <div className="flex-1" />
+      {/* Bottom spacer — larger to push icons above center */}
+      <div style={{ flex: '1 1 60%' }} />
 
       {/* Bottom items */}
-      <div className="flex flex-col items-center pb-3 gap-1">
+      <div className="flex flex-col items-center gap-0.5 pb-3">
         {bottomItems.map(renderItem)}
       </div>
     </nav>
