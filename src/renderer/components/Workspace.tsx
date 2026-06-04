@@ -648,7 +648,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   return (
                   <div key={f.key} className="flex flex-col gap-1.5">
                     <label className="text-[14px] font-medium text-muted uppercase tracking-wider">
-                      {f.label}{f.key === 'entry_exit_transport_tool_name' || f.key === 'pre_entry_number' ? <span className="text-red-400 ml-0.5">*</span> : null}
+                      {f.label}{f.key === 'entry_exit_transport_tool_name' ? <span className="text-red-400 ml-0.5">*</span> : null}
                     </label>
                     {f.type === 'select' ? (
                       <select
