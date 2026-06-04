@@ -129,8 +129,10 @@ export default function HsClassifier() {
           .step-enter { animation: stepIn 0.35s ease-out both; }
         `}</style>
 
-        <div className="flex flex-col items-center -mt-12">
-          <div className="w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8"
+        <div className="flex flex-col items-center -mt-12 relative">
+          {/* Glow aura */}
+          <div className="absolute top-10 w-40 h-40 rounded-full blur-3xl" style={{ background: `radial-gradient(circle, ${p(0.2)}, transparent 70%)` }} />
+          <div className="relative w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8"
             style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
             <span className="text-2xl">🧠</span>
           </div>
@@ -201,16 +203,24 @@ export default function HsClassifier() {
           <p className="text-center text-[13px] text-muted mb-6 shrink-0">智能检索《进出口税则》，结果仅供参考</p>
 
           {needsMoreInfo && (
-            <div className="w-full mb-6 bg-white border rounded-2xl p-5 shrink-0" style={{ borderColor: p(0.3) }}>
-              <div className="flex items-start gap-3">
-                <span className="text-lg shrink-0 mt-0.5">🧠</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold mb-2" style={{ color: theme.primary }}>需要补充信息</div>
-                  <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{aiQuestion}</div>
-                  <div className="flex gap-2 mt-3">
-                    {missingFields.map(f => (
-                      <span key={f} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: p(0.06), color: theme.primary }}>{f}</span>
-                    ))}
+            <div className="w-full mb-6 shrink-0 relative">
+              {/* Glow aura behind the card */}
+              <div className="absolute inset-0 rounded-2xl blur-xl" style={{ background: `radial-gradient(50% 30% at 50% 0%, ${p(0.18)}, transparent 70%)` }} />
+              <div className="relative bg-white border border-gray-100 rounded-2xl p-5" style={{ boxShadow: `0 0 40px ${p(0.06)}, 0 1px 3px rgba(15,23,42,0.04)` }}>
+                <div className="flex items-start gap-3">
+                  <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
+                    <span className="text-sm">🧠</span>
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold mb-2" style={{ color: theme.primary }}>需要补充信息</div>
+                    <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{aiQuestion}</div>
+                    {missingFields.length > 0 && (
+                      <div className="flex gap-2 mt-3 flex-wrap">
+                        {missingFields.map(f => (
+                          <span key={f} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border" style={{ borderColor: p(0.2), color: theme.primary, background: p(0.04) }}>{f}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
