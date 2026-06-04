@@ -302,7 +302,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   }
 
   // ═══ Render ═══
-  const blockTransition = 'transition-all duration-300 ease-out'
+  const blockTransition = 'transition-[opacity,transform] duration-300 ease-out'
 
   return (
     <main className="flex-1 overflow-y-auto flex flex-col">
@@ -367,7 +367,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
         {/* ═══ Block ②: AI Extraction Results ═══ */}
         <div className={`${blockTransition} overflow-hidden`}
-          style={{ maxHeight: extractionCompleted ? '800px' : '0px', opacity: extractionCompleted ? 1 : 0, marginTop: extractionCompleted ? undefined : '-24px' }}>
+          style={{ transform: extractionCompleted ? 'translateY(0)' : 'translateY(-8px)', opacity: extractionCompleted ? 1 : 0, pointerEvents: extractionCompleted ? 'auto' : 'none' }}>
           <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
             <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
               <h3 className="text-lg font-semibold">② AI 提取结果</h3>
@@ -433,24 +433,27 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
         {/* ═══ Block ③: Declaration Form ═══ */}
         <div className={`${blockTransition} overflow-hidden`}
-          style={{ maxHeight: extractionCompleted ? '8000px' : '0px', opacity: extractionCompleted ? 1 : 0, marginTop: extractionCompleted ? undefined : '-24px' }}>
+          style={{ transform: extractionCompleted ? 'translateY(0)' : 'translateY(-8px)', opacity: extractionCompleted ? 1 : 0, pointerEvents: extractionCompleted ? 'auto' : 'none' }}>
           <div ref={transportSectionRef} className="bg-white border border-gray-200 rounded-2xl shadow-card">
             <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
               <h3 className="text-lg font-semibold">③ 申报单数据</h3>
               <div className="flex items-center gap-2 no-drag">
                 {/* Type selector */}
-                <select
-                  value={selectedType || '__universal'}
-                  onChange={(e) => handleTypeChange(e.target.value)}
-                  className="h-[34px] rounded-[10px] border border-gray-200 px-3 text-[13px] font-medium outline-none bg-white focus:border-primary-500 cursor-pointer"
-                >
+                <div className="relative">
+                  <select
+                    value={selectedType || '__universal'}
+                    onChange={(e) => handleTypeChange(e.target.value)}
+                    className="h-[34px] rounded-[10px] border border-gray-200 pl-3 pr-8 text-[13px] font-medium outline-none bg-white focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
+                  >
                   <option value="__universal">通用视图（全部字段）</option>
                   {typeConfigs.map(tc => (
                     <option key={tc.type} value={tc.type}>{tc.title}</option>
                   ))}
                 </select>
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
+                </div>
                 <button onClick={() => handleSave()} disabled={isSaving}
-                  className={`h-[34px] px-4 rounded-sm bg-white text-ink border border-gray-200 font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 hover:bg-surface transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`h-[34px] px-4 rounded-sm bg-primary-500 text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 hover:bg-primary-600 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isSaving ? '保存中...' : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
                 </button>
@@ -471,7 +474,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                     <h4 className="text-sm font-semibold text-ink">{SECTION_LABELS[section as FieldSection] || section}</h4>
                     {selectedConfig && (
                       <span className="text-[11px] text-muted">
-                        已填 {mappings.filter(m => fields[m.source_key] !== undefined && fields[m.source_key] !== '' && fields[m.source_key] !== null).length}/{mappings.length}
+                        已填 {mappings.filter(m => fields[m.source_key] !== undefined && fields[m.source_key] !== null && !(typeof fields[m.source_key] === 'string' && fields[m.source_key].trim() === '')).length}/{mappings.length}
                       </span>
                     )}
                   </div>
@@ -533,13 +536,6 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             />
           </div>
 
-          <div className="flex justify-end gap-3 mt-6">
-            <button onClick={() => handleSave()} disabled={isSaving}
-              className={`h-10 px-6 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-2 hover:bg-primary-600 transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {isSaving ? '保存中...' : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
-            </button>
-          </div>
         </div>
       </div>
 
