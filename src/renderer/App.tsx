@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import NavRail, { type ModuleId } from './components/NavRail'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
+import HsClassifier from './components/HsClassifier'
 import AboutModal from './components/AboutModal'
 import LicenseModal from './components/LicenseModal'
 
@@ -37,6 +39,10 @@ const mockDeclarations: DeclarationItem[] = [
 ]
 
 export default function App() {
+  // ═══ Module navigation ═══
+  const [activeModule, setActiveModule] = useState<ModuleId>('declarations')
+
+  // ═══ Declarations state ═══
   const [declarations, setDeclarations] = useState<DeclarationItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -80,14 +86,12 @@ export default function App() {
 
   useEffect(() => { loadDeclarations() }, [loadDeclarations])
 
-  // Listen for About menu event from Electron
   useEffect(() => {
     if (window.api?.onOpenAbout) {
       return window.api.onOpenAbout(() => setAboutOpen(true))
     }
   }, [])
 
-  // Listen for license view event from About modal
   useEffect(() => {
     const handler = () => setLicenseOpen(true)
     window.addEventListener('app:show-license', handler)
@@ -103,7 +107,7 @@ export default function App() {
     : declarations
 
   const handleSelect = (id: string) => {
-    if (editingId) return // locked
+    if (editingId) return
     setSelectedId(id)
   }
 
@@ -145,7 +149,6 @@ export default function App() {
     }
   }
 
-  // ESC to exit edit mode
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && editingId) {
@@ -156,6 +159,11 @@ export default function App() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [editingId])
+
+  // ═══ HS classifier → navigate to HS module ═══
+  const navigateToHsClassifier = useCallback((productName?: string) => {
+    setActiveModule('hs-classifier')
+  }, [])
 
   if (!ready) {
     return (
@@ -172,26 +180,41 @@ export default function App() {
 
   return (
     <div className={platformClass} style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar
-        declarations={filteredDeclarations}
-        selectedId={selectedId}
-        editingId={editingId}
-        collapsed={sidebarCollapsed}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onSelect={handleSelect}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        onNewDeclaration={handleNewDeclaration}
-        onExitDeclaration={handleExitEdit}
-        onShowAbout={() => setAboutOpen(true)}
-        onDelete={handleDelete}
-      />
-      <Workspace
-        declaration={editingDeclaration}
-        selectedDeclaration={selectedDeclaration}
-        onEnterEdit={() => selectedId && handleEnterEdit(selectedId)}
-        isEditing={!!editingId}
-      />
+      {/* ═══ Left Icon Rail ═══ */}
+      <NavRail active={activeModule} onChange={setActiveModule} />
+
+      {/* ═══ Context Panel (switches per module) ═══ */}
+      {activeModule === 'declarations' && (
+        <Sidebar
+          declarations={filteredDeclarations}
+          selectedId={selectedId}
+          editingId={editingId}
+          collapsed={sidebarCollapsed}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSelect={handleSelect}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onNewDeclaration={handleNewDeclaration}
+          onExitDeclaration={handleExitEdit}
+          onShowAbout={() => setAboutOpen(true)}
+          onDelete={handleDelete}
+        />
+      )}
+
+      {/* ═══ Workspace (switches per module) ═══ */}
+      {activeModule === 'declarations' && (
+        <Workspace
+          declaration={editingDeclaration}
+          selectedDeclaration={selectedDeclaration}
+          onEnterEdit={() => selectedId && handleEnterEdit(selectedId)}
+          isEditing={!!editingId}
+          onNavigateToHs={navigateToHsClassifier}
+        />
+      )}
+      {activeModule === 'hs-classifier' && (
+        <HsClassifier />
+      )}
+
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <LicenseModal open={licenseOpen} onClose={() => setLicenseOpen(false)} />
     </div>

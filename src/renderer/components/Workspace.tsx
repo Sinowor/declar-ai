@@ -12,6 +12,7 @@ interface WorkspaceProps {
   selectedDeclaration: DeclarationItem | null | undefined
   onEnterEdit: () => void
   isEditing: boolean
+  onNavigateToHs?: () => void
 }
 
 const SECTION_ORDER: FieldSection[] = ['header', 'transport', 'party', 'port', 'trade', 'customs', 'package']
