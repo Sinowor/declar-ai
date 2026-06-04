@@ -25,6 +25,8 @@ interface Props {
 
 export type { ModuleId }
 
+const isMac = navigator.platform?.toLowerCase?.().includes('mac')
+
 export default function NavRail({ active, onChange }: Props) {
   const renderItem = (item: NavItem) => {
     const isActive = active === item.id
@@ -34,7 +36,7 @@ export default function NavRail({ active, onChange }: Props) {
         key={item.id}
         onClick={() => onChange(item.id)}
         title={item.label}
-        className="relative w-full h-10 flex items-center justify-center cursor-pointer border-none bg-transparent group"
+        className="relative w-full h-11 flex items-center justify-center cursor-pointer border-none bg-transparent"
         style={{ color: isActive ? 'var(--primary)' : '#94a3b8' }}
       >
         <span className="transition-colors duration-150">
@@ -46,22 +48,23 @@ export default function NavRail({ active, onChange }: Props) {
 
   return (
     <nav
-      className="flex flex-col shrink-0 items-center bg-white border-r border-gray-200 z-20"
-      style={{ width: 48 }}
+      className="flex flex-col shrink-0 items-center bg-white border-r border-gray-200 z-20 drag-region"
+      style={{ width: 56 }}
     >
-      {/* Top spacer — slightly smaller than bottom to place icons above center */}
-      <div style={{ flex: '1 1 40%' }} />
+      {/* macOS traffic light clearance */}
+      <div style={{ height: isMac ? 44 : 8 }} className="shrink-0" />
 
-      {/* Center items */}
-      <div className="flex flex-col items-center gap-0.5">
+      {/* Center items — slightly above center */}
+      <div style={{ flex: '1 1 35%' }} />
+
+      <div className="flex flex-col items-center gap-0.5 no-drag">
         {navItems.map(renderItem)}
       </div>
 
-      {/* Bottom spacer — larger to push icons above center */}
-      <div style={{ flex: '1 1 60%' }} />
+      <div style={{ flex: '1 1 65%' }} />
 
       {/* Bottom items */}
-      <div className="flex flex-col items-center gap-0.5 pb-3">
+      <div className="flex flex-col items-center gap-0.5 pb-3 no-drag">
         {bottomItems.map(renderItem)}
       </div>
     </nav>
