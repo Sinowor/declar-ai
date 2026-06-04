@@ -21,6 +21,10 @@ const api = {
   aiReview: (declarationId: string) => ipcRenderer.invoke('ai:review', declarationId),
   aiAnswer: (conversationId: string, answer: string) => ipcRenderer.invoke('ai:answer', conversationId, answer),
 
+  // HS Code
+  hsClassify: (productDescription: string) => ipcRenderer.invoke('hs:classify', productDescription),
+  hsHistory: () => ipcRenderer.invoke('hs:history'),
+
   // Schema
   getSchema: (type: string) => ipcRenderer.invoke('schema:get', type),
   getSchemaList: () => ipcRenderer.invoke('schema:list'),
