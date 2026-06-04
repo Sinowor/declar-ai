@@ -37,12 +37,6 @@ export default function NavRail({ active, onChange }: Props) {
         className="relative w-full h-10 flex items-center justify-center cursor-pointer border-none bg-transparent group"
         style={{ color: isActive ? 'var(--primary)' : '#94a3b8' }}
       >
-        {isActive && (
-          <span
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-sm"
-            style={{ backgroundColor: 'var(--primary)' }}
-          />
-        )}
         <span className="transition-colors duration-150">
           <Icon />
         </span>
