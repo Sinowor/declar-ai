@@ -60,6 +60,9 @@ export async function runAIExtraction(declarationId: string): Promise<{
       if (!extractedData.extraction_notes) {
         extractedData.extraction_notes = []
       }
+      if (!extractedData.file_warnings) {
+        extractedData.file_warnings = []
+      }
     } catch (parseErr: any) {
       throw new Error(`AI 返回的 JSON 解析失败: ${parseErr.message}`)
     }

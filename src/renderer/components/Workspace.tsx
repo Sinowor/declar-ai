@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import type { DeclarationItem } from '../App'
-import type { ReviewIssue } from '../../shared/types'
+import type { ReviewIssue, FileWarning } from '../../shared/types'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
 import DeclarationPreview from './DeclarationPreview'
@@ -92,6 +92,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [resolvedIssues, setResolvedIssues] = useState<Set<number>>(new Set())
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null)
   const [extractionCompleted, setExtractionCompleted] = useState(false)
+  const [fileWarnings, setFileWarnings] = useState<FileWarning[]>([])
   const dirtyRef = useRef(false)
   const transportSectionRef = useRef<HTMLDivElement>(null)
   const cargoSectionRef = useRef<HTMLDivElement>(null)
@@ -109,6 +110,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
       // Reset state for the new declaration
       dirtyRef.current = false
       setExtractionCompleted(declaration!.status !== 'draft')
+      setFileWarnings([])
       setFiles([])
       setConfidenceMap({})
       setReviewIssues([])
@@ -324,8 +326,9 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             }
             setConfidenceMap(cmap)
           }
-          // Store auto-review issues
+          // Store auto-review issues and file warnings
           setExtractionCompleted(true)
+          setFileWarnings(result.data?.file_warnings || [])
           if (result.issues && result.issues.length > 0) {
             setReviewIssues(result.issues)
             setResolvedIssues(new Set())
@@ -530,6 +533,26 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   </div>
                 ))}
               </div>
+
+              {/* File warnings */}
+              {fileWarnings.length > 0 && (
+                <div className="mb-5">
+                  <div className="text-sm font-semibold mb-2">
+                    <span className="text-red-500">&#9888;</span> 文件提醒 ({fileWarnings.length})
+                  </div>
+                  <div className="space-y-1.5">
+                    {fileWarnings.map((fw, i) => (
+                      <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-md bg-red-50 border border-red-100 text-[13px]">
+                        <span className="text-red-500 font-bold shrink-0 mt-0.5">&#9888;</span>
+                        <div>
+                          <span className="font-medium text-red-700">{fw.file_name}</span>
+                          <span className="text-red-600"> — {fw.reason}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Issues summary */}
               {reviewIssues.length > 0 ? (

@@ -42,6 +42,7 @@ export interface DeclarationData {
   cargo_summary: CargoSummary
   cargo_details: Omit<CargoDetail, 'id' | 'declaration_id' | 'sort_order'>[]
   extraction_notes: ExtractionNote[]
+  file_warnings: FileWarning[]
 }
 
 export interface Declaration {
@@ -114,6 +115,11 @@ export interface AiExtractionResponse {
   success: boolean
   data?: DeclarationData
   error?: string
+}
+
+export interface FileWarning {
+  file_name: string
+  reason: string
 }
 
 export interface ReviewIssue {
