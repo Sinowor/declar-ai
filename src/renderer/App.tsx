@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
 import HsClassifier from './components/HsClassifier'
 import BatchClassifier from './components/BatchClassifier'
+import TitleBar from './components/TitleBar'
 import Settings from './components/Settings'
 import AboutModal from './components/AboutModal'
 import LicenseModal from './components/LicenseModal'
@@ -181,10 +182,13 @@ export default function App() {
     )
   }
 
-  const platformClass = navigator.platform?.toLowerCase?.().includes('mac') ? 'platform-darwin' : 'platform-win32'
+  const isMac = navigator.platform?.toLowerCase?.().includes('mac')
+  const platformClass = isMac ? 'platform-darwin' : 'platform-win32'
 
   return (
-    <div className={platformClass} style={{ display: 'flex', height: '100vh' }}>
+    <div className={platformClass} style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {!isMac && <TitleBar />}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
       {/* ═══ Left Icon Rail ═══ */}
       <NavRail active={activeModule} onChange={setActiveModule} />
 
@@ -227,6 +231,7 @@ export default function App() {
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <LicenseModal open={licenseOpen} onClose={() => setLicenseOpen(false)} />
+      </div>
     </div>
   )
 }

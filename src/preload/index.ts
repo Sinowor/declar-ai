@@ -36,6 +36,10 @@ const api = {
 
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),
+  minimize: () => ipcRenderer.invoke('app:minimize'),
+  maximize: () => ipcRenderer.invoke('app:maximize'),
+  close: () => ipcRenderer.invoke('app:close'),
+  isMaximized: () => ipcRenderer.invoke('app:isMaximized'),
   getConfig: () => ipcRenderer.invoke('app:getConfig'),
   saveConfig: (updates: Record<string, any>) => ipcRenderer.invoke('app:saveConfig', updates),
   selectFolder: () => ipcRenderer.invoke('app:selectFolder'),

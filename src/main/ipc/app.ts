@@ -32,6 +32,21 @@ export function registerAppIpc() {
       window.webContents.send('app:open-about')
     }
   })
+
+  ipcMain.handle('app:minimize', () => {
+    BrowserWindow.getFocusedWindow()?.minimize()
+  })
+  ipcMain.handle('app:maximize', () => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (win?.isMaximized()) win.unmaximize()
+    else win?.maximize()
+  })
+  ipcMain.handle('app:close', () => {
+    BrowserWindow.getFocusedWindow()?.close()
+  })
+  ipcMain.handle('app:isMaximized', () => {
+    return BrowserWindow.getFocusedWindow()?.isMaximized() || false
+  })
 }
 
 export function setupAppMenu() {
