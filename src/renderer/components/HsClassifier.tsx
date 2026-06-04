@@ -12,12 +12,10 @@ interface HsResult {
 }
 
 const confLabel: Record<string, string> = { high: '高置信度', medium: '中置信度', low: '低置信度' }
-
 const placeholders = [
   '例如：真空泵，不锈钢材质，-30psi真空度，1L/min，134.4W，医疗用途',
   '例如：汽车发动机零件，金属，适用于轿车进气系统',
   '例如：LED灯泡，家用照明，10W，E27螺口，色温3000K',
-  '例如：棉制男式梭织衬衫，100%棉，长袖，前开襟',
 ]
 const shortcuts = ['真空泵', 'LED灯泡', '汽车配件', '棉制T恤', '不锈钢阀门']
 const processingSteps = ['提取商品关键词', '检索税则数据库', 'AI 归类分析']
@@ -35,10 +33,8 @@ function timeAgo(dateStr: string): string {
 
 export default function HsClassifier() {
   const { theme } = useTheme()
-  const p = (alpha: number) => `rgba(${theme.primaryRgb},${alpha})` // primary with alpha
-  const confDot: Record<string, string> = {
-    high: theme.primary, medium: p(0.45), low: '#cbd5e1',
-  }
+  const p = (alpha: number) => `rgba(${theme.primaryRgb},${alpha})`
+  const confDot: Record<string, string> = { high: theme.primary, medium: p(0.45), low: '#cbd5e1' }
 
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
@@ -75,16 +71,15 @@ export default function HsClassifier() {
     if (el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
   }, [input])
 
-  const handleClassify = async () => {
+  const doClassify = async () => {
     if (!input.trim() || analyzing) return
-    setAnalyzing(true); setProcessingStep(0); setShowAllHistory(false)
+    setAnalyzing(true); setProcessingStep(0); setNeedsMoreInfo(false); setShowAllHistory(false)
     const s1 = setTimeout(() => setProcessingStep(1), 700)
     const s2 = setTimeout(() => setProcessingStep(2), 1500)
     try {
       if (window.api?.hsClassify) {
         const res = await window.api.hsClassify(input.trim())
-        clearTimeout(s1); clearTimeout(s2)
-        setProcessingStep(3)
+        clearTimeout(s1); clearTimeout(s2); setProcessingStep(3)
         await new Promise(r => setTimeout(r, 400))
         if (res.needsMoreInfo) {
           setNeedsMoreInfo(true)
@@ -105,7 +100,7 @@ export default function HsClassifier() {
   }
 
   const handleHistoryClick = (item: HsResult) => {
-    setResult(item); setInput(item.product_description); setShowAllHistory(false)
+    setResult(item); setInput(item.product_description); setShowAllHistory(false); setNeedsMoreInfo(false)
   }
 
   const handleNewQuery = () => {
@@ -113,38 +108,26 @@ export default function HsClassifier() {
     setTimeout(() => textareaRef.current?.focus(), 100)
   }
 
-  const handleSupplement = () => {
-    setNeedsMoreInfo(false)
-    handleClassify() // re-run with supplemented info
-  }
-
   // ═══ Processing ═══
   if (analyzing) {
     return (
-      <main className="flex-1 flex flex-col items-center justify-center" style={{ background: `linear-gradient(180deg, ${p(0.04)} 0%, #F8FAFC 50%, #FAFAFE 100%)` }}>
+      <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <style>{`
           @keyframes breathe { 0%,100% { box-shadow: 0 0 0 0 ${p(0.15)}; } 50% { box-shadow: 0 0 0 24px ${p(0)}; } }
           @keyframes stepIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
           .pulse-ring { animation: breathe 2s ease-in-out infinite; }
           .step-enter { animation: stepIn 0.35s ease-out both; }
         `}</style>
-
-        <div className="flex flex-col items-center -mt-12 relative">
-          {/* Glow aura */}
-          <div className="absolute top-10 w-40 h-40 rounded-full blur-3xl" style={{ background: `radial-gradient(circle, ${p(0.2)}, transparent 70%)` }} />
-          <div className="relative w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8"
-            style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
+        <div className="flex flex-col items-center -mt-12">
+          <div className="w-20 h-20 rounded-2xl pulse-ring flex items-center justify-center mb-8" style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
             <span className="text-2xl">🧠</span>
           </div>
-
-          <div className="text-sm font-medium mb-6 px-4 py-2 rounded-xl" style={{ background: p(0.06), color: theme.primary }}>
+          <div className="text-sm font-medium mb-8 px-4 py-2 rounded-xl" style={{ background: p(0.06), color: theme.primary }}>
             {input.length > 40 ? input.slice(0, 40) + '...' : input}
           </div>
-
           <div className="flex flex-col gap-3">
             {processingSteps.map((label, i) => {
-              const done = processingStep > i
-              const active = processingStep === i
+              const done = processingStep > i; const active = processingStep === i
               return (
                 <div key={label} className="step-enter flex items-center gap-3" style={{ animationDelay: `${i * 0.1}s` }}>
                   <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all duration-500"
@@ -162,18 +145,67 @@ export default function HsClassifier() {
     )
   }
 
+  // ═══ Supplement view — AI needs more info ═══
+  if (needsMoreInfo) {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center bg-surface">
+        <div className="w-full max-w-[640px] px-8 -mt-12">
+          {/* AI question card */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-5" style={{ boxShadow: `0 0 48px ${p(0.08)}, 0 1px 3px rgba(15,23,42,0.04)` }}>
+            <div className="flex items-start gap-3 mb-4">
+              <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
+                <span className="text-sm">🧠</span>
+              </span>
+              <div>
+                <div className="text-sm font-semibold mb-1" style={{ color: theme.primary }}>AI 需要更多信息</div>
+                <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{aiQuestion}</div>
+              </div>
+            </div>
+            {missingFields.length > 0 && (
+              <div className="flex gap-2 flex-wrap ml-12">
+                {missingFields.map(f => (
+                  <span key={f} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium" style={{ background: p(0.06), color: theme.primary }}>{f}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Edit area */}
+          <div className="bg-white border-2 border-gray-200 focus-within:border-primary-500 rounded-2xl transition-all duration-200 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
+            <textarea ref={textareaRef} value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doClassify() }}
+              placeholder="在此补充商品信息..."
+              className="w-full min-h-[80px] resize-none border-0 outline-none text-[15px] leading-relaxed font-sans bg-transparent px-5 py-4"
+              style={{ color: '#1e293b' }} autoFocus
+            />
+            <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-100">
+              <button onClick={doClassify}
+                className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer transition-all bg-white border"
+                style={{ borderColor: p(0.2), color: theme.primary }}
+              >跳过，直接归类</button>
+              <button onClick={doClassify}
+                className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]"
+                style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
+              >补充信息并归类</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   // ═══ History full view ═══
   if (showAllHistory) {
     return (
       <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
         <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
           <h2 className="text-lg font-semibold">归类历史</h2>
-          <button onClick={() => setShowAllHistory(false)}
-            className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all">返回</button>
+          <button onClick={() => setShowAllHistory(false)} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all">返回</button>
         </div>
         <div className="px-8 pb-12 flex-1 max-w-[900px] mx-auto w-full">
           {history.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center py-20 text-muted text-sm">暂无归类记录</div>
+            <div className="flex items-center justify-center py-20 text-muted text-sm">暂无归类记录</div>
           ) : (
             <div className="space-y-1">
               {history.map(item => (
@@ -197,43 +229,18 @@ export default function HsClassifier() {
   if (!result) {
     const recentHistory = history.slice(0, 5)
     return (
-      <main className="flex-1 flex flex-col items-center justify-center bg-surface">
-        <div className="w-full max-w-[600px] px-8 overflow-y-auto flex flex-col items-center" style={{ maxHeight: 'calc(100vh - 40px)', paddingTop: '10vh', paddingBottom: '6vh' }}>
-          <h1 className="text-center text-[24px] font-bold mb-2 shrink-0 text-ink">AI 预归类</h1>
-          <p className="text-center text-[13px] text-muted mb-6 shrink-0">智能检索《进出口税则》，结果仅供参考</p>
+      <main className="flex-1 overflow-y-auto flex flex-col items-center bg-surface" style={{ paddingTop: '14vh' }}>
+        <div className="w-full max-w-[600px] px-8">
+          <h1 className="text-center text-[24px] font-bold mb-2 text-ink">AI 预归类</h1>
+          <p className="text-center text-[13px] text-muted mb-8">智能检索《进出口税则》，结果仅供参考</p>
 
-          {needsMoreInfo && (
-            <div className="w-full mb-6 shrink-0 relative">
-              {/* Glow aura behind the card */}
-              <div className="absolute inset-0 rounded-2xl blur-xl" style={{ background: `radial-gradient(50% 30% at 50% 0%, ${p(0.18)}, transparent 70%)` }} />
-              <div className="relative bg-white border border-gray-100 rounded-2xl p-5" style={{ boxShadow: `0 0 40px ${p(0.06)}, 0 1px 3px rgba(15,23,42,0.04)` }}>
-                <div className="flex items-start gap-3">
-                  <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
-                    <span className="text-sm">🧠</span>
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold mb-2" style={{ color: theme.primary }}>需要补充信息</div>
-                    <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{aiQuestion}</div>
-                    {missingFields.length > 0 && (
-                      <div className="flex gap-2 mt-3 flex-wrap">
-                        {missingFields.map(f => (
-                          <span key={f} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border" style={{ borderColor: p(0.2), color: theme.primary, background: p(0.04) }}>{f}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className={`w-full bg-white border-2 rounded-2xl transition-all duration-200 shrink-0 ${
+          <div className={`bg-white border-2 rounded-2xl transition-all duration-200 ${
             focused ? 'border-primary-500 shadow-[0_0_0_4px_var(--primary-rgb)_0.06]' : 'border-gray-200 shadow-card'
           }`} style={focused ? { boxShadow: `0 0 0 4px ${p(0.06)}` } : {}}>
             <textarea ref={textareaRef} value={input}
               onChange={e => setInput(e.target.value)}
               onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleClassify() }}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doClassify() }}
               placeholder={input || focused ? '描述商品名称、材质、用途、参数...' : placeholders[placeholderIdx]}
               className="w-full min-h-[100px] resize-none border-0 outline-none text-[15px] leading-relaxed font-sans bg-transparent px-5 py-4 hs-ph"
               style={{ color: '#1e293b' }} autoFocus
@@ -244,14 +251,14 @@ export default function HsClassifier() {
               .hs-ph:focus::placeholder { animation: none; opacity: 0.3 }
             `}</style>
             <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100">
-              <button onClick={handleClassify} disabled={!input.trim()}
+              <button onClick={doClassify} disabled={!input.trim()}
                 className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
+                style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : '#94a3b8' }}
               >开始归类分析 <span className="text-[10px] opacity-40 ml-0.5">⌘↵</span></button>
             </div>
           </div>
 
-          <div className="mt-5 text-center shrink-0">
+          <div className="mt-5 text-center">
             <span className="text-[12px]" style={{ color: '#94a3b8' }}>
               试试{' '}
               {shortcuts.map((s, i) => (
@@ -266,13 +273,11 @@ export default function HsClassifier() {
           </div>
 
           {recentHistory.length > 0 && (
-            <div className="w-full mt-8 shrink-0">
+            <div className="mt-8">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] uppercase tracking-[0.12em] font-semibold" style={{ color: '#94a3b8' }}>最近归类</span>
                 {history.length > 5 && (
-                  <button onClick={() => setShowAllHistory(true)}
-                    className="text-[11px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors"
-                    style={{ color: '#94a3b8' }}>查看全部 →</button>
+                  <button onClick={() => setShowAllHistory(true)} className="text-[11px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors" style={{ color: '#94a3b8' }}>查看全部 →</button>
                 )}
               </div>
               <div className="space-y-0.5">
@@ -290,7 +295,7 @@ export default function HsClassifier() {
             </div>
           )}
 
-          <p className="text-center text-[11px] mt-6 shrink-0" style={{ color: '#cbd5e1' }}>
+          <p className="text-center text-[11px] mt-8" style={{ color: '#cbd5e1' }}>
             基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
           </p>
         </div>
@@ -307,14 +312,9 @@ export default function HsClassifier() {
   // ═══ Results ═══
   return (
     <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
-      {/* Top bar with back button */}
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center gap-3">
-        <button onClick={handleNewQuery}
-          className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all inline-flex items-center gap-1"
-        >← 返回</button>
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-sm text-muted truncate">{result.product_description}</span>
-        </div>
+        <button onClick={handleNewQuery} className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all inline-flex items-center gap-1">← 返回</button>
+        <div className="flex items-center gap-2 min-w-0 flex-1"><span className="text-sm text-muted truncate">{result.product_description}</span></div>
       </div>
 
       <div className="px-8 pb-12 flex flex-col gap-4 flex-1 max-w-[960px] mx-auto w-full">
@@ -323,7 +323,6 @@ export default function HsClassifier() {
           .result-enter { animation: resultIn 0.45s ease-out both; }
         `}</style>
 
-        {/* Hero: HS Code */}
         <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card overflow-hidden" style={{ animationDelay: '0s' }}>
           <div className="p-6 flex items-start justify-between">
             <div>
@@ -331,10 +330,8 @@ export default function HsClassifier() {
               <div className="flex items-baseline gap-3">
                 <span className="text-[48px] font-bold tracking-tight font-mono" style={{ color: theme.primary, letterSpacing: '-0.03em' }}>{result.hs_code || '—'}</span>
                 {result.confidence && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
-                    style={{ background: p(0.08), color: theme.primary }}>
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: confDot[result.confidence] || confDot.low }} />
-                    {confLabel[result.confidence] || result.confidence}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: p(0.08), color: theme.primary }}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: confDot[result.confidence] || confDot.low }} />{confLabel[result.confidence] || result.confidence}
                   </span>
                 )}
               </div>
@@ -345,76 +342,33 @@ export default function HsClassifier() {
                 </div>
               )}
             </div>
-            <button onClick={handleCopyCode}
-              className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-all shrink-0"
+            <button onClick={handleCopyCode} className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-all shrink-0"
               style={{ borderColor: p(0.2), color: theme.primary, background: p(0.03) }}
               onMouseEnter={e => { (e.target as HTMLElement).style.background = p(0.07) }}
-              onMouseLeave={e => { (e.target as HTMLElement).style.background = p(0.03) }}
-            >复制编码</button>
+              onMouseLeave={e => { (e.target as HTMLElement).style.background = p(0.03) }}>复制编码</button>
           </div>
 
-          {/* Tax info */}
           <div className="grid grid-cols-4 border-t border-gray-100">
-            {[
-              { label: '最惠国关税', value: result.mfn_rate || '—' },
-              { label: '增值税率', value: result.vat_rate || '—' },
-              { label: '监管条件', value: result.supervision_conditions || '—' },
-              { label: '法定单位', value: '—' },
-            ].map((item, i) => (
+            {[{ label: '最惠国关税', value: result.mfn_rate || '—' },{ label: '增值税率', value: result.vat_rate || '—' },{ label: '监管条件', value: result.supervision_conditions || '—' },{ label: '法定单位', value: '—' }].map((item, i) => (
               <div key={item.label} className={`px-6 py-4 ${i < 3 ? 'border-r border-gray-100' : ''}`}>
                 <div className="text-[11px] text-muted uppercase tracking-wider mb-1">{item.label}</div>
                 <div className="text-lg font-bold">{item.value}</div>
               </div>
             ))}
           </div>
+
+          {result.rationale && (
+            <div className="border-t border-gray-100 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.rationale}</div></div>
+          )}
+          {result.alternatives && (
+            <div className="border-t border-gray-100 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.alternatives}</div></div>
+          )}
+          {result.tariff_text && (
+            <div className="border-t border-gray-100 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: '#F8FAFC', borderColor: '#e2e8f0', color: '#475569', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
+          )}
         </div>
 
-        {/* Rationale */}
-        {result.rationale && (
-          <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card" style={{ animationDelay: '0.1s' }}>
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <span className="text-sm">📋</span>
-              <h3 className="text-sm font-semibold">归类推导过程</h3>
-            </div>
-            <div className="px-6 py-4">
-              <div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.rationale}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Alternatives */}
-        {result.alternatives && (
-          <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card" style={{ animationDelay: '0.15s' }}>
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <span className="text-sm">🔍</span>
-              <h3 className="text-sm font-semibold">候选编码与排除理由</h3>
-            </div>
-            <div className="px-6 py-4">
-              <div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.alternatives}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Tariff original text */}
-        <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card" style={{ animationDelay: '0.2s' }}>
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <span className="text-sm">📖</span>
-            <h3 className="text-sm font-semibold">税则原文参考</h3>
-          </div>
-          <div className="px-6 py-4">
-            <div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border overflow-x-auto whitespace-pre-wrap" style={{ background: '#F8FAFC', borderColor: '#e2e8f0', color: '#475569', maxHeight: 320, overflowY: 'auto' }}>
-              {result.tariff_text || '税则原文未包含在结果中'}
-            </div>
-            <p className="text-[11px] mt-2" style={{ color: '#94a3b8' }}>
-              以上内容检索自《中华人民共和国进出口税则(2026)》，由 AI 提取并整理。请以海关最新公告为准。
-            </p>
-          </div>
-        </div>
-
-        {/* Disclaimer */}
-        <p className="result-enter text-center text-[11px] mt-2" style={{ color: '#cbd5e1', animationDelay: '0.4s' }}>
-          基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
-        </p>
+        <p className="result-enter text-center text-[11px] mt-2" style={{ color: '#cbd5e1', animationDelay: '0.4s' }}>基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准</p>
       </div>
 
       {toast && (
