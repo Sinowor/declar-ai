@@ -8,6 +8,18 @@ import { v4 as uuid } from 'uuid'
 import { getDb, queryAll, queryOne, execute } from '../db'
 
 // ═══ Tariff file paths ═══
+function loadSkillPrompt(): string {
+  const candidates = [
+    path.join(app.getAppPath(), 'prompts', 'hs-classifier-skill.md'),
+    path.join(process.cwd(), 'prompts', 'hs-classifier-skill.md'),
+  ]
+  for (const p of candidates) {
+    if (existsSync(p)) return readFileSync(p, 'utf-8').trim()
+  }
+  // Inline fallback (minimal)
+  return `# Role: 海关商品归类专家\n\n根据商品描述和税则检索结果，推荐HS编码。返回JSON。`
+}
+
 function findTariffPath(): string {
   const candidates = [
     path.join(app.getAppPath(), 'prompts', 'china-hscode-rule-2026.md'),
@@ -134,30 +146,7 @@ export async function classifyHsCode(productDescription: string): Promise<{
       ? `\n\n## 从税则检索到的相关内容\n\n基于关键词「${keywords.join('、')}」检索到以下内容（格式：行号:内容）：\n\n\`\`\`\n${tariffResults}\n\`\`\`\n\n请优先基于上述税则原文进行归类。如果检索结果不充分，请根据你的专业知识补充，并在 confidence 中标为 "low"。`
       : '\n\n## ⚠ 税则检索无结果\n\n未能从税则文件中检索到匹配内容。请根据你对《中华人民共和国进出口税则》的专业知识给出最佳归类建议，confidence 必须标为 "low"，并在 rationale 中说明"税则检索无匹配，基于通用知识归类"。'
 
-    const systemPrompt = `# Role: 海关商品归类专家
-
-你是一位资深的海关商品归类专家，精通《中华人民共和国进出口税则》。
-
-## 归类规则
-1. 根据商品名称、材质、用途、技术参数确定适用的类、章
-2. 应用归类总规则一至六确定具体税目和子目
-3. 查阅类注、章注确认有无排他条款
-4. 比较可能的候选编码，选出最合适的
-
-## 输出格式
-返回 JSON 对象：
-{
-  "hs_code": "推荐HS编码（10位，如8414.10.00.00）",
-  "hs_description": "官方货品名称（从税则中提取的原文描述）",
-  "confidence": "high|medium|low",
-  "mfn_rate": "最惠国关税税率",
-  "vat_rate": "增值税率",
-  "supervision_conditions": "监管条件",
-  "rationale": "归类推导过程，按归类总规则一至六逐步分析，引用税则原文和行号作为依据",
-  "alternatives": "候选编码及排除理由，列出其他可能的编码及其被排除的原因",
-  "tariff_text": "归类所依据的税则原文片段，从检索结果中直接引用，保留行号"
-}
-只返回 JSON，不要其他文字。${tariffSection}`
+    const systemPrompt = `${loadSkillPrompt()}${tariffSection}`
 
     const client = getAIClient()
     const response = await client.chat.completions.create({
