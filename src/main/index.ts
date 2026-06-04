@@ -12,6 +12,9 @@ import { registerHsCodeIpc } from './ipc/hs-code'
 
 const isDev = process.env.NODE_ENV === 'development'
 
+// macOS menu bar label
+if (process.platform === 'darwin') app.setName('DeclarAI')
+
 let mainWindow: BrowserWindow | null = null
 
 async function initApp() {

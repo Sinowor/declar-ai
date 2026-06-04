@@ -36,27 +36,63 @@ export function registerAppIpc() {
 
 export function setupAppMenu() {
   const isMac = process.platform === 'darwin'
+  const appName = app.name || 'DeclarAI'
+
   const template: Electron.MenuItemConstructorOptions[] = [
     ...(isMac ? [{
-      label: app.name,
+      label: appName,
       submenu: [
-        { label: '关于 DeclarAI', click: () => {
+        { label: `关于 ${appName}`, click: () => {
           const win = BrowserWindow.getFocusedWindow()
           if (win) win.webContents.send('app:open-about')
         }},
+        { type: 'separator' as const },
+        { role: 'services' as const },
+        { type: 'separator' as const },
+        { role: 'hide' as const },
+        { role: 'hideOthers' as const },
+        { role: 'unhide' as const },
         { type: 'separator' as const },
         { role: 'quit' as const },
       ],
     }] : []),
-    {
+    ...(isMac ? [] : [{
       label: '文件',
-      submenu: isMac ? [{ role: 'close' as const }] : [
-        { label: '关于 DeclarAI', click: () => {
-          const win = BrowserWindow.getFocusedWindow()
-          if (win) win.webContents.send('app:open-about')
-        }},
+      submenu: [{ role: 'quit' as const }],
+    }] as any),
+    {
+      label: '编辑',
+      submenu: [
+        { role: 'undo' as const },
+        { role: 'redo' as const },
         { type: 'separator' as const },
-        { role: 'quit' as const },
+        { role: 'cut' as const },
+        { role: 'copy' as const },
+        { role: 'paste' as const },
+        { role: 'selectAll' as const },
+      ],
+    },
+    {
+      label: '显示',
+      submenu: [
+        { role: 'reload' as const },
+        { role: 'forceReload' as const },
+        { role: 'toggleDevTools' as const },
+        { type: 'separator' as const },
+        { role: 'resetZoom' as const },
+        { role: 'zoomIn' as const },
+        { role: 'zoomOut' as const },
+      ],
+    },
+    {
+      label: '窗口',
+      submenu: [
+        { role: 'minimize' as const },
+        { role: 'zoom' as const },
+        ...(isMac ? [
+          { type: 'separator' as const },
+          { role: 'front' as const },
+        ] : [{ role: 'close' as const }]),
       ],
     },
   ]
