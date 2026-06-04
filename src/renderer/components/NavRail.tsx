@@ -10,8 +10,8 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: 'declarations', label: '申报制单', icon: IconDocNav },
-  { id: 'hs-classifier', label: 'HS 归类', icon: IconSearchNav },
+  { id: 'declarations', label: 'DeclarAI 制单', icon: IconDocNav },
+  { id: 'hs-classifier', label: 'DeclarAI 归类', icon: IconSearchNav },
 ]
 
 const bottomItems: NavItem[] = [
