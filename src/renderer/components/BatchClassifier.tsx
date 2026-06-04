@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 
 interface BatchResult {
@@ -28,8 +28,19 @@ export default function BatchClassifier({ onBack }: Props) {
   const [results, setResults] = useState<BatchResult[]>([])
   const [expandedRow, setExpandedRow] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [showStopConfirm, setShowStopConfirm] = useState(false)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
+
+  // ESC to confirm stop during processing
+  useEffect(() => {
+    if (!processing) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowStopConfirm(true)
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [processing])
 
   const processFile = useCallback(async (filePath: string) => {
     setProcessing(true)
@@ -135,8 +146,27 @@ export default function BatchClassifier({ onBack }: Props) {
           <div className="w-48 h-1.5 rounded-full overflow-hidden mb-4" style={{ background: p(0.08) }}>
             <div className="h-full rounded-full animate-pulse" style={{ background: `linear-gradient(90deg, ${theme.primary}, ${theme.accentForeground})`, width: '60%' }} />
           </div>
-          <div className="text-sm text-muted">正在检索税则并分析归类...</div>
+          <div className="text-sm text-muted">正在检索税则并分析归类... 按 ESC 取消</div>
         </div>
+
+        {/* Stop confirmation dialog */}
+        {showStopConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(15,23,42,0.3)' }} onClick={() => setShowStopConfirm(false)}>
+            <div className="bg-white rounded-2xl shadow-panel p-6 mx-8 max-w-[360px] w-full" onClick={e => e.stopPropagation()}>
+              <div className="text-[15px] font-semibold mb-2">确认停止批量归类？</div>
+              <div className="text-[13px] text-muted mb-5">当前处理进度将丢失，已返回的结果不会保存。</div>
+              <div className="flex gap-3 justify-end">
+                <button onClick={() => setShowStopConfirm(false)}
+                  className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer bg-white border border-gray-200 text-muted hover:bg-surface transition-all"
+                >取消</button>
+                <button onClick={onBack}
+                  className="h-9 px-4 rounded-lg text-[13px] font-semibold cursor-pointer text-white border-none transition-all hover:opacity-90"
+                  style={{ background: theme.primary }}
+                >停止并返回</button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     )
   }
