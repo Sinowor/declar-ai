@@ -151,7 +151,7 @@ export default function HsClassifier() {
         <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
           <h2 className="text-lg font-semibold">归类历史</h2>
           <button onClick={() => setShowAllHistory(false)}
-            className="h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all">返回</button>
+            className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all">返回</button>
         </div>
         <div className="px-8 pb-12 flex-1 max-w-[900px] mx-auto w-full">
           {history.length === 0 ? (
@@ -267,7 +267,7 @@ export default function HsClassifier() {
       {/* Top bar with back button */}
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center gap-3">
         <button onClick={handleNewQuery}
-          className="shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all inline-flex items-center gap-1"
+          className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all inline-flex items-center gap-1"
         >← 返回</button>
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-sm text-muted truncate">{result.product_description}</span>

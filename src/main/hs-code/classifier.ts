@@ -164,10 +164,12 @@ export async function classifyHsCode(productDescription: string): Promise<{
 export function saveToHistory(result: HsClassificationResult): void {
   execute(
     `INSERT OR REPLACE INTO hs_classifications
-     (id, product_description, hs_code, hs_description, confidence, mfn_rate, vat_rate, supervision_conditions, full_result_json, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     (id, product_description, hs_code, hs_description, confidence, mfn_rate, vat_rate,
+      supervision_conditions, rationale, alternatives, tariff_text, full_result_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [result.id, result.product_description, result.hs_code, result.hs_description,
      result.confidence, result.mfn_rate, result.vat_rate, result.supervision_conditions,
+     result.rationale || null, result.alternatives || null, result.tariff_text || null,
      result.full_result_json, result.created_at]
   )
 }
@@ -182,22 +184,28 @@ export function getHistoryItem(id: string): HsClassificationResult | null {
 
 export function initHsClassifierDb(): void {
   getDb().then(() => {
-    if (!queryOne("SELECT name FROM sqlite_master WHERE type='table' AND name='hs_classifications'")) {
-      execute(`
-        CREATE TABLE IF NOT EXISTS hs_classifications (
-          id TEXT PRIMARY KEY,
-          product_description TEXT NOT NULL,
-          hs_code TEXT,
-          hs_description TEXT,
-          confidence TEXT,
-          mfn_rate TEXT,
-          vat_rate TEXT,
-          supervision_conditions TEXT,
-          full_result_json TEXT NOT NULL,
-          report_path TEXT,
-          created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
-        )
-      `)
+    // Drop old table if it lacks the new columns (rationale, alternatives, tariff_text)
+    const oldTable = queryOne("SELECT sql FROM sqlite_master WHERE type='table' AND name='hs_classifications'") as any
+    if (oldTable && !oldTable.sql?.includes('rationale')) {
+      execute('DROP TABLE hs_classifications')
     }
+    execute(`
+      CREATE TABLE IF NOT EXISTS hs_classifications (
+        id TEXT PRIMARY KEY,
+        product_description TEXT NOT NULL,
+        hs_code TEXT,
+        hs_description TEXT,
+        confidence TEXT,
+        mfn_rate TEXT,
+        vat_rate TEXT,
+        supervision_conditions TEXT,
+        rationale TEXT,
+        alternatives TEXT,
+        tariff_text TEXT,
+        full_result_json TEXT NOT NULL,
+        report_path TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+      )
+    `)
   })
 }
