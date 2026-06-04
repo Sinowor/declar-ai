@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
+import { IconFile } from './Icons'
 
 interface BatchResult {
   row_index: number
@@ -108,7 +109,7 @@ export default function BatchClassifier({ onBack }: Props) {
       <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <div className="w-full max-w-[600px] px-8 -mt-16 text-center">
           <div className="w-14 h-14 mx-auto mb-5 rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${p(0.1)}, ${p(0.03)})` }}>
-            <span className="text-2xl">📊</span>
+            <IconFile />
           </div>
           <h1 className="text-[22px] font-bold mb-2 text-ink">批量归类</h1>
           <p className="text-[13px] text-muted mb-8">上传 Excel 清单，一次性处理多个品名的 HS 编码归类</p>
@@ -122,7 +123,7 @@ export default function BatchClassifier({ onBack }: Props) {
             onDrop={handleDrop}
             onClick={handleClick}
           >
-            <div className="text-3xl mb-3 opacity-30">📁</div>
+            <div className="mb-3 opacity-30"><IconFile /></div>
             <div className="font-semibold text-[15px] mb-1">拖拽 Excel 文件到此处</div>
             <div className="text-[13px] text-muted">或点击选择文件 · 支持 .xlsx / .xls</div>
           </div>
