@@ -31,10 +31,10 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
   if (!declaration && !selectedDeclaration) {
     return (
-      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: 'linear-gradient(135deg, #F5EEFF 0%, #EEF4FF 45%, #FFF7ED 100%)' }}>
+      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.04) 0%, #EEF4FF 45%, #FFF7ED 100%)` }}>
         <div className="text-center py-16 px-8 w-full max-w-[480px]">
           <div className="flex justify-center mb-5">
-            <span className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(109,94,247,0.08)' }}>
+            <span className="w-16 h-16 rounded-2xl flex items-center justify-center bg-primary-100">
               <IconDocument />
             </span>
           </div>
@@ -42,7 +42,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           <p className="text-muted text-sm mb-8">从左侧选择申报单，或创建新的申报单</p>
           <button onClick={onNewDeclaration}
             className="h-10 px-6 rounded-lg text-white border-none font-semibold text-sm cursor-pointer transition-all hover:opacity-90 active:scale-[0.98] mb-10"
-            style={{ background: 'linear-gradient(135deg, #6D5EF7, #5B4EDB)' }}
+            style={{ background: 'var(--gradient)' }}
           >新建申报单</button>
           {(recentDeclarations || []).slice(0, 5).length > 0 && (
             <div className="text-left">
@@ -355,7 +355,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           <div key={step.n} className="flex items-center gap-2">
             <span className={`inline-flex items-center gap-1.5 text-[12px] font-medium ${
               step.done ? '' : i === 2 ? '' : 'text-muted'
-            }`} style={{ color: step.done ? '#22C55E' : i === 2 ? '#6D5EF7' : undefined }}>
+            }`} style={{ color: step.done ? '#22C55E' : i === 2 ? 'var(--primary)' : undefined }}>
               <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
                 step.done ? 'bg-emerald-400' : i === 2 ? 'bg-primary-500' : 'bg-gray-300'
               }`}>{step.done ? '✓' : step.n}</span>

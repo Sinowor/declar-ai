@@ -71,7 +71,7 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
         {/* KPI strip */}
         <div className="grid grid-cols-5 gap-3">
           {[
-            { label: '文件', value: files.length, unit: '个', color: '#6D5EF7' },
+            { label: '文件', value: files.length, unit: '个', color: 'var(--primary)' },
             { label: '字段', value: fieldEntries.length, unit: '个', color: '#0EA5E9' },
             { label: '货物', value: cargoDetails.length, unit: '行', color: '#22C55E' },
             { label: '总件数', value: totalPieces, unit: '', color: '#F59E0B' },

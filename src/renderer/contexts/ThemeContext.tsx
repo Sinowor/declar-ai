@@ -16,6 +16,7 @@ function applyTheme(theme: ThemeColor) {
   root.style.setProperty('--primary-foreground', theme.primaryForeground)
   root.style.setProperty('--accent-foreground', theme.accentForeground)
   root.style.setProperty('--ring', theme.primary)
+  root.style.setProperty('--gradient', theme.gradient)
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
