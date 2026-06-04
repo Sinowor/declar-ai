@@ -3,6 +3,7 @@ import NavRail, { type ModuleId } from './components/NavRail'
 import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
 import HsClassifier from './components/HsClassifier'
+import Settings from './components/Settings'
 import AboutModal from './components/AboutModal'
 import LicenseModal from './components/LicenseModal'
 
@@ -212,6 +213,9 @@ export default function App() {
       )}
       {activeModule === 'hs-classifier' && (
         <HsClassifier />
+      )}
+      {activeModule === 'settings' && (
+        <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />
       )}
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
