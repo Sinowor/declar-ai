@@ -91,8 +91,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
   const [resolvedIssues, setResolvedIssues] = useState<Set<number>>(new Set())
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null)
+  const [extractionCompleted, setExtractionCompleted] = useState(false)
   const dirtyRef = useRef(false)
-  const extractionCompleted = declaration!.status !== 'draft'
   const transportSectionRef = useRef<HTMLDivElement>(null)
   const cargoSectionRef = useRef<HTMLDivElement>(null)
 
@@ -108,6 +108,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     const loadData = async () => {
       // Reset state for the new declaration
       dirtyRef.current = false
+      setExtractionCompleted(declaration!.status !== 'draft')
       setFiles([])
       setConfidenceMap({})
       setReviewIssues([])
@@ -324,6 +325,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             setConfidenceMap(cmap)
           }
           // Store auto-review issues
+          setExtractionCompleted(true)
           if (result.issues && result.issues.length > 0) {
             setReviewIssues(result.issues)
             setResolvedIssues(new Set())
