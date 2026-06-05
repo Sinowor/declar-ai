@@ -111,6 +111,35 @@ DeclarAI
 | v4.0 | 单证交叉一致性校验、报关逻辑规则引擎 |
 | v5.0 | 抄录视图、XLSX 模板导出、Excel 排版 |
 | v6.0 | 客户管理、申报状态流、工作台看板 |
+| v7.0 | RAG 智能知识库 |
+
+### v7.0 RAG 智能知识库（远期规划）
+
+**核心能力**：用户拖入海关公告/法规/单证模板 → AI 自动提取、分块、打标签、向量化存储。后续通过对话提问，AI 基于知识库内容回答并引用来源。
+
+**技术栈**：
+
+| 组件 | 方案 | 说明 |
+|---|---|---|
+| 文档解析 | 已有（PDF/Word/Excel 提取） | 复用现有 extractor |
+| 文本分块 | LangChain.js `RecursiveCharacterTextSplitter` | 按语义边界分块 |
+| Embedding | `transformers.js` + `all-MiniLM-L6-v2` | 纯本地，不需要 GPU |
+| 向量存储 | `sqlite-vec` | SQLite 扩展，与现有 DB 统一 |
+| 检索 | 语义相似度 + BM25 混合 | 精确 + 模糊 |
+| 回答生成 | 现有 DeepSeek API | 带上下文 prompt |
+
+**开源参考**：
+- [sqlite-vec](https://github.com/asg017/sqlite-vec) — SQLite 向量扩展，零配置
+- [transformers.js](https://github.com/xenova/transformers.js) — HuggingFace 模型在 Node.js 运行
+- [LangChain.js](https://github.com/langchain-ai/langchainjs) — RAG 流程编排
+- [NVIDIA GenerativeAIExamples](https://github.com/NVIDIA/GenerativeAIExamples) — 企业级 RAG 参考架构
+
+**交互**：
+- 拖拽文件入库（PDF/Word/MD/图片）
+- AI 自动总结、打标签、分类
+- 对话式提问：「二连口岸最近有什么新规定？」
+- 回答引用来源文档 + 片段高亮
+- 手动笔记入口保留（轻量 Markdown）
 
 ## 不做
 
