@@ -88,8 +88,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
           {activeTab === 'general' && (
             <>
               {/* Storage */}
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-                <div className="px-6 py-[18px] border-b border-gray-200">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold">数据存储</h3>
                 </div>
                 <div className="p-6">
@@ -99,12 +99,12 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                       type="text"
                       value={storageRoot}
                       readOnly
-                      className="flex-1 h-9 rounded-md border border-gray-200 px-3 text-sm bg-[#FAFBFC] font-sans text-muted cursor-default"
+                      className="flex-1 h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-sm bg-[#FAFBFC] font-sans text-muted cursor-default"
                       title={storageRoot}
                     />
                     <button
                       onClick={handleSelectFolder}
-                      className="h-9 px-4 rounded-sm border border-gray-200 bg-white text-sm text-muted font-medium cursor-pointer hover:bg-surface transition-colors shrink-0"
+                      className="h-9 px-4 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm text-muted font-medium cursor-pointer hover:bg-surface dark:hover:bg-gray-800 dark:bg-gray-800 transition-colors shrink-0"
                     >
                       选择文件夹
                     </button>
@@ -124,8 +124,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
               </div>
 
               {/* Shortcuts */}
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-                <div className="px-6 py-[18px] border-b border-gray-200">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold">快捷键</h3>
                 </div>
                 <div className="p-6">
@@ -133,7 +133,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                     {shortcuts.map(s => (
                       <div key={s.keys} className="flex items-center justify-between text-sm">
                         <span className="text-muted">{s.desc}</span>
-                        <kbd className="px-2 py-0.5 rounded text-[11px] font-mono bg-surface border border-gray-200 text-ink">{s.keys}</kbd>
+                        <kbd className="px-2 py-0.5 rounded text-[11px] font-mono bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-ink">{s.keys}</kbd>
                       </div>
                     ))}
                   </div>
@@ -144,8 +144,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
 
           {activeTab === 'data' && (
             <>
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-                <div className="px-6 py-[18px] border-b border-gray-200">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold">海关关区管理</h3>
                 </div>
                 <div className="p-6">
@@ -153,8 +153,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-                <div className="px-6 py-[18px] border-b border-gray-200">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-lg font-semibold">申报单位管理</h3>
                 </div>
                 <div className="p-6">
@@ -165,8 +165,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
           )}
 
           {activeTab === 'appearance' && (
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-              <div className="px-6 py-[18px] border-b border-gray-200">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+              <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold">外观</h3>
               </div>
               <div className="p-6 space-y-6">
@@ -184,7 +184,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                         className={`flex items-center gap-1.5 h-8 px-3 rounded-md text-[12px] font-medium cursor-pointer transition-colors border ${
                           themeMode === m.id
                             ? 'bg-primary-50 text-primary-600 border-primary-200'
-                            : 'bg-white text-muted border-gray-200 hover:border-gray-300 hover:text-ink'
+                            : 'bg-white dark:bg-gray-900 text-muted border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:text-ink'
                         }`}
                       >
                         <span className="text-sm">{m.icon}</span>
@@ -199,8 +199,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
           )}
 
           {activeTab === 'info' && (
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-              <div className="px-6 py-[18px] border-b border-gray-200">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+              <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold">关于</h3>
               </div>
               <div className="p-6 space-y-3">
@@ -210,8 +210,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                 </div>
                 <div className="text-xs text-muted">基于 AI 的报关单自动化制单系统</div>
                 <div className="flex gap-2 pt-2">
-                  <button onClick={onShowAbout} className="h-8 px-4 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-colors">关于 DeclarAI</button>
-                  <button onClick={onShowLicense} className="h-8 px-4 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-colors">查看许可证</button>
+                  <button onClick={onShowAbout} className="h-8 px-4 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs text-muted font-medium cursor-pointer hover:bg-surface dark:hover:bg-gray-800 dark:bg-gray-800 transition-colors">关于 DeclarAI</button>
+                  <button onClick={onShowLicense} className="h-8 px-4 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs text-muted font-medium cursor-pointer hover:bg-surface dark:hover:bg-gray-800 dark:bg-gray-800 transition-colors">查看许可证</button>
                 </div>
               </div>
             </div>

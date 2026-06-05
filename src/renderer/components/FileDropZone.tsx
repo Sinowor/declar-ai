@@ -77,7 +77,7 @@ export default function FileDropZone({
           className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-[border-color,background-color,box-shadow] ${
             dragOver
               ? 'border-primary-500 border-solid bg-primary-50 shadow-[0_0_0_4px_rgba(var(--primary-rgb), 0.06)]'
-              : 'border-gray-300 bg-surface hover:border-primary-500 hover:border-solid hover:bg-primary-50 hover:shadow-[0_0_0_4px_rgba(var(--primary-rgb), 0.06)]'
+              : 'border-gray-300 bg-surface dark:bg-gray-800 hover:border-primary-500 hover:border-solid hover:bg-primary-50 hover:shadow-[0_0_0_4px_rgba(var(--primary-rgb), 0.06)]'
           }`}
           onDragOver={(e) => {
             e.preventDefault()
@@ -130,7 +130,7 @@ export default function FileDropZone({
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] border transition-colors ${
                   f.error
                     ? 'bg-red-50 border-red-200 text-red-600'
-                    : 'bg-white border-gray-200'
+                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
                 }`}
               >
                 {f.error ? '!' : ''} {f.file_name}
@@ -149,7 +149,7 @@ export default function FileDropZone({
 
   if (embedded) return dropZone
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
       <div className="p-6">
         {dropZone}
       </div>

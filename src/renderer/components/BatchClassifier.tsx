@@ -116,7 +116,7 @@ export default function BatchClassifier({ onBack }: Props) {
 
           <div
             className={`border-2 border-dashed rounded-2xl p-12 cursor-pointer transition-colors ${
-              dragOver ? 'border-primary-500 border-solid bg-primary-50' : 'border-gray-300 bg-white hover:border-primary-400 hover:bg-primary-50/30'
+              dragOver ? 'border-primary-500 border-solid bg-primary-50' : 'border-gray-300 bg-white dark:bg-gray-900 hover:border-primary-400 hover:bg-primary-50/30'
             }`}
             onDragOver={e => { e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
@@ -132,7 +132,7 @@ export default function BatchClassifier({ onBack }: Props) {
             AI 将自动识别表头中的品名列和辅助信息列，无需手动指定列顺序。
           </p>
 
-          <button onClick={onBack} className="mt-8 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-colors no-drag">← 返回</button>
+          <button onClick={onBack} className="mt-8 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink cursor-pointer transition-colors no-drag">← 返回</button>
         </div>
       </main>
     )
@@ -153,12 +153,12 @@ export default function BatchClassifier({ onBack }: Props) {
         {/* Stop confirmation dialog */}
         {showStopConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(15,23,42,0.3)' }} onClick={() => setShowStopConfirm(false)}>
-            <div className="bg-white rounded-2xl shadow-panel p-6 mx-8 max-w-[360px] w-full" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-6 mx-8 max-w-[360px] w-full" onClick={e => e.stopPropagation()}>
               <div className="text-[15px] font-semibold mb-2">确认停止批量归类？</div>
               <div className="text-[13px] text-muted mb-5">当前处理进度将丢失，已返回的结果不会保存。</div>
               <div className="flex gap-3 justify-end">
                 <button onClick={() => setShowStopConfirm(false)}
-                  className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer bg-white border border-gray-200 text-muted hover:bg-surface transition-colors"
+                  className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-muted hover:bg-surface dark:hover:bg-gray-800 dark:bg-gray-800 transition-colors"
                 >取消</button>
                 <button onClick={onBack}
                   className="h-9 px-4 rounded-sm text-[13px] font-semibold cursor-pointer text-white border-none transition-colors hover:opacity-90"
@@ -177,14 +177,14 @@ export default function BatchClassifier({ onBack }: Props) {
     <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={onBack} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-colors">← 返回</button>
+          <button onClick={onBack} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink cursor-pointer transition-colors">← 返回</button>
           <div>
             <h2 className="text-lg font-semibold">批量归类</h2>
             <p className="text-xs text-muted">{fileName} · {results.length} 行 · 高置信 {highCount} · 低置信 {lowCount}</p>
           </div>
         </div>
         <div className="flex gap-2 no-drag">
-          <button onClick={handleCopyTable} className="h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-colors">复制表格</button>
+          <button onClick={handleCopyTable} className="h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink cursor-pointer transition-colors">复制表格</button>
           <button onClick={handleExport} className="h-7 px-3 rounded-full text-[12px] text-white border-none font-medium cursor-pointer transition-colors"
             style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}>导出 Excel</button>
         </div>
@@ -207,7 +207,7 @@ export default function BatchClassifier({ onBack }: Props) {
                 <>
                   <tr key={i}
                     onClick={() => setExpandedRow(expanded ? null : i)}
-                    className={`cursor-pointer transition-colors ${isLow ? '' : 'hover:bg-slate-50'}`}
+                    className={`cursor-pointer transition-colors ${isLow ? '' : 'hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-800'}`}
                     style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC', borderBottom: '1px solid #f1f5f9' }}
                   >
                     <td className="px-3 py-2.5 text-xs text-muted">{r.row_index + 1}</td>

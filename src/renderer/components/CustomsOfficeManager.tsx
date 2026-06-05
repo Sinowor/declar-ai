@@ -46,7 +46,7 @@ export default function CustomsOfficeManager() {
           placeholder="搜索关区代码或名称..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="h-8 rounded-md border border-gray-200 px-3 text-[13px] outline-none focus:border-primary-500 bg-surface w-48 font-sans"
+          className="h-8 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[13px] outline-none focus:border-primary-500 bg-surface dark:bg-gray-800 w-48 font-sans"
         />
         <button
           onClick={() => setAdding(v => !v)}
@@ -58,13 +58,13 @@ export default function CustomsOfficeManager() {
         <div className="flex gap-2 mb-3 flex-wrap">
           <input placeholder="关区代码" value={form.code}
             onChange={e => setForm({ ...form, code: e.target.value })}
-            className="h-8 w-24 rounded-md border border-gray-200 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
+            className="h-8 w-24 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
           <input placeholder="关区名称" value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
-            className="h-8 flex-1 min-w-[120px] rounded-md border border-gray-200 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
+            className="h-8 flex-1 min-w-[120px] rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
           <input placeholder="所属关区（可选）" value={form.parent_name}
             onChange={e => setForm({ ...form, parent_name: e.target.value })}
-            className="h-8 flex-1 min-w-[120px] rounded-md border border-gray-200 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
+            className="h-8 flex-1 min-w-[120px] rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
           <button onClick={handleSave} disabled={!form.code || !form.name}
             className="h-8 px-3 rounded-sm text-xs font-semibold cursor-pointer bg-primary-500 text-white border-none disabled:opacity-40 hover:bg-primary-600 transition-colors">保存</button>
         </div>
@@ -74,15 +74,15 @@ export default function CustomsOfficeManager() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200">代码</th>
-              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200">名称</th>
-              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200">所属关区</th>
+              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">代码</th>
+              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">名称</th>
+              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">所属关区</th>
               <th className="w-10" />
             </tr>
           </thead>
           <tbody>
             {offices.map(o => (
-              <tr key={o.code} className="border-b border-slate-50 hover:bg-slate-50">
+              <tr key={o.code} className="border-b border-slate-50 dark:border-gray-800 hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-800">
                 <td className="px-2 py-1.5 text-[13px] font-mono">{o.code}</td>
                 <td className="px-2 py-1.5 text-[13px]">{o.name}</td>
                 <td className="px-2 py-1.5 text-[12px] text-muted">{o.parent_name || '—'}</td>

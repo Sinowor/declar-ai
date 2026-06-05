@@ -14,7 +14,7 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-panel p-8 w-[360px] text-center"
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-8 w-[360px] text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-center mb-4">

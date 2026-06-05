@@ -12,7 +12,7 @@ export default function LicenseModal({ open, onClose }: LicenseModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-panel p-8 w-[520px] max-h-[80vh] flex flex-col"
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-8 w-[520px] max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-xl font-bold mb-4">许可与隐私声明</h2>

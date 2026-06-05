@@ -181,7 +181,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
       <main className="flex-1 flex flex-col items-center justify-center bg-surface">
         <div className="w-full max-w-[640px] px-8 -mt-12">
           {/* AI question card */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-5" style={{ boxShadow: `0 0 48px ${p(0.08)}, 0 1px 3px rgba(15,23,42,0.04)` }}>
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 mb-5" style={{ boxShadow: `0 0 48px ${p(0.08)}, 0 1px 3px rgba(15,23,42,0.04)` }}>
             <div className="flex items-start gap-3 mb-4">
               <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${p(0.12)}, ${p(0.04)})` }}>
                 <span className="text-sm">🧠</span>
@@ -201,7 +201,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           </div>
 
           {/* Edit area */}
-          <div className="bg-white border-2 border-gray-200 focus-within:border-primary-500 rounded-2xl transition-[border-color,box-shadow] duration-200 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
+          <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 focus-within:border-primary-500 rounded-2xl transition-[border-color,box-shadow] duration-200 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
             <textarea ref={textareaRef} value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doClassify() }}
@@ -209,9 +209,9 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               className="w-full min-h-[80px] resize-none border-0 outline-none text-[15px] leading-relaxed font-sans bg-transparent px-5 py-4"
               style={{ color: '#1e293b' }} autoFocus
             />
-            <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-100 dark:border-gray-800">
               <button onClick={() => doClassify(true)}
-                className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer transition-colors bg-white border"
+                className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer transition-colors bg-white dark:bg-gray-900 border"
                 style={{ borderColor: p(0.2), color: theme.primary }}
               >跳过，直接归类</button>
               <button onClick={() => doClassify(false)}
@@ -231,7 +231,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
       <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
         <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
           <h2 className="text-lg font-semibold">归类历史</h2>
-          <button onClick={() => setShowAllHistory(false)} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-colors">返回</button>
+          <button onClick={() => setShowAllHistory(false)} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink cursor-pointer transition-colors">返回</button>
         </div>
         <div className="px-8 pb-12 flex-1 max-w-[900px] mx-auto w-full">
           {history.length === 0 ? (
@@ -240,7 +240,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             <div className="space-y-1">
               {history.map(item => (
                 <button key={item.id} onClick={() => handleHistoryClick(item)}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
+                  className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left cursor-pointer bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
                 >
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
                   <span className="flex-1 min-w-0 text-sm font-medium truncate">{item.product_description}</span>
@@ -264,8 +264,8 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           <h1 className="text-center text-[24px] font-bold mb-2 text-ink">AI 预归类</h1>
           <p className="text-center text-[13px] text-muted mb-8">智能检索《进出口税则》，结果仅供参考</p>
 
-          <div className={`bg-white border-2 rounded-2xl transition-[border-color,box-shadow] duration-200 ${
-            focused ? 'border-primary-500 shadow-[0_0_0_4px_var(--primary-rgb)_0.06]' : 'border-gray-200 shadow-card'
+          <div className={`bg-white dark:bg-gray-900 border-2 rounded-2xl transition-[border-color,box-shadow] duration-200 ${
+            focused ? 'border-primary-500 shadow-[0_0_0_4px_var(--primary-rgb)_0.06]' : 'border-gray-200 dark:border-gray-700 shadow-card'
           }`} style={focused ? { boxShadow: `0 0 0 4px ${p(0.06)}` } : {}}>
             <textarea ref={textareaRef} value={input}
               onChange={e => setInput(e.target.value)}
@@ -280,7 +280,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               .hs-ph::placeholder { animation: phFade 3s ease-in-out infinite }
               .hs-ph:focus::placeholder { animation: none; opacity: 0.3 }
             `}</style>
-            <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100">
+            <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100 dark:border-gray-800">
               <button onClick={() => doClassify()} disabled={!input.trim()}
                 className="h-9 px-5 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-colors hover:opacity-90 active:scale-[0.98]"
                 style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : '#94a3b8' }}
@@ -313,7 +313,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               <div className="space-y-0.5">
                 {recentHistory.map(item => (
                   <button key={item.id} onClick={() => handleHistoryClick(item)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
                     <span className="flex-1 min-w-0 text-[13px] font-medium truncate">{item.product_description}</span>
@@ -360,7 +360,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
   return (
     <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center gap-3">
-        <button onClick={handleNewQuery} className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-colors inline-flex items-center gap-1">← 返回</button>
+        <button onClick={handleNewQuery} className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink hover:border-gray-300 cursor-pointer transition-colors inline-flex items-center gap-1">← 返回</button>
         <div className="flex items-center gap-2 min-w-0 flex-1"><span className="text-sm text-muted truncate">{result.product_description}</span></div>
       </div>
 
@@ -370,7 +370,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           .result-enter { animation: resultIn 0.45s ease-out both; }
         `}</style>
 
-        <div className="result-enter bg-white border border-gray-200 rounded-2xl shadow-card overflow-hidden" style={{ animationDelay: '0s' }}>
+        <div className="result-enter bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card overflow-hidden" style={{ animationDelay: '0s' }}>
           <div className="p-6 flex items-start justify-between">
             <div>
               <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-3">推荐 HS 编码</div>
@@ -402,9 +402,9 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               onMouseLeave={e => { (e.target as HTMLElement).style.background = p(0.03) }}>复制编码</button>
           </div>
 
-          <div className="grid grid-cols-4 border-t border-gray-100">
+          <div className="grid grid-cols-4 border-t border-gray-100 dark:border-gray-800">
             {[{ label: '最惠国关税', value: result.mfn_rate || '—' },{ label: '增值税率', value: result.vat_rate || '—' },{ label: '监管条件', value: result.supervision_conditions || '—' },{ label: '法定单位', value: '—' }].map((item, i) => (
-              <div key={item.label} className={`px-6 py-4 ${i < 3 ? 'border-r border-gray-100' : ''}`}>
+              <div key={item.label} className={`px-6 py-4 ${i < 3 ? 'border-r border-gray-100 dark:border-gray-800' : ''}`}>
                 <div className="text-[11px] text-muted uppercase tracking-wider mb-1">{item.label}</div>
                 <div className="text-lg font-bold">{item.value}</div>
               </div>
@@ -412,13 +412,13 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           </div>
 
           {result.rationale && (
-            <div className="border-t border-gray-100 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.rationale}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.rationale}</div></div>
           )}
           {result.alternatives && (
-            <div className="border-t border-gray-100 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.alternatives}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.alternatives}</div></div>
           )}
           {result.tariff_text && (
-            <div className="border-t border-gray-100 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: '#F8FAFC', borderColor: '#e2e8f0', color: '#475569', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: '#F8FAFC', borderColor: '#e2e8f0', color: '#475569', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
           )}
         </div>
 

@@ -85,37 +85,37 @@ export default function EnterpriseManager() {
       </div>
 
       {adding && (
-        <div className="flex flex-col gap-2 mb-3 p-3 rounded-lg bg-surface border border-gray-200">
+        <div className="flex flex-col gap-2 mb-3 p-3 rounded-lg bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <div className="flex gap-2">
             <div className="flex-1">
               <input placeholder="企业名称 *" value={form.name}
                 onChange={e => { setForm({ ...form, name: e.target.value }); setErrors({}) }}
-                className={`h-8 w-full rounded-md border px-2 text-[12px] outline-none focus:border-primary-500 font-sans ${errors.name ? 'border-red-400' : 'border-gray-200'}`} />
+                className={`h-8 w-full rounded-md border px-2 text-[12px] outline-none focus:border-primary-500 font-sans ${errors.name ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
               {errors.name && <div className="text-[10px] text-red-500 mt-0.5">{errors.name}</div>}
             </div>
             <div className="w-32">
               <input placeholder="简称" value={form.short_name}
                 onChange={e => setForm({ ...form, short_name: e.target.value })}
-                className="h-8 w-full rounded-md border border-gray-200 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
+                className="h-8 w-full rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 font-sans" />
             </div>
           </div>
           <div className="flex gap-2">
             <div className="flex-1">
               <input placeholder="统一社会信用代码（18位，选填）" value={form.credit_code}
                 onChange={e => { setForm({ ...form, credit_code: e.target.value }); setErrors({}) }}
-                className={`h-8 w-full rounded-md border px-2 text-[12px] outline-none focus:border-primary-500 font-sans ${errors.credit_code ? 'border-red-400' : 'border-gray-200'}`} />
+                className={`h-8 w-full rounded-md border px-2 text-[12px] outline-none focus:border-primary-500 font-sans ${errors.credit_code ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
               {errors.credit_code && <div className="text-[10px] text-red-500 mt-0.5">{errors.credit_code}</div>}
             </div>
             <div className="w-40">
               <input placeholder="海关10位编码（选填）" value={form.customs_code}
                 onChange={e => { setForm({ ...form, customs_code: e.target.value }); setErrors({}) }}
-                className={`h-8 w-full rounded-md border px-2 text-[12px] outline-none focus:border-primary-500 font-sans ${errors.customs_code ? 'border-red-400' : 'border-gray-200'}`} />
+                className={`h-8 w-full rounded-md border px-2 text-[12px] outline-none focus:border-primary-500 font-sans ${errors.customs_code ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
               {errors.customs_code && <div className="text-[10px] text-red-500 mt-0.5">{errors.customs_code}</div>}
             </div>
           </div>
           <div className="flex justify-end gap-2">
             <button onClick={resetForm}
-              className="h-7 px-3 rounded-sm text-xs cursor-pointer bg-white border border-gray-200 text-muted hover:text-ink transition-colors">取消</button>
+              className="h-7 px-3 rounded-sm text-xs cursor-pointer bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-muted hover:text-ink transition-colors">取消</button>
             <button onClick={handleSave} disabled={!form.name}
               className="h-7 px-3 rounded-sm text-xs font-semibold cursor-pointer bg-primary-500 text-white border-none disabled:opacity-40 hover:bg-primary-600 transition-colors">
               {editingId ? '更新' : '保存'}
@@ -125,7 +125,7 @@ export default function EnterpriseManager() {
       )}
 
       {enterprises.map(e => (
-        <div key={e.id} className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-b-0">
+        <div key={e.id} className="group flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-800 transition-colors border-b border-slate-50 dark:border-gray-800 last:border-b-0">
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${e.is_default ? 'bg-emerald-400' : 'bg-slate-300'}`} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
