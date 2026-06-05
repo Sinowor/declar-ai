@@ -50,6 +50,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [hsSidebarCollapsed, setHsSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -197,9 +198,12 @@ export default function App() {
       {/* ═══ Left Icon Rail ═══ */}
       <NavRail active={activeModule} onChange={setActiveModule}
         editing={!!editingId}
-        sidebarCollapsed={sidebarCollapsed}
+        sidebarCollapsed={activeModule === 'declarations' ? sidebarCollapsed : hsSidebarCollapsed}
         onExitEdit={handleExitEdit}
-        onToggleSidebar={() => setSidebarCollapsed(v => !v)}
+        onToggleSidebar={() => {
+          if (activeModule === 'declarations') setSidebarCollapsed(v => !v)
+          else setHsSidebarCollapsed(v => !v)
+        }}
         onLogoClick={() => setAboutOpen(true)}
       />
 
@@ -234,7 +238,10 @@ export default function App() {
         />
       )}
       {activeModule === 'hs-classifier' && !batchMode && (
-        <HsClassifier onBatchMode={() => setBatchMode(true)} />
+        <HsClassifier onBatchMode={() => setBatchMode(true)}
+          sidebarCollapsed={hsSidebarCollapsed}
+          onToggleSidebar={() => setHsSidebarCollapsed(v => !v)}
+        />
       )}
       {activeModule === 'hs-classifier' && batchMode && (
         <BatchClassifier onBack={() => setBatchMode(false)} />

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import Logo from './Logo'
 import { IconSearchNav } from './Icons'
+import HsHistorySidebar from './HsHistorySidebar'
 
 interface HsResult {
   id: string; product_description: string; hs_code: string | null
@@ -32,7 +33,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hr / 24)} 天前`
 }
 
-export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void }) {
+export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSidebar }: { onBatchMode?: () => void; sidebarCollapsed: boolean; onToggleSidebar: () => void }) {
   const { theme } = useTheme()
   const p = (alpha: number) => `rgba(${theme.primaryRgb},${alpha})`
   const confDot: Record<string, string> = { high: theme.primary, medium: p(0.45), low: 'var(--border)' }
@@ -49,7 +50,6 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
   const [infoAssumed, setInfoAssumed] = useState(false)
   const [assumptions, setAssumptions] = useState('')
   const [history, setHistory] = useState<HsResult[]>([])
-  const [showAllHistory, setShowAllHistory] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -76,7 +76,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
 
   const doClassify = async (skipInfo = false) => {
     if (!input.trim() || analyzing) return
-    setAnalyzing(true); setProcessingStep(0); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions(''); setShowAllHistory(false)
+    setAnalyzing(true); setProcessingStep(0); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions('')
     const s1 = setTimeout(() => setProcessingStep(1), 700)
     const s2 = setTimeout(() => setProcessingStep(2), 1500)
     try {
@@ -105,11 +105,11 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
   }
 
   const handleHistoryClick = (item: HsResult) => {
-    setResult(item); setInput(item.product_description); setShowAllHistory(false); setNeedsMoreInfo(false)
+    setResult(item); setInput(item.product_description); setNeedsMoreInfo(false)
   }
 
   const handleNewQuery = () => {
-    setResult(null); setInput(''); setShowAllHistory(false); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions('')
+    setResult(null); setInput(''); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions('')
     setTimeout(() => textareaRef.current?.focus(), 100)
   }
 
@@ -225,41 +225,17 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
     )
   }
 
-  // ═══ History full view ═══
-  if (showAllHistory) {
-    return (
-      <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
-        <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
-          <h2 className="text-lg font-semibold">归类历史</h2>
-          <button onClick={() => setShowAllHistory(false)} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink cursor-pointer transition-colors">返回</button>
-        </div>
-        <div className="px-8 pb-12 flex-1 max-w-[900px] mx-auto w-full">
-          {history.length === 0 ? (
-            <div className="flex items-center justify-center py-20 text-muted text-sm">暂无归类记录</div>
-          ) : (
-            <div className="space-y-1">
-              {history.map(item => (
-                <button key={item.id} onClick={() => handleHistoryClick(item)}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left cursor-pointer bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
-                >
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
-                  <span className="flex-1 min-w-0 text-sm font-medium truncate">{item.product_description}</span>
-                  <span className="text-[13px] font-mono font-semibold shrink-0" style={{ color: theme.primary }}>{item.hs_code || '—'}</span>
-                  <span className="text-[11px] text-muted shrink-0 w-16 text-right">{timeAgo(item.created_at)}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-    )
-  }
-
   // ═══ Empty State ═══
   if (!result) {
-    const recentHistory = history.slice(0, 5)
     return (
-      <main className="flex-1 overflow-y-auto flex flex-col items-center bg-surface" style={{ paddingTop: '14vh' }}>
+      <div className="flex-1 flex overflow-hidden">
+        <HsHistorySidebar
+          items={history}
+          onSelect={handleHistoryClick}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={onToggleSidebar}
+        />
+        <main className="flex-1 overflow-y-auto flex flex-col items-center bg-surface" style={{ paddingTop: '14vh' }}>
         <div className="w-full max-w-[600px] px-8">
           <h1 className="text-center text-[24px] font-bold mb-2 text-ink">AI 预归类</h1>
           <p className="text-center text-[13px] text-muted mb-8">智能检索《进出口税则》，结果仅供参考</p>
@@ -301,29 +277,6 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             </span>
           </div>
 
-          {recentHistory.length > 0 && (
-            <div className="mt-8">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">最近归类</span>
-                {history.length > 5 && (
-                  <button onClick={() => setShowAllHistory(true)} className="text-[11px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors text-muted">查看全部 →</button>
-                )}
-              </div>
-              <div className="space-y-0.5">
-                {recentHistory.map(item => (
-                  <button key={item.id} onClick={() => handleHistoryClick(item)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:border-gray-700 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
-                  >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
-                    <span className="flex-1 min-w-0 text-[13px] font-medium truncate">{item.product_description}</span>
-                    <span className="text-[13px] font-mono font-semibold shrink-0" style={{ color: theme.primary }}>{item.hs_code || '—'}</span>
-                    <span className="text-[11px] text-muted shrink-0 w-14 text-right">{timeAgo(item.created_at)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <p className="text-center text-[11px] mt-8" style={{ color: 'var(--border)' }}>
             基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
           </p>
@@ -352,12 +305,20 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           </div>
         )}
       </main>
+      </div>
     )
   }
 
   // ═══ Results ═══
   return (
-    <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
+    <div className="flex-1 flex overflow-hidden">
+      <HsHistorySidebar
+        items={history}
+        onSelect={handleHistoryClick}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={onToggleSidebar}
+      />
+      <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center gap-3">
         <button onClick={handleNewQuery} className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:text-ink hover:border-gray-300 cursor-pointer transition-colors inline-flex items-center gap-1">← 返回</button>
         <div className="flex items-center gap-2 min-w-0 flex-1"><span className="text-sm text-muted truncate">{result.product_description}</span></div>
@@ -430,5 +391,6 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
         </div>
       )}
     </main>
+    </div>
   )
 }
