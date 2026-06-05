@@ -1,14 +1,16 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron'
-import * as path from 'path'
 import * as fs from 'fs'
 import * as XLSX from 'xlsx'
 import { queryOne } from '../db'
 import { readJsonFile, declarationJsonPath } from '../storage'
-import { getType } from '../declaration-types'
 import { FIELD_LABELS } from '../../shared/types'
 
 function getLabel(key: string): string {
   return (FIELD_LABELS as any)[key] || key
+}
+
+function htmlEscape(s: any): string {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
 export function registerExportIpc() {
@@ -97,12 +99,12 @@ export function registerExportIpc() {
     // Build HTML
     const buildRows = (obj: Record<string, any>, keys: string[]) =>
       keys.filter(k => obj[k] != null && obj[k] !== '')
-        .map(k => `<tr><td class="label">${getLabel(k)}</td><td>${obj[k]}</td></tr>`).join('')
+        .map(k => `<tr><td class="label">${getLabel(k)}</td><td>${htmlEscape(obj[k])}</td></tr>`).join('')
 
     const buildTable = (items: any[], keys: string[]) => {
       if (items.length === 0) return '<p class="empty">暂无数据</p>'
       const h = keys.map(k => `<th>${getLabel(k)}</th>`).join('')
-      const rows = items.map((c: any) => '<tr>' + keys.map(k => `<td>${c[k] ?? ''}</td>`).join('') + '</tr>').join('')
+      const rows = items.map((c: any) => '<tr>' + keys.map(k => `<td>${htmlEscape(c[k])}</td>`).join('') + '</tr>').join('')
       return `<table><thead><tr>${h}</tr></thead><tbody>${rows}</tbody></table>`
     }
 
@@ -138,8 +140,9 @@ export function registerExportIpc() {
 
     // Create hidden window for PDF
     const bw = new BrowserWindow({ width: 800, height: 600, show: false })
-    await bw.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
-    await new Promise(r => setTimeout(r, 500))
+    const loaded = new Promise<void>(resolve => bw.webContents.once('did-finish-load', () => resolve()))
+    bw.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    await loaded
 
     const pdfData = await bw.webContents.printToPDF({
       printBackground: true,
