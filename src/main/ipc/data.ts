@@ -65,4 +65,27 @@ export function registerDataIpc() {
   ipcMain.handle('data:enterprises:get-default', async () => {
     return queryOne('SELECT * FROM declaration_enterprises WHERE is_default = 1') || queryOne('SELECT * FROM declaration_enterprises ORDER BY created_at LIMIT 1')
   })
+
+  // ═══ Templates ═══
+
+  ipcMain.handle('data:templates:list', async (_event, typeKey?: string) => {
+    if (typeKey) {
+      return queryAll('SELECT * FROM declaration_templates WHERE type_key = ? ORDER BY created_at DESC', [typeKey])
+    }
+    return queryAll('SELECT * FROM declaration_templates ORDER BY created_at DESC')
+  })
+
+  ipcMain.handle('data:templates:save', async (_event, template: { id?: string; name: string; type_key: string; template_data: string }) => {
+    if (template.id) {
+      execute('UPDATE declaration_templates SET name = ?, template_data = ? WHERE id = ?', [template.name, template.template_data, template.id])
+    } else {
+      execute('INSERT INTO declaration_templates (id, name, type_key, template_data) VALUES (?, ?, ?, ?)', [uuid(), template.name, template.type_key, template.template_data])
+    }
+    return { success: true }
+  })
+
+  ipcMain.handle('data:templates:delete', async (_event, id: string) => {
+    execute('DELETE FROM declaration_templates WHERE id = ?', [id])
+    return { success: true }
+  })
 }

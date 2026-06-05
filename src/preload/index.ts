@@ -47,6 +47,9 @@ const api = {
   enterprisesDelete: (id: string) => ipcRenderer.invoke('data:enterprises:delete', id),
   enterprisesSetDefault: (id: string) => ipcRenderer.invoke('data:enterprises:set-default', id),
   enterprisesGetDefault: () => ipcRenderer.invoke('data:enterprises:get-default'),
+  templatesList: (typeKey?: string) => ipcRenderer.invoke('data:templates:list', typeKey),
+  templatesSave: (template: { id?: string; name: string; type_key: string; template_data: string }) => ipcRenderer.invoke('data:templates:save', template),
+  templatesDelete: (id: string) => ipcRenderer.invoke('data:templates:delete', id),
 
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),

@@ -567,6 +567,30 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 </select>
                   <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
                 </div>
+                {/* Save as template */}
+                <button
+                  onClick={async () => {
+                    const name = prompt('模板名称（如：天津→二连 转关）')
+                    if (!name?.trim() || !window.api?.templatesSave) return
+                    // Save basic info + BL fields as template data
+                    const templateKeys = [
+                      'customs_declaration_port', 'entry_exit_port', 'declaration_unit_name',
+                      'declaration_unit_credit_code', 'declaration_unit_customs_code',
+                      'domestic_transport_mode', 'domestic_transport_tool_name', 'carrier_name',
+                      'transport_mode', 'vessel_name_en', 'consignee_name', 'notes',
+                    ]
+                    const templateData: Record<string, any> = {}
+                    for (const k of templateKeys) {
+                      if (fields[k] !== undefined && fields[k] !== null && fields[k] !== '') {
+                        templateData[k] = fields[k]
+                      }
+                    }
+                    await window.api.templatesSave({ name: name.trim(), type_key: selectedType || 'transit_transport', template_data: JSON.stringify(templateData) })
+                    showToast('模板已保存')
+                  }}
+                  className="h-[34px] px-3 rounded-sm border border-gray-200 bg-white text-muted text-[13px] font-medium cursor-pointer hover:text-ink hover:bg-surface transition-colors"
+                  title="保存当前基本信息为模板"
+                >存为模板</button>
                 <button onClick={() => handleSave()} disabled={isSaving}
                   className={`h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-colors ${saveDone ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-primary-500 hover:bg-primary-600'} ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
