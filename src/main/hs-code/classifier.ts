@@ -73,16 +73,10 @@ export function searchTariff(keywords: string[], limit: number = 30): string {
 // Verify AI-returned code actually exists in tariff. Non-LLM safety net against hallucination.
 export function verifyHsCode(code: string | null): boolean {
   if (!code) return false
-  try {
-    const tariffPath = findTariffPath()
-    // Search for 8-digit prefix (more likely to match than exact 10-digit)
-    const prefix = code.replace(/\./g, '\\.').slice(0, 10)
-    const command = `grep -c "${prefix}" "${tariffPath}"`
-    const result = execSync(command, { encoding: 'utf-8', timeout: 3000 })
-    return parseInt(result.trim()) > 0
-  } catch {
-    return false
-  }
+  const cleaned = code.replace(/[.\s]/g, '').substring(0, 8)
+  if (cleaned.length < 4) return false
+  const row = queryOne('SELECT code FROM hs_codes WHERE code = ?', [cleaned])
+  return !!row
 }
 
 // ═══ AI Keyword Extraction (dynamic, not static dictionary) ═══

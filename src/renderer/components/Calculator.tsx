@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-interface TariffData { hs_code: string; description: string; mfn_rate: number | null; general_rate: number | null; vat_rate: number; has_consumption_tax: boolean; unit: string; supervision: string | null }
+interface TariffData { hs_code: string; description: string; mfn_rate: number | null; general_rate: number | null; vat_rate: number; consumption_tax: number; unit: string; supervision: string | null }
 
 interface CalcResult {
   hs_code: string; hs_description: string; country_code: string
@@ -35,7 +35,7 @@ function formatLookupText(t: TariffData): string {
     `最惠国税率: ${t.mfn_rate != null ? t.mfn_rate + '%' : '—'}`,
     `普通税率: ${t.general_rate != null ? t.general_rate + '%' : '—'}`,
     `增值税率: ${t.vat_rate}%`,
-    `消费税率: ${t.has_consumption_tax ? '适用' : '不适用'}`,
+    `消费税率: ${t.consumption_tax ? '适用' : '不适用'}`,
     `监管条件: ${t.supervision || '无'}`,
     `法定单位: ${t.unit}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -112,7 +112,7 @@ export default function Calculator() {
     const qty = parseFloat(quantity) || 1
     const dutyRate = rateType === 'manual' ? (parseFloat(manualDutyRate) || 0) : rateType === 'preferential' ? (parseFloat(prefRate) || (t?.mfn_rate || 0)) : rateType === 'general' ? (t?.general_rate || 0) : (t?.mfn_rate || 0)
     const vatRate = rateType === 'manual' ? (parseFloat(manualVatRate) || 0) : (t?.vat_rate || 13)
-    const consRate = rateType === 'manual' ? (parseFloat(manualConsRate) || 0) : (t?.has_consumption_tax ? 5 : 0)
+    const consRate = rateType === 'manual' ? (parseFloat(manualConsRate) || 0) : (t?.consumption_tax ? 5 : 0)
     const specRate = parseFloat(specificRate) || 0
     const dutyAmount = taxMethod === 'specific' ? qty * specRate : taxMethod === 'compound' ? (cifCny * dutyRate / 100) + (qty * specRate) : cifCny * dutyRate / 100
     const vatAmount = (cifCny + dutyAmount) * vatRate / 100
@@ -122,7 +122,7 @@ export default function Calculator() {
       hs_code: t?.hs_code || hsCode, hs_description: t?.description || '(手动)', country_code: countryCode,
       fob_value: fob, freight: fr, insurance: ins, cif_value: cifCny, quantity: qty, currency,
       duty_rate: dutyRate, duty_amount: dutyAmount, vat_rate: vatRate, vat_amount: vatAmount,
-      consumption_tax_rate: (t?.has_consumption_tax || consRate > 0) ? consRate : null, consumption_tax_amount: consAmount,
+      consumption_tax_rate: (t?.consumption_tax || consRate > 0) ? consRate : null, consumption_tax_amount: consAmount,
       total_tax: dutyAmount + vatAmount + consAmount, total_price: cifCny + dutyAmount + vatAmount + consAmount,
       mode: 'calc', tax_method: taxMethod, rate_type: rateType, exchange_rate: currency === 'CNY' ? null : (parseFloat(exchangeRate) || null),
     })
@@ -318,7 +318,7 @@ export default function Calculator() {
             <SectionLabel>历史记录</SectionLabel>
             <div className="space-y-0.5 max-h-[150px] overflow-y-auto">
               {history.slice(0, 10).map(item => (
-                <button key={item.id} onClick={() => { setMode('calc'); setHsCode(item.hs_code); setCountryCode(item.country_code || 'CN'); setPriceTerm(item.fob_value > 0 && item.fob_value < item.cif_value ? 'fob' : 'cif'); setCifValue(String(item.cif_value)); setFobValue(String(item.fob_value || item.cif_value)); setFreight(String(item.freight || 0)); setInsurance(String(item.insurance || 0)); setQuantity(String(item.quantity || 1)); setCurrency(item.currency || 'CNY'); setResult(item); setTariff({ hs_code: item.hs_code, description: item.hs_description || '', mfn_rate: item.duty_rate, general_rate: null, vat_rate: item.vat_rate, has_consumption_tax: !!item.consumption_tax_rate, unit: '个', supervision: null }) }}
+                <button key={item.id} onClick={() => { setMode('calc'); setHsCode(item.hs_code); setCountryCode(item.country_code || 'CN'); setPriceTerm(item.fob_value > 0 && item.fob_value < item.cif_value ? 'fob' : 'cif'); setCifValue(String(item.cif_value)); setFobValue(String(item.fob_value || item.cif_value)); setFreight(String(item.freight || 0)); setInsurance(String(item.insurance || 0)); setQuantity(String(item.quantity || 1)); setCurrency(item.currency || 'CNY'); setResult(item); setTariff({ hs_code: item.hs_code, description: item.hs_description || '', mfn_rate: item.duty_rate, general_rate: null, vat_rate: item.vat_rate, consumption_tax: item.consumption_tax_rate ? 1 : 0, unit: '个', supervision: null }) }}
                   className="w-full text-left px-2 py-1.5 rounded-md cursor-pointer bg-transparent hover:bg-surface dark:hover:bg-gray-800 transition-colors border-none">
                   <div className="flex items-center justify-between"><span className="text-[12px] font-medium truncate flex-1">{item.hs_description || item.hs_code}</span><span className="text-[12px] font-mono font-semibold text-primary-500 shrink-0 ml-2">¥{fmt(item.total_tax)}</span></div>
                   <div className="text-[10px] text-muted mt-0.5">{item.hs_code} · {timeAgo(item.created_at)}</div>
@@ -361,7 +361,7 @@ export default function Calculator() {
                   <div key={row.label}><div className="text-[12px] text-muted">{row.label}</div><div className="text-[16px] font-semibold mt-0.5">{row.value}</div></div>
                 ))}
               </div>
-              <div className="border-t border-gray-100 dark:border-gray-800 pt-4"><div className="text-[12px] text-muted mb-1">消费税率</div><div className="text-[14px] font-medium">{tariff.has_consumption_tax ? '适用（见具体商品）' : '不适用'}</div></div>
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-4"><div className="text-[12px] text-muted mb-1">消费税率</div><div className="text-[14px] font-medium">{tariff.consumption_tax ? '适用（见具体商品）' : '不适用'}</div></div>
               {tariff.supervision && <div className="border-t border-gray-100 dark:border-gray-800 pt-4"><div className="text-[12px] text-muted mb-1">监管条件</div><div className="text-[13px] font-medium leading-relaxed">{supLabel(tariff.supervision)}</div></div>}
             </div>
           </div>

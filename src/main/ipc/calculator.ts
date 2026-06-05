@@ -23,14 +23,19 @@ function lookupFromDb(hsCode: string): TaxRate | null {
   let row = queryOne('SELECT * FROM tax_rates WHERE REPLACE(code, \'.\', \'\') = ?', [cleaned]) as any
   if (row) return row
 
-  // Prefix match by length (8-digit, 6-digit, 4-digit)
+  // Validate: check if code exists in hs_codes
+  const valid = queryOne('SELECT code FROM hs_codes WHERE code = ?', [cleaned.length >= 8 ? cleaned.substring(0, 8) : cleaned])
+  if (!valid) return null
+
+  // Prefix match by length in tax_rates (8-digit, 6-digit, 4-digit)
   const prefixes = [10, 8, 6, 4].filter(n => cleaned.length >= n)
   for (const len of prefixes) {
     row = queryOne('SELECT * FROM tax_rates WHERE REPLACE(code, \'.\', \'\') LIKE ? LIMIT 1', [cleaned.substring(0, len) + '%'])
     if (row) return row
   }
 
-  return null
+  // HS code is valid but no tax rate data — return basic info
+  return { code: cleaned.length >= 8 ? cleaned.substring(0, 4) + '.' + cleaned.substring(4, 8) : cleaned, description: '税号已验证', mfn_rate: null, general_rate: null, vat_rate: 13, consumption_tax: 0, unit: '个', supervision: null }
 }
 
 // ═══ IPC Handlers ═══

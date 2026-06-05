@@ -5,7 +5,6 @@ import ThemeColorPicker from './ThemeColorPicker'
 import CustomsOfficeManager from './CustomsOfficeManager'
 import EnterpriseManager from './EnterpriseManager'
 import SimpleDataManager from './SimpleDataManager'
-import TaxRateManager from './TaxRateManager'
 
 interface Props {
   onShowAbout: () => void
@@ -194,7 +193,6 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                 </div>
               </div>
 
-              <TaxRateManager />
             </>
           )}
 
