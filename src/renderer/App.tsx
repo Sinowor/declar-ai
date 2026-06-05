@@ -152,6 +152,11 @@ export default function App() {
     }
   }
 
+  // Auto-collapse sidebar on entering edit mode, restore on exit
+  useEffect(() => {
+    setSidebarCollapsed(!!editingId)
+  }, [editingId])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && editingId) {
