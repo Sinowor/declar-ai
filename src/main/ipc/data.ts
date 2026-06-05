@@ -112,4 +112,27 @@ export function registerDataIpc() {
   registerSimpleCrud('currencies', 'currencies')
   registerSimpleCrud('packaging', 'packaging_types')
   registerSimpleCrud('countries', 'countries')
+
+  // Tax rates — full CRUD with extra fields
+  ipcMain.handle('data:tax-rates:list', async () => {
+    return queryAll('SELECT * FROM tax_rates ORDER BY code')
+  })
+  ipcMain.handle('data:tax-rates:save', async (_event, item: any) => {
+    const existing = queryOne('SELECT code FROM tax_rates WHERE code = ?', [item.code])
+    if (existing) {
+      execute(`UPDATE tax_rates SET description=?, mfn_rate=?, general_rate=?, vat_rate=?, consumption_tax=?, supervision=?, unit=? WHERE code=?`,
+        [item.description || '', item.mfn_rate || null, item.general_rate || null, item.vat_rate || 13, item.consumption_tax || 0, item.supervision || null, item.unit || '个', item.code])
+    } else {
+      execute(`INSERT INTO tax_rates (code, description, mfn_rate, general_rate, vat_rate, consumption_tax, supervision, unit) VALUES (?,?,?,?,?,?,?,?)`,
+        [item.code, item.description || '', item.mfn_rate || null, item.general_rate || null, item.vat_rate || 13, item.consumption_tax || 0, item.supervision || null, item.unit || '个'])
+    }
+    return { success: true }
+  })
+  ipcMain.handle('data:tax-rates:delete', async (_event, code: string) => {
+    execute('DELETE FROM tax_rates WHERE code = ?', [code])
+    return { success: true }
+  })
+  ipcMain.handle('data:tax-rates:search', async (_event, q: string) => {
+    return queryAll("SELECT * FROM tax_rates WHERE code LIKE ? OR description LIKE ? ORDER BY code", [`%${q}%`, `%${q}%`])
+  })
 }

@@ -60,6 +60,7 @@ function supLabel(code: string | null): string {
 
 export default function Calculator() {
   const [mode, setMode] = useState<Mode>('lookup')
+  const [direction, setDirection] = useState<'import' | 'export'>('import')
   const [priceTerm, setPriceTerm] = useState<'cif' | 'fob'>('cif')
   const [hsCode, setHsCode] = useState('')
   const [countryCode, setCountryCode] = useState('CN')
@@ -69,6 +70,10 @@ export default function Calculator() {
   const [insurance, setInsurance] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [currency, setCurrency] = useState('CNY')
+  const [manualMode, setManualMode] = useState(false)
+  const [mDuty, setMDuty] = useState('')
+  const [mVat, setMVat] = useState('13')
+  const [mConsumption, setMConsumption] = useState('')
   const [countries, setCountries] = useState<any[]>([])
   const [currencies, setCurrencies] = useState<any[]>([])
   const [tariff, setTariff] = useState<TariffData | null>(null)
@@ -95,26 +100,37 @@ export default function Calculator() {
   }
 
   const handleLookup = async () => {
-    if (!hsCode.trim()) return
+    if (!hsCode.trim() && mode === 'lookup') return
     setError('')
     setLoading(true)
     setResult(null)
-    try {
-      if ((window as any).api?.calculatorLookup) {
-        const res = await (window as any).api.calculatorLookup(hsCode.trim())
-        if (res.success && res.data) {
-          setTariff(res.data)
-          if (mode === 'calc') doCalculate(res.data)
-        } else {
-          setTariff(null)
-          setError(res.error || '未找到税率')
-        }
+
+    // In calc mode with manual rates, skip DB lookup entirely
+    if (mode === 'calc' && manualMode) {
+      doCalculate(null)
+      setLoading(false)
+      return
+    }
+
+    if (mode === 'calc' && !hsCode.trim()) {
+      setError('请输入 HS 编码或开启手动输入税率'); setLoading(false); return
+    }
+
+    if ((window as any).api?.calculatorLookup) {
+      const res = await (window as any).api.calculatorLookup(hsCode.trim())
+      if (res.success && res.data) {
+        setTariff(res.data)
+        if (mode === 'calc') doCalculate(res.data)
+      } else {
+        setTariff(null)
+        if (mode === 'calc') setError(res.error + '，可开启手动输入税率')
+        else setError(res.error || '未找到税率')
       }
-    } catch (err: any) { setError(err.message) }
-    finally { setLoading(false) }
+    }
+    setLoading(false)
   }
 
-  const doCalculate = (t: TariffData) => {
+  const doCalculate = (t: TariffData | null) => {
     const cif = priceTerm === 'cif'
       ? (parseFloat(cifValue) || 0)
       : (parseFloat(fobValue) || 0) + (parseFloat(freight) || 0) + (parseFloat(insurance) || 0)
@@ -122,20 +138,20 @@ export default function Calculator() {
     const fr = priceTerm === 'cif' ? 0 : (parseFloat(freight) || 0)
     const ins = priceTerm === 'cif' ? 0 : (parseFloat(insurance) || 0)
     const qty = parseFloat(quantity) || 1
-    const dutyRate = t.mfn_rate || 0
-    const vatRate = t.vat_rate
+    const dutyRate = manualMode ? (parseFloat(mDuty) || 0) : (t?.mfn_rate || 0)
+    const vatRate = manualMode ? (parseFloat(mVat) || 0) : (t?.vat_rate || 13)
+    const consRate = manualMode ? (parseFloat(mConsumption) || 0) : (t?.has_consumption_tax ? 5 : 0)
     const dutyAmount = cif * dutyRate / 100
     const vatAmount = (cif + dutyAmount) * vatRate / 100
-    const consRate = t.has_consumption_tax ? 5 : 0
-    const consAmount = t.has_consumption_tax ? (cif + dutyAmount) / (1 - consRate / 100) * consRate / 100 : 0
+    const consAmount = consRate > 0 ? (cif + dutyAmount) / (1 - consRate / 100) * consRate / 100 : 0
 
     const r: CalcResult = {
-      hs_code: t.hs_code, hs_description: t.description, country_code: countryCode,
+      hs_code: t?.hs_code || hsCode, hs_description: t?.description || '(手动)', country_code: countryCode,
       fob_value: fob, freight: fr, insurance: ins, cif_value: cif,
       quantity: qty, currency,
       duty_rate: dutyRate, duty_amount: dutyAmount,
       vat_rate: vatRate, vat_amount: vatAmount,
-      consumption_tax_rate: t.has_consumption_tax ? consRate : null,
+      consumption_tax_rate: (t?.has_consumption_tax || consRate > 0) ? consRate : null,
       consumption_tax_amount: consAmount,
       total_tax: dutyAmount + vatAmount + consAmount,
       total_price: cif + dutyAmount + vatAmount + consAmount,
@@ -150,13 +166,60 @@ export default function Calculator() {
 
   const renderInputPanel = () => (
     <div className="px-6 pb-6 space-y-4 flex-1 overflow-y-auto">
+      {/* Import/Export toggle */}
+      <div>
+        <label className="block text-[12px] font-medium text-muted mb-1">进出口</label>
+        <div className="flex bg-surface dark:bg-gray-800 rounded-md p-0.5">
+          {[
+            { id: 'import' as const, label: '进口' },
+            { id: 'export' as const, label: '出口' },
+          ].map(d => (
+            <button key={d.id} onClick={() => setDirection(d.id)}
+              className={`flex-1 h-7 rounded text-[12px] font-medium cursor-pointer border-none transition-colors ${
+                direction === d.id ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'
+              }`}>{d.label}</button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className="block text-[12px] font-medium text-muted mb-1">HS 编码</label>
         <input value={hsCode} onChange={e => setHsCode(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleLookup() }}
-          placeholder="如 8414.1000"
-          className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans" />
+          placeholder="84141000 或 8414.1000"
+          className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
       </div>
+
+      {mode === 'calc' && (
+        <label className="flex items-center gap-1.5 cursor-pointer select-none">
+          <input type="checkbox" checked={manualMode} onChange={e => setManualMode(e.target.checked)}
+            className="w-3.5 h-3.5 rounded border-gray-300 text-primary-500" />
+          <span className="text-[11px] text-muted">手动输入税率</span>
+        </label>
+      )}
+
+      {mode === 'calc' && manualMode && (
+        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 space-y-2">
+          <div className="text-[11px] font-medium text-amber-700 dark:text-amber-300">手动输入税率</div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-[10px] text-muted mb-0.5">关税%</label>
+              <input value={mDuty} onChange={e => setMDuty(e.target.value)}
+                className="w-full h-8 rounded-md border border-amber-300 dark:border-amber-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-[10px] text-muted mb-0.5">增值税%</label>
+              <input value={mVat} onChange={e => setMVat(e.target.value)}
+                className="w-full h-8 rounded-md border border-amber-300 dark:border-amber-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+            </div>
+            <div className="flex-1">
+              <label className="block text-[10px] text-muted mb-0.5">消费税%</label>
+              <input value={mConsumption} onChange={e => setMConsumption(e.target.value)}
+                className="w-full h-8 rounded-md border border-amber-300 dark:border-amber-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+            </div>
+          </div>
+        </div>
+      )}
       <div>
         <label className="block text-[12px] font-medium text-muted mb-1">原产国</label>
         <select value={countryCode} onChange={e => setCountryCode(e.target.value)}
