@@ -59,6 +59,7 @@ function formatTime(dateStr: string): string {
 export default function AttachmentPanel({ declarationId }: Props) {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [editFileId, setEditFileId] = useState<string | null>(null)
   const [customTag, setCustomTag] = useState('')
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -68,8 +69,8 @@ export default function AttachmentPanel({ declarationId }: Props) {
     setLoading(true)
     try {
       const result = await window.api.listAllFiles(declarationId)
-      if (Array.isArray(result)) setFiles(result)
-    } catch { /* ignore */ } finally {
+      if (Array.isArray(result)) { setFiles(result); setError(false) }
+    } catch { setError(true) } finally {
       setLoading(false)
     }
   }, [declarationId])
@@ -266,6 +267,19 @@ export default function AttachmentPanel({ declarationId }: Props) {
         <div className="flex items-center justify-center py-10">
           <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           <span className="ml-2 text-sm text-muted">加载中...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
+        <div className="flex items-center px-6 py-[18px] border-b border-gray-200">
+          <h3 className="text-lg font-semibold">附件管理</h3>
+        </div>
+        <div className="flex items-center justify-center py-8 text-sm text-muted">
+          加载失败，请刷新页面重试
         </div>
       </div>
     )

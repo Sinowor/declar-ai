@@ -37,7 +37,7 @@ async function tagFileWithAI(fileName: string, textSample: string): Promise<stri
 
 export async function tagUploadedFiles(declarationId: string): Promise<void> {
   const files = queryAll('SELECT id, file_name, extracted_text FROM declaration_files WHERE declaration_id = ? AND category = ?', [declarationId, 'uploaded'])
-  for (const f of files as any[]) {
+  await Promise.all((files as any[]).map(async (f) => {
     try {
       const tags = await tagFileWithAI(f.file_name, f.extracted_text || '')
       execute('UPDATE declaration_files SET tags = ? WHERE id = ?', [JSON.stringify(tags), f.id])
@@ -45,7 +45,7 @@ export async function tagUploadedFiles(declarationId: string): Promise<void> {
     } catch (err: any) {
       console.warn(`[extractor] Failed to tag file ${f.file_name}:`, err.message)
     }
-  }
+  }))
 }
 
 export async function runAIExtraction(declarationId: string): Promise<{
