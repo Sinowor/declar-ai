@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import type { DeclarationItem } from '../App'
 import Logo from './Logo'
 import { IconSearch, IconChevronLeft, IconPlus, IconList } from './Icons'
@@ -38,6 +39,21 @@ export default function Sidebar({
   onDelete,
 }: SidebarProps) {
   const isLocked = editingId !== null
+  const [typeNames, setTypeNames] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (window.api?.getSchemaAll) {
+      window.api.getSchemaAll().then((configs: any[]) => {
+        if (Array.isArray(configs)) {
+          const map: Record<string, string> = {}
+          for (const c of configs) {
+            if (c.type && c.title) map[c.type] = c.title
+          }
+          setTypeNames(map)
+        }
+      }).catch(() => {})
+    }
+  }, [])
 
   return (
     <aside
@@ -138,9 +154,8 @@ export default function Sidebar({
                       </button>
                     )}
                   </div>
-                  <div className="text-xs text-muted mt-1 flex gap-2 items-center">
-                    {d.type && <span className="text-[10px] text-muted opacity-60">{d.type}</span>}
-                    <span>{d.cargoCount} 行货物</span>
+                  <div className="text-[11px] text-muted mt-1 flex items-center gap-1.5">
+                    {d.type && typeNames[d.type] ? `${typeNames[d.type]} · ` : ''}{d.updatedAt} · {d.cargoCount} 行
                     <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}>
                       {badge.label}
                     </span>
