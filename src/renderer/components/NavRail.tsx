@@ -54,8 +54,8 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
       className="flex flex-col shrink-0 items-center bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-20 drag-region"
       style={{ width: 68 }}
     >
-      {/* macOS traffic light clearance — now fully inside NavRail */}
-      <div style={{ height: isMac ? 44 : 8 }} className="shrink-0" />
+      {/* macOS traffic light clearance */}
+      <div style={{ height: isMac ? 34 : 8 }} className="shrink-0" />
 
       {/* Main nav items */}
       <div style={{ flex: '1 1 30%' }} />
