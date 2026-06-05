@@ -16,6 +16,7 @@ interface FileEntry {
 
 interface Props {
   declarationId: string
+  refreshKey?: number
 }
 
 const TAG_OPTIONS = ['箱单', '发票', '合同', '提单', '运单', '原产地证', '报关单', '其他']
@@ -56,7 +57,7 @@ function formatTime(dateStr: string): string {
   return `${m}/${day} ${h}:${min}`
 }
 
-export default function AttachmentPanel({ declarationId }: Props) {
+export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
   const [files, setFiles] = useState<FileEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -75,7 +76,7 @@ export default function AttachmentPanel({ declarationId }: Props) {
     }
   }, [declarationId])
 
-  useEffect(() => { loadFiles() }, [loadFiles])
+  useEffect(() => { loadFiles() }, [loadFiles, refreshKey])
 
   // Close popover on outside click
   useEffect(() => {

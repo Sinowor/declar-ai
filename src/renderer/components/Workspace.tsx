@@ -77,6 +77,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [isSaving, setIsSaving] = useState(false)
   const [saveDone, setSaveDone] = useState(false)
   const [showDropZone, setShowDropZone] = useState(false)
+  const [attachRefreshKey, setAttachRefreshKey] = useState(0)
   const savingRef = useRef(false)
   const [fields, setFields] = useState<Record<string, any>>({})
   const [cargoDetails, setCargoDetails] = useState<Record<string, any>[]>([])
@@ -222,6 +223,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   // ═══ File handlers ═══
   const handleFilesImported = useCallback((newFiles: { file_name: string }[]) => {
     setFiles(prev => [...prev, ...newFiles])
+    setAttachRefreshKey(k => k + 1)
     showToast(`已添加 ${newFiles.length} 个文件`)
   }, [])
 
@@ -243,6 +245,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           setCargoDetails(result.data.cargo_details || [])
           setContainerDetails(result.data.container_details || [])
           setExtractionCompleted(true)
+          setAttachRefreshKey(k => k + 1)
           setFileWarnings(result.data.file_warnings || [])
           if (result.issues && result.issues.length > 0) {
             setReviewIssues(result.issues)
@@ -715,7 +718,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
           {/* Attachment Management */}
           <div className="mt-6">
-            <AttachmentPanel declarationId={declaration!.id} />
+            <AttachmentPanel declarationId={declaration!.id} refreshKey={attachRefreshKey} />
           </div>
 
         </div>

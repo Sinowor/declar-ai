@@ -75,7 +75,7 @@ export function registerExportIpc() {
     }
 
     // Save dialog
-    const result = await dialog.showSaveDialog({
+    const result = await dialog.showSaveDialog(BrowserWindow.getFocusedWindow()!, {
       title: '导出转关单 Excel',
       defaultPath: `${row.display_name || '转关单'}.xlsx`,
       filters: [{ name: 'Excel 文件', extensions: ['xlsx'] }],
@@ -150,14 +150,16 @@ export function registerExportIpc() {
       pageSize: 'A4',
       margins: { top: 10, bottom: 10, left: 15, right: 15 },
     })
-    bw.close()
 
-    // Save dialog
-    const result = await dialog.showSaveDialog({
+    // Show save dialog while bw still exists (required on macOS)
+    const result = await dialog.showSaveDialog(bw, {
       title: '导出转关单 PDF',
       defaultPath: `${row.display_name || '转关单'}.pdf`,
       filters: [{ name: 'PDF 文件', extensions: ['pdf'] }],
     })
+
+    bw.close()
+
     if (result.canceled) return { success: false, error: '已取消' }
 
     fs.writeFileSync(result.filePath!, pdfData)
