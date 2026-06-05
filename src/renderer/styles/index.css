@@ -38,6 +38,13 @@
 [data-theme="dark"] ::-webkit-scrollbar-thumb { background: #475569; }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #64748B; }
 
+/* Override Tailwind static surface/ink/muted colors in dark mode */
+[data-theme="dark"] .bg-surface { background-color: #0F172A; }
+[data-theme="dark"] .text-ink { color: #F1F5F9; }
+[data-theme="dark"] .bg-ink { background-color: #0F172A; }
+[data-theme="dark"] .text-muted { color: #94A3B8; }
+[data-theme="dark"] .border-surface { border-color: #0F172A; }
+
 * { box-sizing: border-box; }
 
 body {
