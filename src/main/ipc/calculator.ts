@@ -13,6 +13,7 @@ interface TariffEntry {
   vat_rate: number
   has_consumption_tax: boolean
   unit: string
+  supervision: string | null
 }
 
 let tariffCache: Map<string, TariffEntry> | null = null
@@ -71,6 +72,18 @@ function parseTariff(): Map<string, TariffEntry> {
           const generalRate = parseGeneralRate(lines, i, j)
           const hs4 = currentHs.substring(0, 4)
 
+          // Try to find supervision code in nearby lines (single capital letters)
+          let supervision: string | null = null
+          for (let k = i; k < Math.min(i + 10, lines.length); k++) {
+            const supMatch = lines[k].match(/监管条件[：:]\s*([A-Z]+)/)
+            if (supMatch) { supervision = supMatch[1]; break }
+            // Also check for standalone capital letters like "A", "AB" near the HS code
+            if (k > i && k < i + 5) {
+              const s = lines[k].trim()
+              if (/^[A-Z]{1,4}$/.test(s) && s.length <= 2) { supervision = s; break }
+            }
+          }
+
           map.set(currentHs, {
             hs_code: currentHs,
             description: currentDesc || currentHs,
@@ -79,6 +92,7 @@ function parseTariff(): Map<string, TariffEntry> {
             vat_rate: 13,
             has_consumption_tax: consumptionTaxPrefixes.some(p => hs4 >= p.substring(0, 4) && hs4 <= (p.substring(0, 4))),
             unit: guessUnit(currentDesc),
+            supervision,
           })
           break
         }
