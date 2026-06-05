@@ -51,7 +51,7 @@ export default function AiReviewPanel({
 
   if (issues.length === 0 && !isReviewing) {
     return (
-      <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
         <div className="px-6 py-[18px] bg-gradient-to-br from-primary-50 via-primary-50/30 to-[#F8FAFC] border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <IconAI /><span>AI 智能审核</span>
@@ -59,7 +59,7 @@ export default function AiReviewPanel({
           <button
             onClick={onStartReview}
             disabled={isReviewing}
-            className="h-7 px-3 rounded-full bg-white text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-colors disabled:opacity-50"
+            className="h-7 px-3 rounded-full bg-white dark:bg-gray-900 text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-colors disabled:opacity-50"
           >
             {isReviewing ? '审核中...' : reviewCompleted ? '重新审核' : '开始审核'}
           </button>
@@ -77,7 +77,7 @@ export default function AiReviewPanel({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 rounded-[20px] shadow-panel overflow-hidden">
       <div className="px-6 py-[18px] bg-gradient-to-br from-primary-50 via-primary-50/30 to-[#F8FAFC] border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <IconAI /><span>AI 智能审核</span>
@@ -89,7 +89,7 @@ export default function AiReviewPanel({
           {onConfirmAll && issues.length - resolved.size > 0 && (
             <button
               onClick={onConfirmAll}
-              className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-colors"
+              className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white dark:bg-gray-900 text-muted hover:text-ink transition-colors"
             >
               全部确认
             </button>
@@ -97,7 +97,7 @@ export default function AiReviewPanel({
           <button
             onClick={onStartReview}
             disabled={isReviewing}
-            className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-colors disabled:opacity-50"
+            className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white dark:bg-gray-900 text-muted hover:text-ink transition-colors disabled:opacity-50"
           >
             {isReviewing ? '审核中...' : '重新审核'}
           </button>

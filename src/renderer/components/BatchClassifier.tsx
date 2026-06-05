@@ -215,9 +215,10 @@ export default function BatchClassifier({ onBack }: Props) {
                       <span className="text-[13px] font-mono font-semibold" style={{ color: theme.primary }}>{r.hs_code || '—'}</span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${isLow ? '' : ''}`}
-                        style={isLow ? { background: '#FFF7ED', color: '#C2410C' } : { background: p(0.08), color: theme.primary }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: isLow ? '#F97316' : theme.primary }} />{isLow ? '低' : '高'}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                        isLow ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300' : ''
+                      }`} style={!isLow ? { background: p(0.08), color: theme.primary } : undefined}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isLow ? 'bg-amber-500 dark:bg-amber-400' : ''}`} style={!isLow ? { background: theme.primary } : undefined} />{isLow ? '低' : '高'}
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-[13px]">{r.mfn_rate || '—'}</td>
@@ -231,11 +232,11 @@ export default function BatchClassifier({ onBack }: Props) {
                         <div className="text-[13px] space-y-2">
                           <div><span className="font-semibold text-muted">商品信息：</span>{r.product_info}</div>
                           {r.rationale && <div><span className="font-semibold text-muted">归类依据：</span><span style={{ color: 'var(--muted)' }}>{r.rationale}</span></div>}
-                          {r.tariff_text && <div><span className="font-semibold text-muted">税则原文：</span><pre className="text-[12px] mt-1 p-2 rounded-lg font-mono whitespace-pre-wrap" style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', color: 'var(--muted)' }}>{r.tariff_text}</pre></div>}
+                          {r.tariff_text && <div><span className="font-semibold text-muted">税则原文：</span><pre className="text-[12px] mt-1 p-2 rounded-lg font-mono whitespace-pre-wrap bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-muted">{r.tariff_text}</pre></div>}
                           {isLow && r.assumptions && (
-                            <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}>
-                              <span className="text-amber-600 font-bold text-xs shrink-0 mt-0.5">!</span>
-                              <div><span className="text-xs font-semibold" style={{ color: '#C2410C' }}>AI 假设：</span><span className="text-[12px]" style={{ color: '#9A3412' }}>{r.assumptions}</span></div>
+                            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                              <span className="text-amber-600 dark:text-amber-400 font-bold text-xs shrink-0 mt-0.5">!</span>
+                              <div><span className="text-xs font-semibold text-amber-700 dark:text-amber-300">AI 假设：</span><span className="text-[12px] text-amber-800 dark:text-amber-200">{r.assumptions}</span></div>
                             </div>
                           )}
                         </div>
