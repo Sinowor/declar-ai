@@ -20,6 +20,9 @@ interface CalcResult {
   consumption_tax_rate: number | null; consumption_tax_amount: number
   total_tax: number; total_price: number
   mode: 'calc'
+  tax_method?: string
+  rate_type?: string
+  exchange_rate?: number | null
 }
 
 interface HistoryItem extends CalcResult {
@@ -40,6 +43,34 @@ function timeAgo(d: string): string {
 
 function fmt(n: number): string {
   return n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function formatResultText(r: CalcResult, tariff: TariffData | null, dir: string): string {
+  const taxLabel = r.tax_method === 'specific' ? '从量计征' : r.tax_method === 'compound' ? '复合计征' : '从价计征'
+  const rateLabel = r.rate_type === 'preferential' ? '协定税率' : r.rate_type === 'general' ? '普通税率' : r.rate_type === 'manual' ? '手动税率' : '最惠国税率'
+  return [
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `  ${dir === 'import' ? '进口' : '出口'}税费计算结果`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `HS 编码: ${r.hs_code}  ${r.hs_description}`,
+    `原产国: ${r.country_code}`,
+    `币制: ${r.currency}${r.exchange_rate ? ` (汇率: ${r.exchange_rate})` : ''}`,
+    `计税方式: ${taxLabel} · ${rateLabel}`,
+    r.fob_value > 0 && r.fob_value < r.cif_value ? `FOB 货值: ¥ ${fmt(r.fob_value)}` : '',
+    r.fob_value > 0 && r.fob_value < r.cif_value && r.freight > 0 ? `运费: ¥ ${fmt(r.freight)}` : '',
+    r.fob_value > 0 && r.fob_value < r.cif_value && r.insurance > 0 ? `保费: ¥ ${fmt(r.insurance)}` : '',
+    `完税价格(CIF): ¥ ${fmt(r.cif_value)}`,
+    `数量: ${r.quantity}` + (tariff?.unit ? ` ${tariff.unit}` : ''),
+    ``,
+    `关税: ${r.duty_rate}%  ¥ ${fmt(r.duty_amount)}`,
+    `增值税: ${r.vat_rate}%  ¥ ${fmt(r.vat_amount)}`,
+    r.consumption_tax_rate ? `消费税: ${r.consumption_tax_rate}%  ¥ ${fmt(r.consumption_tax_amount)}` : `消费税: 不适用`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `综合税费: ¥ ${fmt(r.total_tax)}`,
+    `完税总价: ¥ ${fmt(r.total_price)}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `DeclarAI 费率计算器 · ${new Date().toLocaleDateString('zh-CN')}`,
+  ].filter(l => l !== '').join('\n')
 }
 
 const supMap: Record<string, string> = {
@@ -70,10 +101,14 @@ export default function Calculator() {
   const [insurance, setInsurance] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [currency, setCurrency] = useState('CNY')
-  const [manualMode, setManualMode] = useState(false)
-  const [mDuty, setMDuty] = useState('')
-  const [mVat, setMVat] = useState('13')
-  const [mConsumption, setMConsumption] = useState('')
+  const [exchangeRate, setExchangeRate] = useState('7.15')
+  const [rateType, setRateType] = useState<'mfn' | 'general' | 'preferential' | 'manual'>('mfn')
+  const [taxMethod, setTaxMethod] = useState<'ad_valorem' | 'specific' | 'compound'>('ad_valorem')
+  const [specificRate, setSpecificRate] = useState('') // 从量税: 元/单位
+  const [prefRate, setPrefRate] = useState('') // 协定税率
+  const [manualDutyRate, setManualDutyRate] = useState('')
+  const [manualVatRate, setManualVatRate] = useState('13')
+  const [manualConsRate, setManualConsRate] = useState('')
   const [countries, setCountries] = useState<any[]>([])
   const [currencies, setCurrencies] = useState<any[]>([])
   const [tariff, setTariff] = useState<TariffData | null>(null)
@@ -81,6 +116,7 @@ export default function Calculator() {
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [copyMsg, setCopyMsg] = useState('')
 
   useEffect(() => {
     if ((window as any).api?.countriesList) {
@@ -105,15 +141,13 @@ export default function Calculator() {
     setLoading(true)
     setResult(null)
 
-    // In calc mode with manual rates, skip DB lookup entirely
-    if (mode === 'calc' && manualMode) {
-      doCalculate(null)
-      setLoading(false)
-      return
+    // In calc mode with manual rates, skip DB lookup
+    if (mode === 'calc' && rateType === 'manual') {
+      doCalculate(null); setLoading(false); return
     }
 
     if (mode === 'calc' && !hsCode.trim()) {
-      setError('请输入 HS 编码或开启手动输入税率'); setLoading(false); return
+      setError('请输入 HS 编码或选择手动税率'); setLoading(false); return
     }
 
     if ((window as any).api?.calculatorLookup) {
@@ -123,7 +157,7 @@ export default function Calculator() {
         if (mode === 'calc') doCalculate(res.data)
       } else {
         setTariff(null)
-        if (mode === 'calc') setError(res.error + '，可开启手动输入税率')
+        if (mode === 'calc') setError(res.error + '，可选择手动税率')
         else setError(res.error || '未找到税率')
       }
     }
@@ -131,31 +165,45 @@ export default function Calculator() {
   }
 
   const doCalculate = (t: TariffData | null) => {
-    const cif = priceTerm === 'cif'
-      ? (parseFloat(cifValue) || 0)
-      : (parseFloat(fobValue) || 0) + (parseFloat(freight) || 0) + (parseFloat(insurance) || 0)
-    const fob = priceTerm === 'cif' ? cif : (parseFloat(fobValue) || 0)
-    const fr = priceTerm === 'cif' ? 0 : (parseFloat(freight) || 0)
-    const ins = priceTerm === 'cif' ? 0 : (parseFloat(insurance) || 0)
+    const cifCny = priceTerm === 'cif'
+      ? (parseFloat(cifValue) || 0) * (currency === 'CNY' ? 1 : (parseFloat(exchangeRate) || 1))
+      : ((parseFloat(fobValue) || 0) + (parseFloat(freight) || 0) + (parseFloat(insurance) || 0)) * (currency === 'CNY' ? 1 : (parseFloat(exchangeRate) || 1))
+    const fob = priceTerm === 'cif' ? cifCny : (parseFloat(fobValue) || 0) * (currency === 'CNY' ? 1 : (parseFloat(exchangeRate) || 1))
+    const fr = priceTerm === 'cif' ? 0 : (parseFloat(freight) || 0) * (currency === 'CNY' ? 1 : (parseFloat(exchangeRate) || 1))
+    const ins = priceTerm === 'cif' ? 0 : (parseFloat(insurance) || 0) * (currency === 'CNY' ? 1 : (parseFloat(exchangeRate) || 1))
     const qty = parseFloat(quantity) || 1
-    const dutyRate = manualMode ? (parseFloat(mDuty) || 0) : (t?.mfn_rate || 0)
-    const vatRate = manualMode ? (parseFloat(mVat) || 0) : (t?.vat_rate || 13)
-    const consRate = manualMode ? (parseFloat(mConsumption) || 0) : (t?.has_consumption_tax ? 5 : 0)
-    const dutyAmount = cif * dutyRate / 100
-    const vatAmount = (cif + dutyAmount) * vatRate / 100
-    const consAmount = consRate > 0 ? (cif + dutyAmount) / (1 - consRate / 100) * consRate / 100 : 0
+
+    // Duty rate: manual > preferential > rateType selection > mfn default
+    const dutyRate = rateType === 'manual' ? (parseFloat(manualDutyRate) || 0)
+      : rateType === 'preferential' ? (parseFloat(prefRate) || (t?.mfn_rate || 0))
+      : rateType === 'general' ? (t?.general_rate || 0)
+      : (t?.mfn_rate || 0)
+    const vatRate = rateType === 'manual' ? (parseFloat(manualVatRate) || 0) : (t?.vat_rate || 13)
+    const consRate = rateType === 'manual' ? (parseFloat(manualConsRate) || 0) : (t?.has_consumption_tax ? 5 : 0)
+
+    // Duty calculation by method
+    const specRate = parseFloat(specificRate) || 0
+    const dutyAmount = taxMethod === 'specific' ? qty * specRate
+      : taxMethod === 'compound' ? (cifCny * dutyRate / 100) + (qty * specRate)
+      : cifCny * dutyRate / 100
+
+    const vatAmount = (cifCny + dutyAmount) * vatRate / 100
+    const consAmount = consRate > 0 ? (cifCny + dutyAmount) / (1 - consRate / 100) * consRate / 100 : 0
 
     const r: CalcResult = {
       hs_code: t?.hs_code || hsCode, hs_description: t?.description || '(手动)', country_code: countryCode,
-      fob_value: fob, freight: fr, insurance: ins, cif_value: cif,
+      fob_value: fob, freight: fr, insurance: ins, cif_value: cifCny,
       quantity: qty, currency,
       duty_rate: dutyRate, duty_amount: dutyAmount,
       vat_rate: vatRate, vat_amount: vatAmount,
       consumption_tax_rate: (t?.has_consumption_tax || consRate > 0) ? consRate : null,
       consumption_tax_amount: consAmount,
       total_tax: dutyAmount + vatAmount + consAmount,
-      total_price: cif + dutyAmount + vatAmount + consAmount,
+      total_price: cifCny + dutyAmount + vatAmount + consAmount,
       mode: 'calc',
+      tax_method: taxMethod,
+      rate_type: rateType,
+      exchange_rate: currency === 'CNY' ? null : (parseFloat(exchangeRate) || null),
     }
     setResult(r)
     if ((window as any).api?.calculatorSaveHistory) {
@@ -190,34 +238,74 @@ export default function Calculator() {
           className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
       </div>
 
-      {mode === 'calc' && (
-        <label className="flex items-center gap-2 px-2.5 py-1.5 rounded-md cursor-pointer select-none hover:bg-surface dark:hover:bg-gray-800 transition-colors">
-          <input type="checkbox" checked={manualMode} onChange={e => setManualMode(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer" />
-          <span className="text-[12px] text-muted">手动输入税率（不查税率表）</span>
-        </label>
+      {/* Exchange rate — only when currency ≠ CNY */}
+      {mode === 'calc' && currency !== 'CNY' && (
+        <div>
+          <label className="block text-[12px] font-medium text-muted mb-1">汇率 (对人民币)</label>
+          <input value={exchangeRate} onChange={e => setExchangeRate(e.target.value)}
+            className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 tabular-nums" />
+        </div>
       )}
 
-      {mode === 'calc' && manualMode && (
-        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 space-y-2">
-          <div className="text-[11px] font-medium text-amber-700 dark:text-amber-300">手动输入税率</div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <label className="block text-[10px] text-muted mb-0.5">关税%</label>
-              <input value={mDuty} onChange={e => setMDuty(e.target.value)}
-                className="w-full h-8 rounded-md border border-amber-300 dark:border-amber-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
-            </div>
-            <div className="flex-1">
-              <label className="block text-[10px] text-muted mb-0.5">增值税%</label>
-              <input value={mVat} onChange={e => setMVat(e.target.value)}
-                className="w-full h-8 rounded-md border border-amber-300 dark:border-amber-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
-            </div>
-            <div className="flex-1">
-              <label className="block text-[10px] text-muted mb-0.5">消费税%</label>
-              <input value={mConsumption} onChange={e => setMConsumption(e.target.value)}
-                className="w-full h-8 rounded-md border border-amber-300 dark:border-amber-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
-            </div>
+      {/* Rate type selector — calc mode */}
+      {mode === 'calc' && (
+        <div>
+          <label className="block text-[12px] font-medium text-muted mb-1">税率类型</label>
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: 'mfn' as const, label: tariff ? `最惠国 ${tariff.mfn_rate != null ? tariff.mfn_rate + '%' : ''}` : '最惠国' },
+              { id: 'general' as const, label: tariff ? `普通 ${tariff.general_rate != null ? tariff.general_rate + '%' : ''}` : '普通' },
+              { id: 'preferential' as const, label: '协定' },
+              { id: 'manual' as const, label: '手动' },
+            ].map(rt => (
+              <button key={rt.id} onClick={() => setRateType(rt.id)}
+                className={`px-2 py-1 rounded text-[11px] font-medium cursor-pointer border transition-colors ${
+                  rateType === rt.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'
+                }`}>{rt.label}</button>
+            ))}
           </div>
+          {(rateType === 'preferential' || rateType === 'manual') && (
+            <div className="flex gap-2 mt-2">
+              <input value={rateType === 'preferential' ? prefRate : manualDutyRate}
+                onChange={e => rateType === 'preferential' ? setPrefRate(e.target.value) : setManualDutyRate(e.target.value)}
+                placeholder="关税%" className="w-20 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+              {rateType === 'manual' && (
+                <>
+                  <input value={manualVatRate} onChange={e => setManualVatRate(e.target.value)}
+                    placeholder="增值税%" className="w-20 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+                  <input value={manualConsRate} onChange={e => setManualConsRate(e.target.value)}
+                    placeholder="消费税%" className="w-20 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tax method — calc mode */}
+      {mode === 'calc' && (
+        <div>
+          <label className="block text-[12px] font-medium text-muted mb-1">计税方式</label>
+          <div className="flex bg-surface dark:bg-gray-800 rounded-md p-0.5">
+            {[
+              { id: 'ad_valorem' as const, label: '从价' },
+              { id: 'specific' as const, label: '从量' },
+              { id: 'compound' as const, label: '复合' },
+            ].map(tm => (
+              <button key={tm.id} onClick={() => setTaxMethod(tm.id)}
+                className={`flex-1 h-7 rounded text-[12px] font-medium cursor-pointer border-none transition-colors ${
+                  taxMethod === tm.id ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'
+                }`}>{tm.label}</button>
+            ))}
+          </div>
+          {taxMethod !== 'ad_valorem' && (
+            <div className="mt-2">
+              <label className="block text-[11px] text-muted mb-0.5">从量税率（元/单位）</label>
+              <input value={specificRate} onChange={e => setSpecificRate(e.target.value)}
+                placeholder="如 0.5"
+                className="w-24 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[13px] outline-none bg-white dark:bg-gray-800 tabular-nums" />
+            </div>
+          )}
         </div>
       )}
       <div>
@@ -311,9 +399,27 @@ export default function Calculator() {
       return (
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card w-[520px]">
           <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-baseline gap-3">
-              <h3 className="text-lg font-semibold">税率信息</h3>
-              <span className="text-[13px] font-mono text-primary-500">{tariff.hs_code}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-3">
+                <h3 className="text-lg font-semibold">税率信息</h3>
+                <span className="text-[13px] font-mono text-primary-500">{tariff.hs_code}</span>
+              </div>
+              <button
+                onClick={async () => {
+                  const text = [
+                    `HS 编码: ${tariff.hs_code}  ${tariff.description}`,
+                    `最惠国税率: ${tariff.mfn_rate != null ? tariff.mfn_rate + '%' : '—'}`,
+                    `普通税率: ${tariff.general_rate != null ? tariff.general_rate + '%' : '—'}`,
+                    `增值税率: ${tariff.vat_rate}%`,
+                    `消费税率: ${tariff.has_consumption_tax ? '适用' : '不适用'}`,
+                    `监管条件: ${tariff.supervision || '无'}`,
+                    `法定单位: ${tariff.unit}`,
+                  ].join('\n')
+                  await navigator.clipboard.writeText(text)
+                  setCopyMsg('已复制'); setTimeout(() => setCopyMsg(''), 1500)
+                }}
+                className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink hover:border-gray-300 transition-colors active:scale-[0.97]"
+              >{copyMsg || '复制结果'}</button>
             </div>
             <p className="text-[13px] text-muted mt-1">{tariff.description}</p>
           </div>
@@ -351,9 +457,19 @@ export default function Calculator() {
       return (
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card w-[520px]">
           <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-baseline gap-3">
-              <h3 className="text-lg font-semibold">计算结果</h3>
-              <span className="text-[13px] font-mono text-primary-500">{result.hs_code}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline gap-3">
+                <h3 className="text-lg font-semibold">计算结果</h3>
+                <span className="text-[13px] font-mono text-primary-500">{result.hs_code}</span>
+              </div>
+              <button
+                onClick={async () => {
+                  const text = formatResultText(result, tariff, direction)
+                  await navigator.clipboard.writeText(text)
+                  setCopyMsg('已复制'); setTimeout(() => setCopyMsg(''), 1500)
+                }}
+                className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink hover:border-gray-300 transition-colors active:scale-[0.97]"
+              >{copyMsg || '复制结果'}</button>
             </div>
             <p className="text-[13px] text-muted mt-1">{result.hs_description}</p>
           </div>
@@ -373,7 +489,7 @@ export default function Calculator() {
             ))}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-3" />
             {[
-              { label: '关税税率', value: `${result.duty_rate}% (最惠国)` },
+              { label: `关税税率${result.tax_method === 'specific' ? ' (从量)' : result.tax_method === 'compound' ? ' (复合)' : ''}`, value: result.tax_method !== 'specific' ? `${result.duty_rate}%${result.rate_type === 'preferential' ? ' (协定)' : result.rate_type === 'general' ? ' (普通)' : result.rate_type === 'manual' ? ' (手动)' : ' (最惠国)'}` : `¥${result.duty_rate}/单位` },
               { label: '关税金额', value: `¥ ${fmt(result.duty_amount)}` },
               { label: '增值税率', value: `${result.vat_rate}%` },
               { label: '增值税', value: `¥ ${fmt(result.vat_amount)}` },
