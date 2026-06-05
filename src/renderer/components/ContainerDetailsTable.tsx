@@ -25,8 +25,16 @@ export default function ContainerDetailsTable({ details, onUpdate, containerColu
 
   const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set())
   const [menuOpen, setMenuOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const visibleColumns = columns.filter(c => !hiddenKeys.has(c.source_key))
+
+  useEffect(() => {
+    if (!expanded) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setExpanded(false) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [expanded])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -110,6 +118,13 @@ export default function ContainerDetailsTable({ details, onUpdate, containerColu
               </div>
             )}
           </div>
+          <button onClick={() => setExpanded(true)}
+            className="h-8 px-2 rounded-sm text-muted text-sm hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors cursor-pointer border-none bg-transparent"
+            title="宽屏展开">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+            </svg>
+          </button>
           <button onClick={addRow}
             className="h-8 px-3 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors cursor-pointer border-none bg-transparent">+ 添加集装箱</button>
         </div>
@@ -173,6 +188,57 @@ export default function ContainerDetailsTable({ details, onUpdate, containerColu
           )}
         </table>
       </div>
+
+      {expanded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setExpanded(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel mx-6 my-6 flex flex-col" style={{ width: '96vw', maxWidth: 1600, maxHeight: '94vh' }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-[14px] border-b border-gray-200 dark:border-gray-700 shrink-0">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold">集装箱信息</h3>
+                <span className="text-[11px] text-muted">{details.length} 行</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={addRow}
+                  className="h-8 px-3 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors cursor-pointer border-none bg-transparent">+ 添加集装箱</button>
+                <button onClick={() => setExpanded(false)}
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none">×</button>
+              </div>
+            </div>
+            <div className="overflow-auto flex-1">
+              <table className="min-w-full border-collapse text-sm table-auto">
+                <thead>
+                  <tr>
+                    <th className="px-3.5 py-2.5 text-xs font-semibold text-muted uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-surface text-left w-10 sticky top-0 z-10">#</th>
+                    {columns.map((col: any) => (
+                      <th key={col.source_key}
+                        className={`px-3.5 py-2.5 text-xs font-semibold text-muted uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-surface whitespace-nowrap sticky top-0 z-10 ${col.field_type === 'number' ? 'text-right' : 'text-left'}`}
+                        style={{ minWidth: colMinWidth(col) }}>{col.display_label}</th>
+                    ))}
+                    <th className="w-11 px-2 py-2.5 text-xs border-b border-gray-200 dark:border-gray-700 bg-surface sticky top-0 z-10" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {details.map((d: any, i: number) => (
+                    <tr key={i} className="border-b border-slate-100 dark:border-gray-800 hover:bg-slate-50 dark:hover:bg-gray-800">
+                      <td className="px-3.5 py-2.5 text-muted text-xs">{i + 1}</td>
+                      {columns.map((col: any) => (
+                        <td key={col.source_key} className={`px-3.5 py-2.5 ${col.field_type === 'number' ? 'text-right tabular-nums' : 'whitespace-nowrap'}`}>
+                          {renderInput(i, col.source_key, d[col.source_key], col.field_type === 'number', col.field_type === 'select' ? (col as any).options : undefined)}
+                        </td>
+                      ))}
+                      <td className="px-2 py-2.5">
+                        {details.length > 1 && (
+                          <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-colors" title="删除行"><IconTrash /></button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -58,12 +58,9 @@ export default function Sidebar({
   return (
     <aside
       style={{
-        width: collapsed && isLocked ? 0 : collapsed ? 48 : 280,
-        minWidth: collapsed && isLocked ? 0 : collapsed ? 48 : 280,
-        paddingLeft: collapsed && isLocked ? 0 : undefined,
-        paddingRight: collapsed && isLocked ? 0 : undefined,
+        width: collapsed ? 48 : 280,
+        minWidth: collapsed ? 48 : 280,
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflow: 'hidden',
       }}
       className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10"
     >
@@ -91,6 +88,22 @@ export default function Sidebar({
           </span>
         </button>
       </div>
+
+      {/* Collapsed edit mode — exit button */}
+      {collapsed && isLocked && (
+        <div className="flex flex-col items-center gap-3 pt-2 pb-4 no-drag">
+          <button
+            onClick={onExitDeclaration}
+            title="退出编辑"
+            className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer border-none bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16,17 21,12 16,7" /><line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+          <span className="text-[9px] text-red-400 font-medium leading-tight text-center">退出<br/>编辑</span>
+        </div>
+      )}
 
       {!collapsed && (
         <>

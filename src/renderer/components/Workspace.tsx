@@ -22,6 +22,39 @@ interface WorkspaceProps {
 
 const SECTION_ORDER: FieldSection[] = ['header', 'transport', 'party', 'port', 'trade', 'customs', 'package']
 
+function TemplateLoader({ selectedType, onLoad }: { selectedType: string | null; onLoad: (data: Record<string, any>) => void }) {
+  const [templates, setTemplates] = useState<any[]>([])
+  useEffect(() => {
+    if (window.api?.templatesList) {
+      window.api.templatesList(selectedType || undefined).then((list: any[]) => {
+        if (Array.isArray(list)) setTemplates(list)
+      }).catch(() => {})
+    }
+  }, [selectedType])
+
+  if (templates.length === 0) return null
+  return (
+    <div className="relative">
+      <select
+        value=""
+        onChange={(e) => {
+          const t = templates.find(tm => tm.id === e.target.value)
+          if (t) {
+            try { onLoad(JSON.parse(t.template_data)) } catch {}
+          }
+        }}
+        className="h-[34px] rounded-md border border-gray-200 dark:border-gray-700 pl-2.5 pr-7 text-[12px] font-medium outline-none bg-white dark:bg-gray-900 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
+      >
+        <option value="">加载模板...</option>
+        {templates.map((t: any) => (
+          <option key={t.id} value={t.id}>{t.name}</option>
+        ))}
+      </select>
+      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
+    </div>
+  )
+}
+
 export default function Workspace({ declaration, selectedDeclaration, onEnterEdit, isEditing, onNavigateToHs, recentDeclarations, onSelectDeclaration, onNewDeclaration }: WorkspaceProps) {
   const statusLabels: Record<string, string> = {
     draft: '草稿', processing: 'AI 提取中', review: '待人工确认', done: '已完成', error: '有错误',
@@ -90,6 +123,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [selectedType, setSelectedType] = useState<DeclarationTypeKey | null>(null)
   const [typeConfigs, setTypeConfigs] = useState<DeclarationTypeConfig[]>([])
   const [enterprises, setEnterprises] = useState<any[]>([])
+  const [customsOffices, setCustomsOffices] = useState<any[]>([])
   const dirtyRef = useRef(false)
   const transportSectionRef = useRef<HTMLDivElement>(null)
   const cargoSectionRef = useRef<HTMLDivElement>(null)
@@ -105,11 +139,27 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     }
   }, [])
 
-  // Load enterprises for selector
+  // Load enterprises + customs offices for selector
   useEffect(() => {
     if (window.api?.enterprisesList) {
       window.api.enterprisesList().then((list: any[]) => {
-        if (Array.isArray(list)) setEnterprises(list)
+        if (Array.isArray(list)) {
+          setEnterprises(list)
+          const def = list.find((e: any) => e.is_default) || list[0]
+          if (def && !fields.declaration_unit_name) {
+            setFields(prev => ({
+              ...prev,
+              declaration_unit_name: def.name,
+              declaration_unit_credit_code: def.credit_code || '',
+              declaration_unit_customs_code: def.customs_code || '',
+            }))
+          }
+        }
+      }).catch(() => {})
+    }
+    if (window.api?.customsOfficesList) {
+      window.api.customsOfficesList().then((list: any[]) => {
+        if (Array.isArray(list)) setCustomsOffices(list)
       }).catch(() => {})
     }
   }, [])
@@ -635,6 +685,11 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                     <span className="w-px h-5 bg-gray-200" />
                   </>
                 )}
+                {/* Template selector */}
+                <TemplateLoader
+                  selectedType={selectedType}
+                  onLoad={(data) => { markDirty(); setFields(prev => ({ ...prev, ...data })); showToast('模板已加载') }}
+                />
                 {/* Save as template */}
                 <button
                   onClick={async () => {
@@ -717,6 +772,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                             <input type="text"
                               value={value || ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: e.target.value }) }}
+                              list={(m.source_key === 'customs_declaration_port' || m.source_key === 'entry_exit_port') ? 'customs-offices' : undefined}
                               className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] dark:bg-gray-800 focus:bg-white dark:bg-gray-900 font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200 dark:border-gray-700'}`}
                             />
                           )}
@@ -729,6 +785,13 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
               ))}
               {Object.keys(groupedFields).length === 0 && (
                 <div className="text-center py-12 text-muted text-sm">暂无提取数据。导入文件后点击「AI 提取并审核」。</div>
+              )}
+              {customsOffices.length > 0 && (
+                <datalist id="customs-offices">
+                  {customsOffices.map((o: any) => (
+                    <option key={o.code} value={`${o.name} (${o.code})`} />
+                  ))}
+                </datalist>
               )}
             </div>
           </div>
