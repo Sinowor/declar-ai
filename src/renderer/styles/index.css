@@ -67,10 +67,10 @@ body {
 
 /* macOS traffic light spacing with hiddenInset titlebar */
 .platform-darwin .sidebar-header {
-  padding-top: 28px;
+  padding-top: 22px;
 }
 .platform-darwin .workspace-header {
-  padding-top: 20px;
+  padding-top: 16px;
 }
 /* Draggable region for frameless window */
 .drag-region {
