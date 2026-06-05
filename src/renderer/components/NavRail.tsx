@@ -26,13 +26,14 @@ interface Props {
   editing?: boolean
   onExitEdit?: () => void
   onToggleSidebar?: () => void
+  onLogoClick?: () => void
 }
 
 export type { ModuleId }
 
 const isMac = navigator.platform?.toLowerCase?.().includes('mac')
 
-export default function NavRail({ active, onChange, editing, onExitEdit, onToggleSidebar }: Props) {
+export default function NavRail({ active, onChange, editing, onExitEdit, onToggleSidebar, onLogoClick }: Props) {
   const renderItem = (item: NavItem) => {
     const isActive = active === item.id
     const Icon = item.icon
@@ -59,10 +60,11 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
       <div style={{ height: isMac ? 38 : 8 }} className="shrink-0" />
 
       {/* Logo + app name */}
-      <div className="flex flex-col items-center gap-0.5 pb-3 w-full no-drag">
+      <button onClick={onLogoClick} title="关于 DeclarAI"
+        className="flex flex-col items-center gap-0.5 pb-3 w-full no-drag cursor-pointer border-none bg-transparent hover:opacity-80 transition-opacity">
         <Logo size={22} />
         <span className="text-[11px] font-semibold text-ink leading-none">DeclarAI</span>
-      </div>
+      </button>
 
       {/* Divider */}
       <div className="w-10 h-px bg-gray-200 dark:bg-gray-700 mb-2" />

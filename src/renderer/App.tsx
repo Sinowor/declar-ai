@@ -199,6 +199,7 @@ export default function App() {
         editing={!!editingId}
         onExitEdit={handleExitEdit}
         onToggleSidebar={() => setSidebarCollapsed(v => !v)}
+        onLogoClick={() => setAboutOpen(true)}
       />
 
       {/* ═══ Context Panel (switches per module) ═══ */}
