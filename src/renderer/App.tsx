@@ -93,7 +93,8 @@ export default function App() {
 
   useEffect(() => {
     if (window.api?.onOpenAbout) {
-      return window.api.onOpenAbout(() => setAboutOpen(true))
+      const cleanup = window.api.onOpenAbout(() => setAboutOpen(true))
+      return () => { cleanup() }
     }
   }, [])
 
