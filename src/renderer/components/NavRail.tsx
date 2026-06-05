@@ -21,13 +21,15 @@ const bottomItems: NavItem[] = [
 interface Props {
   active: ModuleId
   onChange: (id: ModuleId) => void
+  editing?: boolean
+  onExitEdit?: () => void
 }
 
 export type { ModuleId }
 
 const isMac = navigator.platform?.toLowerCase?.().includes('mac')
 
-export default function NavRail({ active, onChange }: Props) {
+export default function NavRail({ active, onChange, editing, onExitEdit }: Props) {
   const renderItem = (item: NavItem) => {
     const isActive = active === item.id
     const Icon = item.icon
@@ -65,6 +67,17 @@ export default function NavRail({ active, onChange }: Props) {
 
       {/* Bottom items */}
       <div className="flex flex-col items-center gap-0.5 pb-3 no-drag">
+        {editing && onExitEdit && (
+          <button
+            onClick={onExitEdit}
+            title="退出编辑"
+            className="w-full h-11 flex items-center justify-center cursor-pointer border-none bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-lg"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16,17 21,12 16,7" /><line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        )}
         {bottomItems.map(renderItem)}
       </div>
     </nav>

@@ -195,7 +195,7 @@ export default function App() {
       {!isMac && <TitleBar />}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
       {/* ═══ Left Icon Rail ═══ */}
-      <NavRail active={activeModule} onChange={setActiveModule} />
+      <NavRail active={activeModule} onChange={setActiveModule} editing={!!editingId} onExitEdit={handleExitEdit} />
 
       {/* ═══ Context Panel (switches per module) ═══ */}
       {activeModule === 'declarations' && (

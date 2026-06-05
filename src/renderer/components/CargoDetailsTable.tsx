@@ -171,10 +171,10 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
             )}
           </div>
           <button onClick={() => setExpanded(true)}
-            className="h-8 px-2 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors cursor-pointer border-none bg-transparent"
+            className="h-8 px-2 rounded-sm text-muted text-sm hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors cursor-pointer border-none bg-transparent"
             title="宽屏展开">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15,3 21,3 21,9"/><polyline points="9,21 3,21 3,15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
             </svg>
           </button>
           <button onClick={addRow}
@@ -188,14 +188,23 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
       </div>
 
       {expanded && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setExpanded(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel mx-8 my-8 flex flex-col" style={{ width: '94vw', maxWidth: 1600, maxHeight: '92vh' }} onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-[16px] border-b border-gray-200 dark:border-gray-700 shrink-0">
-              <h3 className="text-lg font-semibold">货物明细</h3>
-              <button onClick={() => setExpanded(false)}
-                className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none">×</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setExpanded(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel mx-6 my-6 flex flex-col" style={{ width: '96vw', maxWidth: 1600, maxHeight: '94vh' }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-[14px] border-b border-gray-200 dark:border-gray-700 shrink-0">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold">货物明细</h3>
+                <span className="text-[11px] text-muted">{details.length} 行 · {visibleColumns.length}/{allColumns.length} 列</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={addRow}
+                  className="h-8 px-3 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors cursor-pointer border-none bg-transparent">
+                  + 添加货物
+                </button>
+                <button onClick={() => setExpanded(false)}
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none">×</button>
+              </div>
             </div>
-            <div className="overflow-auto flex-1 px-0.5">
+            <div className="overflow-auto flex-1">
               {renderTable(allColumns.filter(c => c.source_key !== 'seq_no'))}
             </div>
           </div>

@@ -58,9 +58,12 @@ export default function Sidebar({
   return (
     <aside
       style={{
-        width: collapsed ? 48 : 280,
-        minWidth: collapsed ? 48 : 280,
+        width: collapsed && isLocked ? 0 : collapsed ? 48 : 280,
+        minWidth: collapsed && isLocked ? 0 : collapsed ? 48 : 280,
+        paddingLeft: collapsed && isLocked ? 0 : undefined,
+        paddingRight: collapsed && isLocked ? 0 : undefined,
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        overflow: 'hidden',
       }}
       className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10"
     >
