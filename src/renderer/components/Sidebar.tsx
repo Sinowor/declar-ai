@@ -46,7 +46,7 @@ export default function Sidebar({
         minWidth: collapsed ? 48 : 280,
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
-      className="flex flex-col bg-white border-r border-gray-200 z-10"
+      className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-5 pb-3 shrink-0 drag-region sidebar-header">
@@ -58,7 +58,7 @@ export default function Sidebar({
         )}
         <button
           onClick={onToggleCollapse}
-          className="w-7 h-7 rounded-md border border-gray-200 bg-white flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface shrink-0 no-drag"
+          className="w-7 h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface dark:hover:bg-gray-800 shrink-0 no-drag"
           title={collapsed ? '展开侧栏' : '折叠侧栏'}
         >
           <span
@@ -86,7 +86,7 @@ export default function Sidebar({
                 placeholder="搜索申报单..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full h-9 rounded-md border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-colors"
+                className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-colors"
               />
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function Sidebar({
                       ? 'bg-primary-50 ring-1 ring-primary-200'
                       : isActive
                         ? 'bg-gray-100'
-                        : 'hover:bg-surface'
+                        : 'hover:bg-surface dark:hover:bg-gray-800'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -158,12 +158,12 @@ export default function Sidebar({
 
           {/* Settings Panel */}
           {/* Footer */}
-          <div className="p-4 border-t border-gray-200 shrink-0 flex gap-2">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 shrink-0 flex gap-2">
             <div className="flex-1">
               {isLocked ? (
                 <button
                   onClick={onExitDeclaration}
-                  className="w-full h-10 rounded-sm border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-colors"
+                  className="w-full h-10 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface dark:hover:bg-gray-800 transition-colors"
                 >
                   ← 退出当前申报单
                 </button>

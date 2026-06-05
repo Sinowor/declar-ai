@@ -48,7 +48,7 @@ export default function NavRail({ active, onChange }: Props) {
 
   return (
     <nav
-      className="flex flex-col shrink-0 items-center bg-white border-r border-gray-200 z-20 drag-region"
+      className="flex flex-col shrink-0 items-center bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-20 drag-region"
       style={{ width: 56 }}
     >
       {/* macOS traffic light clearance */}

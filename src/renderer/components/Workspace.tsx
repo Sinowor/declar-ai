@@ -53,7 +53,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 {(recentDeclarations || []).slice(0, 5).map(d => (
                   <button key={d.id}
                     onClick={() => onSelectDeclaration?.(d.id)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white/80 hover:bg-white border border-white/50 hover:border-gray-200 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white dark:hover:bg-gray-900 border border-white/50 dark:border-gray-700/50 hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
                   >
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                       d.status === 'done' ? 'bg-emerald-400' : d.status === 'review' ? 'bg-amber-400' : d.status === 'draft' ? 'bg-slate-300' : 'bg-sky-400'
@@ -390,7 +390,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   style={{ color: step.done ? '#22C55E' : isActive ? 'var(--primary)' : undefined }}
                 >
                   <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
-                    step.done ? 'bg-emerald-400' : isActive ? 'bg-primary-500' : 'bg-gray-300'
+                    step.done ? 'bg-emerald-400' : isActive ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
                   }`}>{step.done ? '✓' : step.n}</span>
                   {step.label}
                 </span>
@@ -404,8 +404,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
       <div className="px-8 pb-12 flex flex-col gap-6 flex-1 max-w-[1200px] mx-auto w-full">
 
         {/* ═══ Block ①: File Import ═══ */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-          <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+          <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold">① 导入单证</h3>
             {extractionCompleted && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">&#10003; 已完成</span>
@@ -417,7 +417,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-2 flex-1 min-w-0 items-center">
                     {files.length > 0 ? files.map((f, i) => (
-                      <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] bg-surface border border-gray-200">
+                      <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] bg-surface border border-gray-200 dark:border-gray-700">
                         {f.file_name}
                         <button className="text-muted text-sm leading-none cursor-pointer hover:text-red-500" onClick={() => handleRemoveFile(i, f.id)}>&times;</button>
                       </span>
@@ -465,8 +465,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         {/* ═══ Block ②: AI Extraction Results ═══ */}
         <div className={`${blockTransition} overflow-hidden`}
           style={{ transform: extractionCompleted ? 'translateY(0)' : 'translateY(-8px)', opacity: extractionCompleted ? 1 : 0, pointerEvents: extractionCompleted ? 'auto' : 'none' }}>
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-            <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+            <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold">② AI 提取结果</h3>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-500">
                 <IconAI /><span className="ml-1">AI 已处理</span>
@@ -489,7 +489,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   { label: '集装箱数', value: String(new Set(cargoDetails.map((d: any) => d.container_number).filter(Boolean)).size || fields.container_count || '—') },
                   { label: '提单数', value: String(new Set(cargoDetails.map((d: any) => d.bill_of_lading_number).filter(Boolean)).size || '—') },
                 ].map(kpi => (
-                  <div key={kpi.label} className="bg-surface rounded-xl p-4 border border-gray-100">
+                  <div key={kpi.label} className="bg-surface rounded-xl p-4 border border-gray-100 dark:border-gray-800">
                     <div className="text-xs text-muted mb-1">{kpi.label}</div>
                     <div className="text-xl font-bold text-ink tabular-nums">{kpi.value}</div>
                   </div>
@@ -517,7 +517,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold"><span className="text-amber-600">&#9888;</span> {pendingCount > 0 ? `${pendingCount} 个待确认项` : '全部已确认'}</span>
                     <div className="flex gap-2">
-                      {pendingCount > 0 && <button onClick={resolveAll} className="h-7 px-3 rounded-sm text-xs font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors">全部确认</button>}
+                      {pendingCount > 0 && <button onClick={resolveAll} className="h-7 px-3 rounded-sm text-xs font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors">全部确认</button>}
                     </div>
                   </div>
                   <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
@@ -525,7 +525,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                       const isResolved = resolvedIssues.has(i)
                       return (
                         <div key={i}
-                          className={`flex items-start gap-3 px-3 py-2 rounded-md transition-colors hover:bg-slate-50 ${isResolved ? 'opacity-40' : ''}`}
+                          className={`flex items-start gap-3 px-3 py-2 rounded-md transition-colors hover:bg-slate-50 dark:hover:bg-gray-800 dark:bg-gray-800 ${isResolved ? 'opacity-40' : ''}`}
                         >
                           <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                             isResolved ? 'bg-emerald-100 text-emerald-600' : issue.severity === 'high' ? 'bg-red-100 text-red-600' : issue.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-sky-100 text-sky-600'
@@ -544,7 +544,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                           </div>
                           {!isResolved && (
                             <button onClick={() => resolveIssue(i)}
-                              className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors"
+                              className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors"
                             >确认</button>
                           )}
                         </div>
@@ -562,8 +562,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         {/* ═══ Block ③: Declaration Form ═══ */}
         <div className={`${blockTransition} overflow-hidden`}
           style={{ transform: extractionCompleted ? 'translateY(0)' : 'translateY(-8px)', opacity: extractionCompleted ? 1 : 0, pointerEvents: extractionCompleted ? 'auto' : 'none' }}>
-          <div ref={transportSectionRef} className="bg-white border border-gray-200 rounded-2xl shadow-card">
-            <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
+          <div ref={transportSectionRef} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+            <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold">③ 申报单数据</h3>
               <div className="flex items-center gap-2 no-drag">
                 {/* Enterprise selector */}
@@ -583,7 +583,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                           }))
                         }
                       }}
-                      className="h-[34px] rounded-md border border-gray-200 pl-2.5 pr-7 text-[12px] font-medium outline-none bg-white focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
+                      className="h-[34px] rounded-md border border-gray-200 dark:border-gray-700 pl-2.5 pr-7 text-[12px] font-medium outline-none bg-white dark:bg-gray-900 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
                     >
                       <option value="">选择申报单位...</option>
                       {enterprises.map((e: any) => (
@@ -598,7 +598,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <select
                     value={selectedType || '__universal'}
                     onChange={(e) => handleTypeChange(e.target.value)}
-                    className="h-[34px] rounded-md border border-gray-200 pl-3 pr-8 text-[13px] font-medium outline-none bg-white focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
+                    className="h-[34px] rounded-md border border-gray-200 dark:border-gray-700 pl-3 pr-8 text-[13px] font-medium outline-none bg-white dark:bg-gray-900 focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
                   >
                   <option value="__universal">通用视图（全部字段）</option>
                   {typeConfigs.map(tc => (
@@ -618,7 +618,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                         if (res.success) showToast('Excel 已导出')
                         else showToast(`导出失败: ${res.error}`, 'error')
                       }}
-                      className="h-[34px] px-3 rounded-sm border border-gray-200 bg-white text-muted text-[13px] font-medium cursor-pointer hover:text-emerald-600 hover:border-emerald-300 transition-colors"
+                      className="h-[34px] px-3 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted text-[13px] font-medium cursor-pointer hover:text-emerald-600 hover:border-emerald-300 transition-colors"
                       title="导出 Excel"
                     >导出 Excel</button>
                     <button
@@ -629,7 +629,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                         if (res.success) showToast('PDF 已导出')
                         else showToast(`导出失败: ${res.error}`, 'error')
                       }}
-                      className="h-[34px] px-3 rounded-sm border border-gray-200 bg-white text-muted text-[13px] font-medium cursor-pointer hover:text-red-500 hover:border-red-300 transition-colors"
+                      className="h-[34px] px-3 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted text-[13px] font-medium cursor-pointer hover:text-red-500 hover:border-red-300 transition-colors"
                       title="导出 PDF"
                     >导出 PDF</button>
                     <span className="w-px h-5 bg-gray-200" />
@@ -655,7 +655,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                     await window.api.templatesSave({ name: name.trim(), type_key: selectedType || 'transit_transport', template_data: JSON.stringify(templateData) })
                     showToast('模板已保存')
                   }}
-                  className="h-[34px] px-3 rounded-sm border border-gray-200 bg-white text-muted text-[13px] font-medium cursor-pointer hover:text-ink hover:bg-surface transition-colors"
+                  className="h-[34px] px-3 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted text-[13px] font-medium cursor-pointer hover:text-ink hover:bg-surface dark:hover:bg-gray-800 transition-colors"
                   title="保存当前基本信息为模板"
                 >存为模板</button>
                 <button onClick={() => handleSave()} disabled={isSaving}
@@ -698,7 +698,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                             <select
                               value={value || ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: e.target.value }) }}
-                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
+                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] dark:bg-gray-800 focus:bg-white dark:bg-gray-900 font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200 dark:border-gray-700'}`}
                             >
                               <option value="">—</option>
                               {(m.options || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -707,17 +707,17 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                             <input type="number"
                               value={value ?? ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: parseFloat(e.target.value) || 0 }) }}
-                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
+                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] dark:bg-gray-800 focus:bg-white dark:bg-gray-900 font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200 dark:border-gray-700'}`}
                             />
                           ) : m.field_type === 'readonly' ? (
                             <input type="text" value={value || ''} disabled
-                              className="h-9 rounded-md border border-gray-200 px-3 text-sm bg-gray-50 opacity-50 font-sans"
+                              className="h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-sm bg-gray-50 opacity-50 font-sans"
                             />
                           ) : (
                             <input type="text"
                               value={value || ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: e.target.value }) }}
-                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
+                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] dark:bg-gray-800 focus:bg-white dark:bg-gray-900 font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200 dark:border-gray-700'}`}
                             />
                           )}
                           {isMissing && <div className="text-[11px] text-amber-600">"{selectedConfig!.title}" 必填项</div>}

@@ -77,7 +77,7 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
             { label: '总件数', value: totalPieces, unit: '', color: '#F59E0B' },
             { label: '总毛重', value: totalWeight.toFixed(0), unit: 'KG', color: '#EF4444' },
           ].map(kpi => (
-            <div key={kpi.label} className="bg-white border border-gray-100 rounded-xl p-4 shadow-card">
+            <div key={kpi.label} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 shadow-card">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: kpi.color }} />
                 <span className="text-[11px] uppercase tracking-wider text-muted font-medium">{kpi.label}</span>
@@ -87,8 +87,8 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
           ))}
         </div>
         {/* Fields by section */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-          <div className="px-6 py-[18px] border-b border-gray-200"><h3 className="text-lg font-semibold">提取字段</h3></div>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+          <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold">提取字段</h3></div>
           <div className="p-6">
             <div className="grid grid-cols-4 gap-5">
               {fieldEntries.map(([key, value]) => (
@@ -110,7 +110,7 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
               { label: '集装箱数', value: new Set(cargoDetails.map(d => d.container_number).filter(Boolean)).size },
               { label: '提单数', value: new Set(cargoDetails.map(d => d.bill_of_lading_number).filter(Boolean)).size },
             ].map(kpi => (
-              <div key={kpi.label} className="bg-white border border-gray-200 rounded-2xl shadow-card p-5">
+              <div key={kpi.label} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card p-5">
                 <div className="text-xs text-muted uppercase tracking-wider mb-1">{kpi.label}</div>
                 <div className="text-2xl font-bold text-ink tabular-nums">{kpi.value}</div>
               </div>
@@ -120,12 +120,12 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
 
         {/* Files */}
         {files.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-            <div className="px-6 py-[18px] border-b border-gray-200"><h3 className="text-lg font-semibold">关联文件</h3></div>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+            <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold">关联文件</h3></div>
             <div className="p-6">
               <div className="flex flex-wrap gap-2">
                 {files.map((f, i) => (
-                  <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] bg-surface border border-gray-200">{f.file_name}</span>
+                  <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-full text-[13px] bg-surface border border-gray-200 dark:border-gray-700">{f.file_name}</span>
                 ))}
               </div>
             </div>
