@@ -226,7 +226,7 @@ export default function Calculator() {
                       { id: 'preferential' as RateType, label: '协定' },
                       { id: 'manual' as RateType, label: '手动录入' },
                     ].map(rt => (
-                      <button key={rt.id} onClick={() => setRateType(rt.id)} className={`px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer border transition-colors ${rateType === rt.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{rt.label}</button>
+                      <button key={rt.id} onClick={() => setRateType(rt.id)} className={`px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer border transition-colors active:scale-95 ${rateType === rt.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{rt.label}</button>
                     ))}
                   </div>
 
@@ -260,7 +260,7 @@ export default function Calculator() {
                   <div>
                     <div className="flex bg-surface dark:bg-gray-800 rounded-md p-0.5 h-8">
                       {[{ id: 'ad_valorem' as TaxMethod, label: '从价计征' }, { id: 'specific' as TaxMethod, label: '从量计征' }, { id: 'compound' as TaxMethod, label: '复合计征' }].map(tm => (
-                        <button key={tm.id} onClick={() => setTaxMethod(tm.id)} className={`flex-1 rounded text-[12px] font-medium cursor-pointer border-none transition-colors ${taxMethod === tm.id ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'}`}>{tm.label}</button>
+                        <button key={tm.id} onClick={() => setTaxMethod(tm.id)} className={`flex-1 rounded text-[12px] font-medium cursor-pointer border-none transition-colors active:scale-[0.97] ${taxMethod === tm.id ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'}`}>{tm.label}</button>
                       ))}
                     </div>
                     {taxMethod !== 'ad_valorem' && (
