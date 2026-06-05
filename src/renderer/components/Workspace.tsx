@@ -140,21 +140,11 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   }, [])
 
   // Load enterprises + customs offices for selector
+  const enterpriseAutoFilled = useRef(false)
   useEffect(() => {
     if (window.api?.enterprisesList) {
       window.api.enterprisesList().then((list: any[]) => {
-        if (Array.isArray(list)) {
-          setEnterprises(list)
-          const def = list.find((e: any) => e.is_default) || list[0]
-          if (def && !fields.declaration_unit_name) {
-            setFields(prev => ({
-              ...prev,
-              declaration_unit_name: def.name,
-              declaration_unit_credit_code: def.credit_code || '',
-              declaration_unit_customs_code: def.customs_code || '',
-            }))
-          }
-        }
+        if (Array.isArray(list)) setEnterprises(list)
       }).catch(() => {})
     }
     if (window.api?.customsOfficesList) {
@@ -163,6 +153,21 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
       }).catch(() => {})
     }
   }, [])
+
+  // Auto-fill default enterprise after declaration data loads (avoids race)
+  useEffect(() => {
+    if (enterpriseAutoFilled.current) return
+    const def = enterprises.find((e: any) => e.is_default) || enterprises[0]
+    if (def && !fields.declaration_unit_name) {
+      enterpriseAutoFilled.current = true
+      setFields(prev => ({
+        ...prev,
+        declaration_unit_name: def.name,
+        declaration_unit_credit_code: def.credit_code || '',
+        declaration_unit_customs_code: def.customs_code || '',
+      }))
+    }
+  }, [enterprises, fields.declaration_unit_name])
 
   const selectedConfig = useMemo(() =>
     selectedType ? typeConfigs.find(c => c.type === selectedType) : null,
@@ -175,6 +180,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     let cancelled = false
     const loadData = async () => {
       dirtyRef.current = false
+      enterpriseAutoFilled.current = false
       setExtractionCompleted(declaration!.status !== 'draft')
       setFileWarnings([])
       setFiles([])
