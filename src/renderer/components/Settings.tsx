@@ -64,7 +64,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
         <p className="text-muted text-sm mt-1">应用偏好与信息</p>
       </div>
 
-      <div className="flex flex-1 overflow-hidden px-8 pb-12">
+      <div className="flex flex-1 px-8 pb-12">
         {/* Left Tab Nav */}
         <nav className="shrink-0 mr-8 flex flex-col gap-0.5" style={{ width: 140 }}>
           {tabs.map(tab => {
