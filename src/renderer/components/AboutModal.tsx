@@ -25,6 +25,11 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
         <p className="text-sm text-muted mb-4">
           基于 AI LLM 的过境转关报关单自动化制单系统
         </p>
+        <div className="text-xs text-muted space-y-1 mb-4">
+          <p>Electron: {window.api?.versions?.electron || '—'}</p>
+          <p>Chrome: {window.api?.versions?.chrome || '—'}</p>
+          <p>Node.js: {window.api?.versions?.node || '—'}</p>
+        </div>
         <div className="text-xs text-muted space-y-1">
           <p>Copyright 2026 Pan Yuhang</p>
           <p>专有软件许可 — 保留所有权利</p>

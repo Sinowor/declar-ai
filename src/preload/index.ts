@@ -53,6 +53,13 @@ const api = {
   exportTransitExcel: (declarationId: string) => ipcRenderer.invoke('export:transit-excel', declarationId),
   exportTransitPdf: (declarationId: string) => ipcRenderer.invoke('export:transit-pdf', declarationId),
 
+  // Versions
+  versions: {
+    electron: process.versions.electron,
+    chrome: process.versions.chrome,
+    node: process.versions.node,
+  },
+
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),
   minimize: () => ipcRenderer.invoke('app:minimize'),
