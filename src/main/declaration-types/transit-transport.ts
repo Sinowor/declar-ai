@@ -46,6 +46,19 @@ registerType({
     { source_key: 'currency_code', display_label: '币制', section: 'cargo', required: true, editable: true, field_type: 'select', options: ['人民币', '美元', '欧元', '日元', '港币', '英镑', '韩元', '澳元'] },
     { source_key: 'container_numbers', display_label: '所在集装箱号', section: 'cargo', required: false, editable: true, field_type: 'text' },
   ],
+  container_column_mappings: [
+    // ═══ Section ③: 集装箱明细 ═══
+    { source_key: 'container_no', display_label: '集装箱号', section: 'cargo', required: true, editable: true, field_type: 'text' },
+    { source_key: 'container_size', display_label: '尺寸', section: 'cargo', required: true, editable: true, field_type: 'select', options: ['20尺', '40尺', '45尺', '其他'] },
+    { source_key: 'container_package_count', display_label: '件数', section: 'cargo', required: false, editable: true, field_type: 'number' },
+    { source_key: 'container_weight', display_label: '重量(KG)', section: 'cargo', required: false, editable: true, field_type: 'number' },
+    { source_key: 'container_transport_tool_id', display_label: '运输工具编号', section: 'cargo', required: false, editable: true, field_type: 'text' },
+    { source_key: 'container_transport_tool_name', display_label: '运输工具名称', section: 'cargo', required: true, editable: true, field_type: 'text' },
+    { source_key: 'container_transport_tool_weight', display_label: '运输工具重量(KG)', section: 'cargo', required: false, editable: true, field_type: 'number' },
+    { source_key: 'customs_lock_count', display_label: '关锁个数', section: 'cargo', required: true, editable: true, field_type: 'number' },
+    { source_key: 'customs_lock_no', display_label: '关锁号', section: 'cargo', required: true, editable: true, field_type: 'text' },
+    { source_key: 'seal_no', display_label: '封志号', section: 'cargo', required: false, editable: true, field_type: 'text' },
+  ],
   validation_rules: [
     { type: 'required', message: '申报地海关是必填项' },
     { type: 'required', message: '进出口岸是必填项' },

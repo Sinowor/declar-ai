@@ -109,6 +109,7 @@ export async function runAIExtraction(declarationId: string): Promise<{
       extractedData = {
         fields: data.fields || {},
         cargo_details: Array.isArray(data.cargo_details) ? data.cargo_details : [],
+        container_details: Array.isArray(data.container_details) ? data.container_details : [],
         extraction_notes: Array.isArray(data.extraction_notes) ? data.extraction_notes : [],
         file_warnings: Array.isArray(data.file_warnings) ? data.file_warnings : [],
       }

@@ -4,6 +4,7 @@ import type { ReviewIssue, FileWarning, FieldMapping, DeclarationTypeConfig, Dec
 import { FIELD_LABELS, CARGO_FIELD_LABELS, SECTION_LABELS } from '../../shared/types'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
+import ContainerDetailsTable from './ContainerDetailsTable'
 import AttachmentPanel from './AttachmentPanel'
 import DeclarationPreview from './DeclarationPreview'
 import { IconSave, IconAI, IconDocument } from './Icons'
@@ -79,6 +80,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const savingRef = useRef(false)
   const [fields, setFields] = useState<Record<string, any>>({})
   const [cargoDetails, setCargoDetails] = useState<Record<string, any>[]>([])
+  const [containerDetails, setContainerDetails] = useState<Record<string, any>[]>([])
   const [extractionCompleted, setExtractionCompleted] = useState(false)
   const [fileWarnings, setFileWarnings] = useState<FileWarning[]>([])
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
@@ -137,6 +139,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             const d = result.data
             setFields(d.fields || {})
             setCargoDetails(d.cargo_details || [])
+            setContainerDetails(d.container_details || [])
             setFileWarnings(d.file_warnings || [])
           }
         }
@@ -158,9 +161,10 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const buildDeclarationData = useCallback(() => ({
     fields,
     cargo_details: cargoDetails,
+    container_details: containerDetails,
     extraction_notes: [],
     file_warnings: fileWarnings,
-  }), [fields, cargoDetails, fileWarnings])
+  }), [fields, cargoDetails, containerDetails, fileWarnings])
 
   const handleSave = useCallback(async (retry = 0) => {
     if (!declaration || savingRef.current) return
@@ -237,6 +241,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
         if (result.success && result.data) {
           setFields(result.data.fields || {})
           setCargoDetails(result.data.cargo_details || [])
+          setContainerDetails(result.data.container_details || [])
           setExtractionCompleted(true)
           setFileWarnings(result.data.file_warnings || [])
           if (result.issues && result.issues.length > 0) {
@@ -321,6 +326,11 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           required: false, editable: true, field_type: 'text' as const,
         }))
   }, [selectedConfig, typeConfigs])
+
+  const containerColumns = useMemo(() => {
+    if (selectedConfig?.container_column_mappings) return selectedConfig.container_column_mappings
+    return undefined
+  }, [selectedConfig])
 
   // Missing required fields
   const missingFields = useMemo(() => {
@@ -631,6 +641,17 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
               )}
             </div>
           </div>
+
+          {/* Container Details — only for transit declaration */}
+          {containerColumns && containerColumns.length > 0 && (
+            <div className="mt-6">
+              <ContainerDetailsTable
+                details={containerDetails}
+                onUpdate={(details) => { markDirty(); setContainerDetails(details) }}
+                containerColumns={containerColumns}
+              />
+            </div>
+          )}
 
           {/* Cargo Details */}
           <div ref={cargoSectionRef} className="mt-6">

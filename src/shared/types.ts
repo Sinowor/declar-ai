@@ -3,6 +3,7 @@
 export interface UniversalDeclarationData {
   fields: Record<string, any>           // all top-level fields, keyed by english identifier
   cargo_details: Record<string, any>[]  // array of cargo line items, each is a flat dict
+  container_details?: Record<string, any>[]  // array of container line items (transit declaration)
   extraction_notes: ExtractionNote[]
   file_warnings: FileWarning[]
 }
@@ -69,6 +70,7 @@ export interface DeclarationTypeConfig {
   description: string
   field_mappings: FieldMapping[]
   cargo_column_mappings: FieldMapping[]  // which universal cargo fields to show as columns
+  container_column_mappings?: FieldMapping[]  // container detail columns (transit declaration)
   validation_rules: ValidationRule[]
 }
 
