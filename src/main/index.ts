@@ -9,6 +9,7 @@ import { registerAppIpc, setupAppMenu } from './ipc/app'
 import { registerFileIpc } from './ipc/file'
 import { registerAIIpc } from './ipc/ai'
 import { registerHsCodeIpc } from './ipc/hs-code'
+import { registerDataIpc } from './ipc/data'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -36,6 +37,7 @@ async function initApp() {
   await registerFileIpc()
   registerAIIpc()
   await registerHsCodeIpc()
+  registerDataIpc()
 }
 
 function createWindow() {

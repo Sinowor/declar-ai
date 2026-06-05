@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import ThemeColorPicker from './ThemeColorPicker'
+import CustomsOfficeManager from './CustomsOfficeManager'
+import EnterpriseManager from './EnterpriseManager'
 
 interface Props {
   onShowAbout: () => void
@@ -98,6 +100,26 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Basic Data — Customs Offices */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
+          <div className="px-6 py-[18px] border-b border-gray-200">
+            <h3 className="text-lg font-semibold">海关关区管理</h3>
+          </div>
+          <div className="p-6">
+            <CustomsOfficeManager />
+          </div>
+        </div>
+
+        {/* Basic Data — Enterprises */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
+          <div className="px-6 py-[18px] border-b border-gray-200">
+            <h3 className="text-lg font-semibold">申报单位管理</h3>
+          </div>
+          <div className="p-6">
+            <EnterpriseManager />
           </div>
         </div>
 

@@ -38,6 +38,16 @@ const api = {
   getSchemaAll: () => ipcRenderer.invoke('schema:all'),
   setDeclarationType: (id: string, typeKey: string) => ipcRenderer.invoke('declaration:setType', id, typeKey),
 
+  // Data management
+  customsOfficesList: (search?: string) => ipcRenderer.invoke('data:customs-offices:list', search),
+  customsOfficesSave: (office: { code: string; name: string; parent_name?: string }) => ipcRenderer.invoke('data:customs-offices:save', office),
+  customsOfficesDelete: (code: string) => ipcRenderer.invoke('data:customs-offices:delete', code),
+  enterprisesList: () => ipcRenderer.invoke('data:enterprises:list'),
+  enterprisesSave: (enterprise: { id?: string; credit_code?: string; customs_code?: string; name: string; short_name?: string }) => ipcRenderer.invoke('data:enterprises:save', enterprise),
+  enterprisesDelete: (id: string) => ipcRenderer.invoke('data:enterprises:delete', id),
+  enterprisesSetDefault: (id: string) => ipcRenderer.invoke('data:enterprises:set-default', id),
+  enterprisesGetDefault: () => ipcRenderer.invoke('data:enterprises:get-default'),
+
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),
   minimize: () => ipcRenderer.invoke('app:minimize'),
