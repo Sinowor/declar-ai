@@ -202,7 +202,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
             </div>
             <button
               onClick={() => { setEditFileId(null); setCustomTag('') }}
-              className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded text-muted hover:text-ink cursor-pointer text-[14px] border-none bg-transparent"
+              className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded text-muted hover:text-ink cursor-pointer text-[14px] border-none bg-transparent active:scale-90"
             >×</button>
           </div>
         )}

@@ -24,6 +24,14 @@ export default function EnterpriseManager() {
 
   useEffect(() => { load() }, [])
 
+  // Escape to close modal
+  useEffect(() => {
+    if (!modalOpen) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setModalOpen(false) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [modalOpen])
+
   const openAdd = () => {
     setForm({ credit_code: '', customs_code: '', name: '', short_name: '' })
     setErrors({})
@@ -80,7 +88,7 @@ export default function EnterpriseManager() {
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] text-muted">管理申报单位信息，可设置默认企业用于新建申报单</span>
         <button onClick={openAdd}
-          className="h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors"
+          className="h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors"
         >+ 添加企业</button>
       </div>
 
@@ -122,7 +130,7 @@ export default function EnterpriseManager() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[15px] font-semibold">{editingId ? '编辑企业' : '添加企业'}</h3>
               <button onClick={() => setModalOpen(false)}
-                className="w-6 h-6 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none">×</button>
+                className="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none active:scale-90">×</button>
             </div>
             <div className="space-y-3">
               <div>
@@ -157,7 +165,7 @@ export default function EnterpriseManager() {
               <button onClick={() => setModalOpen(false)}
                 className="h-8 px-4 rounded-sm text-xs font-medium cursor-pointer bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-muted hover:text-ink transition-colors">取消</button>
               <button onClick={handleSave}
-                className="h-8 px-4 rounded-sm text-xs font-semibold cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors">{editingId ? '更新' : '保存'}</button>
+                className="h-8 px-4 rounded-sm text-xs font-semibold cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors">{editingId ? '更新' : '保存'}</button>
             </div>
           </div>
         </div>
