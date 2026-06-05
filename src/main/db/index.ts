@@ -302,6 +302,28 @@ function initSchema() {
     ['98', '植物性铺垫材料'], ['99', '其他包装'],
   ])
 
+  // ═══ v2.5: calculator history ═══
+  db.run(`
+    CREATE TABLE IF NOT EXISTS calculator_history (
+      id TEXT PRIMARY KEY,
+      hs_code TEXT,
+      hs_description TEXT,
+      country_code TEXT,
+      cif_value REAL,
+      quantity REAL,
+      duty_rate REAL,
+      duty_amount REAL,
+      vat_rate REAL,
+      vat_amount REAL,
+      consumption_tax_rate REAL,
+      consumption_tax_amount REAL,
+      total_tax REAL,
+      total_price REAL,
+      result_json TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    )
+  `)
+
   seedIfEmpty('countries', [
     // ISO 3166-1 alpha-2 country codes
     ['CN', '中国'], ['US', '美国'], ['GB', '英国'], ['FR', '法国'],

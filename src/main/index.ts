@@ -16,6 +16,7 @@ import { registerAIIpc } from './ipc/ai'
 import { registerHsCodeIpc } from './ipc/hs-code'
 import { registerDataIpc } from './ipc/data'
 import { registerExportIpc } from './ipc/export'
+import { registerCalculatorIpc } from './ipc/calculator'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -45,6 +46,7 @@ async function initApp() {
   await registerHsCodeIpc()
   registerDataIpc()
   registerExportIpc()
+  registerCalculatorIpc()
 }
 
 function createWindow() {

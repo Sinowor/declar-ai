@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Workspace from './components/Workspace'
 import HsClassifier from './components/HsClassifier'
 import BatchClassifier from './components/BatchClassifier'
+import Calculator from './components/Calculator'
 import TitleBar from './components/TitleBar'
 import Settings from './components/Settings'
 import AboutModal from './components/AboutModal'
@@ -245,6 +246,9 @@ export default function App() {
       )}
       {activeModule === 'hs-classifier' && batchMode && (
         <BatchClassifier onBack={() => setBatchMode(false)} />
+      )}
+      {activeModule === 'calculator' && (
+        <Calculator />
       )}
       {activeModule === 'settings' && (
         <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />
