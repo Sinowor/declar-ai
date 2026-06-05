@@ -197,6 +197,7 @@ export default function App() {
       {/* ═══ Left Icon Rail ═══ */}
       <NavRail active={activeModule} onChange={setActiveModule}
         editing={!!editingId}
+        sidebarCollapsed={sidebarCollapsed}
         onExitEdit={handleExitEdit}
         onToggleSidebar={() => setSidebarCollapsed(v => !v)}
         onLogoClick={() => setAboutOpen(true)}
