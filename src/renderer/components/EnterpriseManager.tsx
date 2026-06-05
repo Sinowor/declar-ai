@@ -117,16 +117,20 @@ export default function EnterpriseManager() {
 
       {/* Add/Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setModalOpen(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-6 w-[440px]" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[15px] font-semibold mb-4">{editingId ? '编辑企业' : '添加企业'}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setModalOpen(false)} onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-6 w-[440px]" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') handleSave() }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[15px] font-semibold">{editingId ? '编辑企业' : '添加企业'}</h3>
+              <button onClick={() => setModalOpen(false)}
+                className="w-6 h-6 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none">×</button>
+            </div>
             <div className="space-y-3">
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">企业名称 *</label>
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="如 天津报关有限公司"
-                  className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.name ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
-                {errors.name && <div className="text-[10px] text-red-500 mt-0.5">{errors.name}</div>}
+                  className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.name ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} autoFocus />
+                {errors.name && <div className="text-[11px] text-red-500 mt-0.5">{errors.name}</div>}
               </div>
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">企业简称</label>
@@ -139,14 +143,14 @@ export default function EnterpriseManager() {
                 <input value={form.credit_code} onChange={e => setForm({ ...form, credit_code: e.target.value })}
                   placeholder="18位，选填"
                   className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.credit_code ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
-                {errors.credit_code && <div className="text-[10px] text-red-500 mt-0.5">{errors.credit_code}</div>}
+                {errors.credit_code && <div className="text-[11px] text-red-500 mt-0.5">{errors.credit_code}</div>}
               </div>
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">海关10位编码</label>
                 <input value={form.customs_code} onChange={e => setForm({ ...form, customs_code: e.target.value })}
                   placeholder="10位数字，选填"
                   className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.customs_code ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
-                {errors.customs_code && <div className="text-[10px] text-red-500 mt-0.5">{errors.customs_code}</div>}
+                {errors.customs_code && <div className="text-[11px] text-red-500 mt-0.5">{errors.customs_code}</div>}
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">

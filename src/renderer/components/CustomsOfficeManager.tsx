@@ -93,15 +93,19 @@ export default function CustomsOfficeManager() {
 
       {/* Add Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setModalOpen(false)}>
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-6 w-[380px]" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[15px] font-semibold mb-4">添加关区</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setModalOpen(false)} onKeyDown={e => { if (e.key === 'Escape') setModalOpen(false) }}>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-panel p-6 w-[380px]" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Enter') handleSave() }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[15px] font-semibold">添加关区</h3>
+              <button onClick={() => setModalOpen(false)}
+                className="w-6 h-6 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent text-lg leading-none">×</button>
+            </div>
             <div className="space-y-3">
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">关区代码 *</label>
                 <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })}
                   placeholder="如 0201"
-                  className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800" />
+                  className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800" autoFocus />
               </div>
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">关区名称 *</label>
