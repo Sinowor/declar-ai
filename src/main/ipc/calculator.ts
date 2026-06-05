@@ -41,6 +41,14 @@ function lookupFromDb(hsCode: string): TaxRate | null {
 // ═══ IPC Handlers ═══
 
 export function registerCalculatorIpc() {
+  // HS code validation
+  ipcMain.handle('hs:validate', async (_event, hsCode: string) => {
+    const cleaned = hsCode.replace(/[.\s]/g, '').trim()
+    if (!cleaned || cleaned.length < 4) return { valid: false }
+    const row = queryOne('SELECT code FROM hs_codes WHERE code = ?', [cleaned.substring(0, 8)])
+    return { valid: !!row, code: cleaned }
+  })
+
   // Tax rate lookup
   ipcMain.handle('calculator:lookup', async (_event, hsCode: string) => {
     const entry = lookupFromDb(hsCode)

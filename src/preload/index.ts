@@ -57,6 +57,7 @@ const api = {
   countriesList: () => ipcRenderer.invoke('data:countries:list'),
   countriesSave: (item: { code: string; name: string }) => ipcRenderer.invoke('data:countries:save', item),
   countriesDelete: (code: string) => ipcRenderer.invoke('data:countries:delete', code),
+  hsValidate: (hsCode: string) => ipcRenderer.invoke("hs:validate", hsCode),
   calculatorLookup: (hsCode: string) => ipcRenderer.invoke("calculator:lookup", hsCode),
   calculatorHistory: () => ipcRenderer.invoke("calculator:history-list"),
   calculatorSaveHistory: (record: any) => ipcRenderer.invoke("calculator:history-save", record),

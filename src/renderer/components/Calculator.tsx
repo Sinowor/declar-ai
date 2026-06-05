@@ -88,6 +88,7 @@ export default function Calculator() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copyMsg, setCopyMsg] = useState('')
+  const [warnCode, setWarnCode] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
   const [showCountries, setShowCountries] = useState(false)
   const [countries, setCountries] = useState<any[]>([])
@@ -133,6 +134,13 @@ export default function Calculator() {
     if (mode === 'calc' && rateType === 'manual') { doCalculate(null); setLoading(false); return }
     if (mode === 'lookup' && !hsCode.trim()) { setLoading(false); return }
     if (mode === 'calc' && !hsCode.trim()) { setError('请输入 HS 编码或选择手动税率'); setLoading(false); return }
+
+    // Validate HS code
+    if (hsCode.trim() && api?.hsValidate) {
+      const v = await api.hsValidate(hsCode.trim())
+      if (!v.valid) { setWarnCode(hsCode.trim()); setLoading(false); return }
+    }
+    setWarnCode('')
 
     if (api?.calculatorLookup) {
       const res = await api.calculatorLookup(hsCode.trim())
@@ -181,7 +189,7 @@ export default function Calculator() {
                 <div className="flex-1">
                   <input value={hsCode} onChange={e => setHsCode(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleLookup() }}
                     placeholder="HS 编码 · 84141000"
-                    className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                    className="hs-input w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
                 </div>
                 <div className="w-[100px]">
                   <div className="flex bg-surface dark:bg-gray-800 rounded-md p-0.5 h-9">
@@ -304,6 +312,25 @@ export default function Calculator() {
                 </div>
               </div>
             </>
+          )}
+
+          {/* HS code not found warning */}
+          {warnCode && (
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="text-amber-500 shrink-0 mt-0.5">⚠</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-medium text-amber-700 dark:text-amber-300">税号未在《进出口税则》中找到</div>
+                  <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">税号 "{warnCode}" 未在税则中验证，可能是输入有误。您可以修改后重试，或继续使用。</div>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => { setWarnCode(''); document.querySelector<HTMLInputElement>('.hs-input')?.focus() }}
+                  className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 transition-colors">修改税号</button>
+                <button onClick={() => { setWarnCode(''); handleLookup() }}
+                  className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border-none bg-amber-500 hover:bg-amber-600 text-white transition-colors">仍要查询</button>
+              </div>
+            </div>
           )}
 
           <button onClick={handleLookup} disabled={loading || (mode === 'lookup' && !hsCode.trim())}

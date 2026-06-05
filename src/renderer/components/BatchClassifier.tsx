@@ -30,6 +30,7 @@ export default function BatchClassifier({ onBack }: Props) {
   const [expandedRow, setExpandedRow] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [showStopConfirm, setShowStopConfirm] = useState(false)
+  const [unverified, setUnverified] = useState<Set<number>>(new Set())
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
@@ -50,6 +51,15 @@ export default function BatchClassifier({ onBack }: Props) {
         const res = await window.api.hsBatchClassify(filePath)
         if (res.success && res.results) {
           setResults(res.results)
+          // Validate HS codes
+          const unv = new Set<number>()
+          for (const r of res.results) {
+            if (r.hs_code && window.api?.hsValidate) {
+              const v = await window.api.hsValidate(r.hs_code)
+              if (!v.valid) unv.add(r.row_index)
+            }
+          }
+          setUnverified(unv)
         } else {
           showToast(`归类失败: ${res.error || '未知错误'}`)
         }
@@ -212,7 +222,7 @@ export default function BatchClassifier({ onBack }: Props) {
                     <td className="px-3 py-2.5 text-xs text-muted">{r.row_index + 1}</td>
                     <td className="px-3 py-2.5 text-[13px] max-w-[240px] truncate" title={r.product_info}>{r.product_info}</td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[13px] font-mono font-semibold" style={{ color: theme.primary }}>{r.hs_code || '—'}</span>
+                      <span className="text-[13px] font-mono font-semibold" style={{ color: theme.primary }}>{r.hs_code || '—'}</span>{unverified.has(r.row_index) && <span className="text-amber-500 ml-1 text-[11px]" title="该编码未在税则中验证">⚠</span>}
                     </td>
                     <td className="px-3 py-2.5">
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
