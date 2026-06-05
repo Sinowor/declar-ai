@@ -131,7 +131,7 @@ export default function Sidebar({
                     isEditing
                       ? 'bg-primary-50 ring-1 ring-primary-200'
                       : isActive
-                        ? 'bg-gray-100'
+                        ? 'bg-gray-100 dark:bg-gray-800'
                         : 'hover:bg-surface dark:hover:bg-gray-800'
                   }`}
                 >

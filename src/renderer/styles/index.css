@@ -41,9 +41,13 @@
 /* Override Tailwind static surface/ink/muted colors in dark mode */
 [data-theme="dark"] .bg-surface { background-color: #0F172A; }
 [data-theme="dark"] .text-ink { color: #F1F5F9; }
-[data-theme="dark"] .bg-ink { background-color: #0F172A; }
+[data-theme="dark"] .bg-ink { background-color: #1E293B; }
 [data-theme="dark"] .text-muted { color: #94A3B8; }
 [data-theme="dark"] .border-surface { border-color: #0F172A; }
+
+/* Shadows — dark mode: lighter, subtler */
+[data-theme="dark"] .shadow-card { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+[data-theme="dark"] .shadow-panel { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3); }
 
 * { box-sizing: border-box; }
 
