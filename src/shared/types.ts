@@ -161,6 +161,48 @@ export const FIELD_LABELS: Record<string, string> = {
   // Bonded
   record_book_number: '备案号/手册号',
   bonded_mode: '保税方式',
+  // Transit — Basic Info
+  customs_declaration_port: '申报地海关',
+  entry_exit_port: '进出口岸',
+  declaration_unit_name: '申报单位',
+  declaration_unit_credit_code: '统一社会信用代码',
+  declaration_unit_customs_code: '海关10位编码',
+  domestic_transport_tool_name: '境内运输工具名称',
+  domestic_transport_tool_id: '境内运输工具编号',
+  domestic_transport_voyage: '境内运输工具航次',
+  carrier_name: '承运单位',
+  estimated_arrival_date: '预计运抵指运地日期',
+  declaration_form_no: '申报单号',
+  notes: '备注',
+  // Transit — Bill of Lading (前程提运单)
+  vessel_no: '船舶编号',
+  vessel_name_en: '船舶英文名',
+  voyage_no: '航次号',
+  bill_of_lading_no: '提单号',
+  entry_exit_date: '进出境日期',
+  bl_package_count: '件数（提单）',
+  bl_gross_weight: '重量（提单）',
+  previous_declaration_no: '前程报关单号',
+  // Transit — Container fields
+  container_no: '集装箱号',
+  container_size: '集装箱尺寸',
+  container_package_count: '件数（箱）',
+  container_weight: '重量（箱）',
+  container_transport_tool_id: '运输工具编号',
+  container_transport_tool_name: '运输工具名称',
+  container_transport_tool_weight: '运输工具重量',
+  customs_lock_count: '关锁个数',
+  customs_lock_no: '关锁号',
+  seal_no: '封志号',
+  // Transit — Cargo fields
+  hs_code: '商品编码',
+  cargo_name_spec: '品名及规格',
+  packaging: '包装',
+  quantity: '数量',
+  unit: '单位',
+  total_price: '总价',
+  currency_code: '币制',
+  container_numbers: '所在集装箱号',
 }
 
 export const CARGO_FIELD_LABELS: Record<string, string> = {
