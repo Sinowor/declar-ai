@@ -44,14 +44,14 @@ export default function HsHistorySidebar({ items, onSelect, collapsed, onToggleC
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
       }}
-      className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10"
+      className="flex flex-col bg-white dark:bg-gray-900 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0 drag-region">
         <div className="text-sm font-semibold whitespace-nowrap">归类历史 · {items.length}</div>
         <button
           onClick={onToggleCollapse}
-          className="w-7 h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface dark:hover:bg-gray-800 shrink-0 no-drag"
+          className="w-7 h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 dark:bg-gray-900 flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface dark:hover:bg-gray-800 shrink-0 no-drag"
           title="折叠侧栏" aria-label="折叠侧栏"
         >
           <span style={{ transform: 'rotate(180deg)', display: 'inline-block', transition: 'transform 0.25s' }}>◂</span>
