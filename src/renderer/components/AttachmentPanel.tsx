@@ -173,14 +173,14 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
         {/* Tag editor popover */}
         {editFileId === file.id && (
           <div ref={popoverRef}
-            className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-panel p-2 min-w-[160px]"
+            className="absolute z-50 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-panel p-2 min-w-[160px]"
             style={{ top: '100%', left: 0 }}
           >
             <div className="flex flex-wrap gap-1 mb-2">
               {TAG_OPTIONS.filter(t => !tags.includes(t)).map(opt => (
                 <button key={opt}
                   onClick={() => addTag(file.id, opt)}
-                  className="px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer bg-surface border border-gray-200 text-muted hover:text-primary-500 hover:border-primary-300 transition-colors"
+                  className="px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer bg-surface border border-gray-200 dark:border-gray-700 text-muted hover:text-primary-500 hover:border-primary-300 transition-colors"
                 >{opt}</button>
               ))}
             </div>
@@ -191,7 +191,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
                 onChange={e => setCustomTag(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleCustomTag(file.id) }}
                 placeholder="自定义标签"
-                className="flex-1 h-7 rounded-md border border-gray-200 px-2 text-[12px] outline-none focus:border-primary-500 font-sans"
+                className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 font-sans"
                 autoFocus
               />
               <button
@@ -215,7 +215,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
     const typeLabel = fileTypeIcon(ext)
 
     return (
-      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group">
+      <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors group">
         {/* File type badge */}
         <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[10px] font-bold shrink-0"
           style={{ background: typeLabel === 'PDF' ? '#FEE2E2' : typeLabel === 'XLS' ? '#DCFCE7' : typeLabel === 'DOC' ? '#DBEAFE' : typeLabel === 'IMG' ? '#FEF3C7' : '#F1F5F9', color: typeLabel === 'PDF' ? '#991B1B' : typeLabel === 'XLS' ? '#166534' : typeLabel === 'DOC' ? '#1E40AF' : typeLabel === 'IMG' ? '#92400E' : '#64748B' }}
@@ -239,7 +239,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
         {/* Actions */}
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <button onClick={() => handleOpen(file.id)}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface cursor-pointer transition-colors border-none bg-transparent"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent"
             title="打开文件"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -247,7 +247,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
             </svg>
           </button>
           <button onClick={() => handleReveal(file.id)}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface cursor-pointer transition-colors border-none bg-transparent"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border-none bg-transparent"
             title="在文件夹中显示"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -261,8 +261,8 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-        <div className="flex items-center px-6 py-[18px] border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+        <div className="flex items-center px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold">附件管理</h3>
         </div>
         <div className="flex items-center justify-center py-10">
@@ -275,8 +275,8 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
 
   if (error) {
     return (
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-        <div className="flex items-center px-6 py-[18px] border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+        <div className="flex items-center px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold">附件管理</h3>
         </div>
         <div className="flex items-center justify-center py-8 text-sm text-muted">
@@ -287,8 +287,8 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl shadow-card">
-      <div className="flex items-center px-6 py-[18px] border-b border-gray-200">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+      <div className="flex items-center px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold">附件管理</h3>
         <span className="ml-2 text-[11px] text-muted">{files.length} 个文件</span>
       </div>
@@ -314,7 +314,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
 
       {/* Generated files */}
       {generatedFiles.length > 0 && (
-        <div className={`${uploadedFiles.length > 0 ? 'border-t border-gray-100' : ''}`}>
+        <div className={`${uploadedFiles.length > 0 ? 'border-t border-gray-100 dark:border-gray-800' : ''}`}>
           <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">
             生成文件 ({generatedFiles.length})
           </div>
