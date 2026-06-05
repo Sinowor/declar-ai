@@ -193,9 +193,9 @@ export default function BatchClassifier({ onBack }: Props) {
       <div className="px-8 pb-12 flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr style={{ background: '#1E293B' }}>
+            <tr className="bg-slate-800 dark:bg-slate-700">
               {['#', '商品信息', 'HS编码', '置信度', '关税', '增值税', '监管', '依据摘要'].map(h => (
-                <th key={h} className="px-3 py-2.5 text-[11px] font-semibold text-left uppercase tracking-wider" style={{ color: '#e2e8f0' }}>{h}</th>
+                <th key={h} className="px-3 py-2.5 text-[11px] font-semibold text-left uppercase tracking-wider" style={{ color: 'var(--border)' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -230,8 +230,8 @@ export default function BatchClassifier({ onBack }: Props) {
                       <td colSpan={8} className="px-4 py-3 bg-surface dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <div className="text-[13px] space-y-2">
                           <div><span className="font-semibold text-muted">商品信息：</span>{r.product_info}</div>
-                          {r.rationale && <div><span className="font-semibold text-muted">归类依据：</span><span style={{ color: '#475569' }}>{r.rationale}</span></div>}
-                          {r.tariff_text && <div><span className="font-semibold text-muted">税则原文：</span><pre className="text-[12px] mt-1 p-2 rounded-lg font-mono whitespace-pre-wrap" style={{ background: '#fff', border: '1px solid #e2e8f0', color: '#475569' }}>{r.tariff_text}</pre></div>}
+                          {r.rationale && <div><span className="font-semibold text-muted">归类依据：</span><span style={{ color: 'var(--muted)' }}>{r.rationale}</span></div>}
+                          {r.tariff_text && <div><span className="font-semibold text-muted">税则原文：</span><pre className="text-[12px] mt-1 p-2 rounded-lg font-mono whitespace-pre-wrap" style={{ background: 'var(--surface)', border: '1px solid #e2e8f0', color: 'var(--muted)' }}>{r.tariff_text}</pre></div>}
                           {isLow && r.assumptions && (
                             <div className="flex items-start gap-2 px-3 py-2 rounded-lg" style={{ background: '#FFF7ED', border: '1px solid #FED7AA' }}>
                               <span className="text-amber-600 font-bold text-xs shrink-0 mt-0.5">!</span>

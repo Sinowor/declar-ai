@@ -35,7 +35,7 @@ function timeAgo(dateStr: string): string {
 export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void }) {
   const { theme } = useTheme()
   const p = (alpha: number) => `rgba(${theme.primaryRgb},${alpha})`
-  const confDot: Record<string, string> = { high: theme.primary, medium: p(0.45), low: '#cbd5e1' }
+  const confDot: Record<string, string> = { high: theme.primary, medium: p(0.45), low: 'var(--border)' }
 
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
@@ -153,7 +153,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             return (
               <div key={label} className="step-enter flex items-center gap-3 justify-center" style={{ animationDelay: `${i * 0.12}s` }}>
                 <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-500"
-                  style={done ? { background: p(0.12), color: theme.primary } : active ? { background: theme.primary, color: '#fff' } : { color: '#cbd5e1' }}>
+                  style={done ? { background: p(0.12), color: theme.primary } : active ? { background: theme.primary, color: '#fff' } : { color: 'var(--border)' }}>
                   {done ? '✓' : active ? '' : i + 1}
                 </span>
                 <span className="text-[13px] transition-colors duration-500 text-muted"
@@ -188,7 +188,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               </span>
               <div>
                 <div className="text-sm font-semibold mb-1" style={{ color: theme.primary }}>AI 需要更多信息</div>
-                <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{aiQuestion}</div>
+                <div className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{aiQuestion}</div>
               </div>
             </div>
             {missingFields.length > 0 && (
@@ -207,7 +207,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doClassify() }}
               placeholder="在此补充商品信息..."
               className="w-full min-h-[80px] resize-none border-0 outline-none text-[15px] leading-relaxed font-sans bg-transparent px-5 py-4"
-              style={{ color: '#1e293b' }} autoFocus
+              style={{ color: 'var(--ink)' }} autoFocus
             />
             <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-100 dark:border-gray-800">
               <button onClick={() => doClassify(true)}
@@ -273,7 +273,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doClassify() }}
               placeholder={input || focused ? '描述商品名称、材质、用途、参数...' : placeholders[placeholderIdx]}
               className="w-full min-h-[100px] resize-none border-0 outline-none text-[15px] leading-relaxed font-sans bg-transparent px-5 py-4 hs-ph"
-              style={{ color: '#1e293b' }} autoFocus
+              style={{ color: 'var(--ink)' }} autoFocus
             />
             <style>{`
               @keyframes phFade { 0%,100%{opacity:0} 15%,85%{opacity:0.35} }
@@ -283,7 +283,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100 dark:border-gray-800">
               <button onClick={() => doClassify()} disabled={!input.trim()}
                 className="h-9 px-5 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-colors hover:opacity-90 active:scale-[0.98]"
-                style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : '#94a3b8' }}
+                style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : 'var(--muted)' }}
               >开始归类分析 <span className="text-[10px] opacity-40 ml-0.5">⌘↵</span></button>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
                 <span key={s}>
                   <button onClick={() => { setInput(s); textareaRef.current?.focus() }}
                     className="cursor-pointer bg-transparent border-none p-0 hover:text-primary-500 transition-colors text-muted">{s}</button>
-                  {i < shortcuts.length - 1 && <span style={{ color: '#cbd5e1' }}> · </span>}
+                  {i < shortcuts.length - 1 && <span style={{ color: 'var(--border)' }}> · </span>}
                 </span>
               ))}
             </span>
@@ -324,7 +324,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             </div>
           )}
 
-          <p className="text-center text-[11px] mt-8" style={{ color: '#cbd5e1' }}>
+          <p className="text-center text-[11px] mt-8" style={{ color: 'var(--border)' }}>
             基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
           </p>
 
@@ -388,7 +388,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
                 </div>
               )}
               {infoAssumed && assumptions && (
-                <div className="mt-3 text-[12px] leading-relaxed px-4 py-3 rounded-xl border" style={{ borderColor: p(0.15), background: p(0.03), color: '#475569' }}>
+                <div className="mt-3 text-[12px] leading-relaxed px-4 py-3 rounded-xl border" style={{ borderColor: p(0.15), background: p(0.03), color: 'var(--muted)' }}>
                   <div className="font-semibold mb-1.5" style={{ color: theme.primary }}>基于 AI 假设信息归类</div>
                   <div className="whitespace-pre-wrap">{assumptions}</div>
                   <div className="mt-2 text-[11px] text-muted">以上信息非用户提供的真实完整数据，归类仅供报关参考</div>
@@ -411,17 +411,17 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           </div>
 
           {result.rationale && (
-            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.rationale}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{result.rationale}</div></div>
           )}
           {result.alternatives && (
-            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{result.alternatives}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{result.alternatives}</div></div>
           )}
           {result.tariff_text && (
-            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: '#F8FAFC', borderColor: '#e2e8f0', color: '#475569', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--muted)', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
           )}
         </div>
 
-        <p className="result-enter text-center text-[11px] mt-2" style={{ color: '#cbd5e1', animationDelay: '0.4s' }}>基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准</p>
+        <p className="result-enter text-center text-[11px] mt-2" style={{ color: 'var(--border)', animationDelay: '0.4s' }}>基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准</p>
       </div>
 
       {toast && (

@@ -217,9 +217,13 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
     return (
       <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors group">
         {/* File type badge */}
-        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[10px] font-bold shrink-0"
-          style={{ background: typeLabel === 'PDF' ? '#FEE2E2' : typeLabel === 'XLS' ? '#DCFCE7' : typeLabel === 'DOC' ? '#DBEAFE' : typeLabel === 'IMG' ? '#FEF3C7' : '#F1F5F9', color: typeLabel === 'PDF' ? '#991B1B' : typeLabel === 'XLS' ? '#166534' : typeLabel === 'DOC' ? '#1E40AF' : typeLabel === 'IMG' ? '#92400E' : '#64748B' }}
-        >{typeLabel}</span>
+        <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-[10px] font-bold shrink-0 ${
+          typeLabel === 'PDF' ? 'bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
+          typeLabel === 'XLS' ? 'bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
+          typeLabel === 'DOC' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
+          typeLabel === 'IMG' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' :
+          'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+        }`}>{typeLabel}</span>
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
