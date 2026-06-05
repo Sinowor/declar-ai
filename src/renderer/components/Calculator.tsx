@@ -165,7 +165,7 @@ export default function Calculator() {
   }
 
   const renderInputPanel = () => (
-    <div className="px-6 pb-6 space-y-4 flex-1 overflow-y-auto">
+    <div className="px-8 pb-6 space-y-4 flex-1 overflow-y-auto">
       {/* Import/Export toggle */}
       <div>
         <label className="block text-[12px] font-medium text-muted mb-1">进出口</label>
@@ -309,23 +309,36 @@ export default function Calculator() {
   const renderResult = () => {
     if (mode === 'lookup' && tariff) {
       return (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card w-[480px]">
-          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold">税率信息</h3>
-            <p className="text-[12px] text-muted mt-0.5">{tariff.description} ({tariff.hs_code})</p>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card w-[520px]">
+          <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-baseline gap-3">
+              <h3 className="text-lg font-semibold">税率信息</h3>
+              <span className="text-[13px] font-mono text-primary-500">{tariff.hs_code}</span>
+            </div>
+            <p className="text-[13px] text-muted mt-1">{tariff.description}</p>
           </div>
-          <div className="p-6 space-y-3">
-            {[
-              { label: '最惠国税率', value: tariff.mfn_rate != null ? `${tariff.mfn_rate}%` : '—' },
-              { label: '普通税率', value: tariff.general_rate != null ? `${tariff.general_rate}%` : '—' },
-              { label: '增值税率', value: `${tariff.vat_rate}%` },
-              { label: '消费税率', value: tariff.has_consumption_tax ? '适用（见具体商品）' : '不适用' },
-              { label: '监管条件', value: supLabel(tariff.supervision) },
-              { label: '法定单位', value: tariff.unit },
-            ].map(row => (
-              <div key={row.label} className="flex items-center justify-between text-[14px]">
-                <span className="text-muted">{row.label}</span>
-                <span className="font-medium">{row.value}</span>
+          <div className="p-8 space-y-4">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+              {[
+                { label: '最惠国税率', value: tariff.mfn_rate != null ? `${tariff.mfn_rate}%` : '—' },
+                { label: '普通税率', value: tariff.general_rate != null ? `${tariff.general_rate}%` : '—' },
+                { label: '增值税率', value: `${tariff.vat_rate}%` },
+                { label: '法定单位', value: tariff.unit },
+              ].map(row => (
+                <div key={row.label}>
+                  <div className="text-[12px] text-muted">{row.label}</div>
+                  <div className="text-[16px] font-semibold mt-0.5">{row.value}</div>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+              <div className="text-[12px] text-muted mb-1">消费税率</div>
+              <div className="text-[14px] font-medium">{tariff.has_consumption_tax ? '适用（见具体商品）' : '不适用'}</div>
+            </div>
+            {tariff.supervision && (
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                <div className="text-[12px] text-muted mb-1">监管条件</div>
+                <div className="text-[13px] font-medium leading-relaxed">{supLabel(tariff.supervision)}</div>
               </div>
             ))}
           </div>
@@ -336,12 +349,15 @@ export default function Calculator() {
     if (mode === 'calc' && result) {
       const cif = result.cif_value
       return (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card w-[480px]">
-          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold">计算结果</h3>
-            <p className="text-[12px] text-muted mt-0.5">{result.hs_description} ({result.hs_code})</p>
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card w-[520px]">
+          <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-baseline gap-3">
+              <h3 className="text-lg font-semibold">计算结果</h3>
+              <span className="text-[13px] font-mono text-primary-500">{result.hs_code}</span>
+            </div>
+            <p className="text-[13px] text-muted mt-1">{result.hs_description}</p>
           </div>
-          <div className="p-6 space-y-3">
+          <div className="p-8 space-y-4">
             {[
               ...(result.fob_value > 0 && result.fob_value < result.cif_value ? [
                 { label: '货值 (FOB)', value: `¥ ${fmt(result.fob_value)}` },
@@ -369,14 +385,14 @@ export default function Calculator() {
                 <span className="tabular-nums font-medium">{row.value}</span>
               </div>
             ))}
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
-              <div className="flex items-center justify-between text-[16px] font-bold">
-                <span>综合税费</span>
-                <span className="text-primary-600 tabular-nums">¥ {fmt(result.total_tax)}</span>
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[16px] font-bold">综合税费</span>
+                <span className="text-[20px] font-bold text-primary-600 tabular-nums">¥ {fmt(result.total_tax)}</span>
               </div>
-              <div className="flex items-center justify-between text-[13px] text-muted mt-1">
+              <div className="flex items-center justify-between text-[13px] text-muted mt-2">
                 <span>完税总价 (CIF + 税费)</span>
-                <span className="tabular-nums">¥ {fmt(result.total_price)}</span>
+                <span className="text-[15px] font-semibold tabular-nums">¥ {fmt(result.total_price)}</span>
               </div>
             </div>
           </div>
@@ -390,21 +406,21 @@ export default function Calculator() {
   return (
     <div className="flex-1 flex overflow-hidden bg-surface">
       {/* Left: Input Panel */}
-      <div className="w-[380px] shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-        <div className="px-6 pt-6 pb-3 drag-region">
-          <h1 className="text-[24px] font-bold">费率计算器</h1>
-          <p className="text-muted text-[13px] mt-1">进口税费查询与计算</p>
+      <div className="w-[420px] shrink-0 flex flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div className="px-8 pt-8 pb-5 drag-region">
+          <h1 className="text-[26px] font-bold tracking-tight">费率计算器</h1>
+          <p className="text-muted text-[13px] mt-1.5">进口税费查询与计算</p>
         </div>
 
         {/* Mode tabs */}
-        <div className="px-6 pb-4">
+        <div className="px-8 pb-5">
           <div className="flex bg-surface dark:bg-gray-800 rounded-lg p-0.5">
             {[
-              { id: 'lookup' as Mode, label: '税率查询' },
-              { id: 'calc' as Mode, label: '税费计算' },
+              { id: 'lookup' as Mode, label: '税率查询', desc: '查看税率信息' },
+              { id: 'calc' as Mode, label: '税费计算', desc: '计算综合税费' },
             ].map(tab => (
               <button key={tab.id} onClick={() => { setMode(tab.id); setResult(null); setTariff(null); setError('') }}
-                className={`flex-1 h-8 rounded-md text-[12px] font-medium cursor-pointer border-none transition-colors ${
+                className={`flex-1 h-9 rounded-md text-[13px] font-medium cursor-pointer border-none transition-all duration-200 ${
                   mode === tab.id ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'
                 }`}>
                 {tab.label}
@@ -416,9 +432,9 @@ export default function Calculator() {
         {renderInputPanel()}
 
         {history.length > 0 && (
-          <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 px-8 py-4">
             <div className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted mb-2">历史记录</div>
-            <div className="space-y-1 max-h-[160px] overflow-y-auto">
+            <div className="space-y-0.5 max-h-[180px] overflow-y-auto">
               {history.slice(0, 10).map(item => (
                 <button key={item.id}
                   onClick={() => {
