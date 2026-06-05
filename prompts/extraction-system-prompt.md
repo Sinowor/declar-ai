@@ -11,9 +11,10 @@
 
 ## 数据模型
 
-数据分为两层：
-- `fields`：所有顶层字段（运输信息、贸易当事人、口岸、贸易条件、海关参数等）
+数据分为三层：
+- `fields`：所有顶层字段（运输信息、贸易当事人、口岸、贸易条件、海关参数、转关基本信息、提运单信息等）
 - `cargo_details`：货物明细数组，每条货物是一个平铺的字段字典
+- `container_details`：集装箱明细数组（仅转关运输申报单），每个集装箱是一个平铺的字段字典
 
 ## 字段说明
 
@@ -78,6 +79,56 @@
 - `record_book_number`：备案号/手册号/电子账册编号
 - `bonded_mode`：保税方式
 
+### 转关单 — 基本信息 (header/transport)
+转关运输申报单专有字段：
+- `customs_declaration_port`：申报地海关，如"天津新港海关"
+- `entry_exit_port`：进出口岸，如"二连海关"
+- `declaration_unit_name`：申报单位（企业名称）
+- `declaration_unit_credit_code`：申报单位统一社会信用代码
+- `declaration_unit_customs_code`：申报单位海关10位编码
+- `declaration_form_no`：申报单号
+- `estimated_arrival_date`：预计运抵指运地日期
+- `domestic_transport_tool_name`：境内运输工具名称，如车号、车皮号
+- `domestic_transport_tool_id`：境内运输工具编号
+- `domestic_transport_voyage`：境内运输工具航次
+- `carrier_name`：承运单位名称
+- `notes`：备注
+
+### 转关单 — 前程提运单信息 (transport/party/package)
+前程（海运段）运输提单信息：
+- `vessel_no`：船舶编号
+- `vessel_name_en`：船舶英文名，如"EVER GOLDEN"
+- `transport_mode`：运输方式（前程），从以下选择："水路运输"、"铁路运输"、"公路运输"、"航空运输"
+- `voyage_no`：航次号，如"072N"
+- `bill_of_lading_no`：提单号/主提单号（Master B/L No.）
+- `entry_exit_date`：进出境日期（船舶到港/离港日期）
+- `bl_package_count`：提运单记载总件数（整数）
+- `bl_gross_weight`：提运单记载总毛重(KG)
+- `previous_declaration_no`：前程报关单号（如海运进口报关单号）
+- `consignee_name`：收货人名称
+
+### 转关单 — 集装箱明细 (container_details 数组)
+
+每个集装箱对象可包含以下字段（均为可选）：
+- `container_no`：集装箱号，如"OOCU7855971"
+- `container_size`：集装箱尺寸，从以下选择："20尺"、"40尺"、"45尺"、"其他"
+- `container_package_count`：该箱装载件数（整数）
+- `container_weight`：该箱装载重量(KG)
+- `container_transport_tool_id`：装载该箱的运输工具编号
+- `container_transport_tool_name`：装载该箱的运输工具名称
+- `container_transport_tool_weight`：装载该箱的运输工具自重
+- `customs_lock_count`：关锁个数（整数）
+- `customs_lock_no`：关锁号（多个用逗号分隔）
+- `seal_no`：封志号
+
+### 转关单 — 货物明细扩展字段
+
+在 cargo_details 的标准字段基础上，增加以下转关专有字段：
+- `cargo_name_spec`：品名及规格（合并描述），如"汽车配件（铸铁制动盘）"
+- `packaging`：包装类型，如"纸箱"、"木箱"、"托盘"
+- `currency_code`：币制，如"美元"、"人民币"
+- `container_numbers`：所在集装箱号（该商品装在哪些集装箱中，多个用逗号分隔）
+
 ### 货物明细 (cargo_details 数组)
 
 每条货物对象可包含以下字段（均为可选）：
@@ -138,6 +189,17 @@
       "container_number": "OOCU7855971",
       "bill_of_lading_number": "COSU6245837190",
       ...
+    }
+  ],
+  "container_details": [
+    {
+      "container_no": "OOCU7855971",
+      "container_size": "40尺",
+      "container_package_count": 50,
+      "container_weight": 12000,
+      "customs_lock_count": 1,
+      "customs_lock_no": "TSL2024001",
+      "seal_no": "SEAL001"
     }
   ],
   "extraction_notes": [
