@@ -128,7 +128,7 @@ export default function BatchClassifier({ onBack }: Props) {
             <div className="text-[13px] text-muted">或点击选择文件 · 支持 .xlsx / .xls</div>
           </div>
 
-          <p className="text-[12px] mt-5" style={{ color: '#94a3b8' }}>
+          <p className="text-[12px] mt-5 text-muted">
             AI 将自动识别表头中的品名列和辅助信息列，无需手动指定列顺序。
           </p>
 
@@ -207,8 +207,7 @@ export default function BatchClassifier({ onBack }: Props) {
                 <>
                   <tr key={i}
                     onClick={() => setExpandedRow(expanded ? null : i)}
-                    className={`cursor-pointer transition-colors ${isLow ? '' : 'hover:bg-slate-50 dark:bg-gray-800 dark:hover:bg-gray-800'}`}
-                    style={{ background: i % 2 === 0 ? '#fff' : '#F8FAFC', borderBottom: '1px solid #f1f5f9' }}
+                    className={`cursor-pointer transition-colors ${isLow ? '' : 'hover:bg-slate-50 dark:hover:bg-gray-800'} ${i % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-surface dark:bg-gray-800'} border-b border-slate-100 dark:border-gray-800`}
                   >
                     <td className="px-3 py-2.5 text-xs text-muted">{r.row_index + 1}</td>
                     <td className="px-3 py-2.5 text-[13px] max-w-[240px] truncate" title={r.product_info}>{r.product_info}</td>
@@ -228,7 +227,7 @@ export default function BatchClassifier({ onBack }: Props) {
                   </tr>
                   {expanded && (
                     <tr key={`${i}-detail`}>
-                      <td colSpan={8} className="px-4 py-3" style={{ background: '#F8FAFC', borderBottom: '1px solid #e2e8f0' }}>
+                      <td colSpan={8} className="px-4 py-3 bg-surface dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                         <div className="text-[13px] space-y-2">
                           <div><span className="font-semibold text-muted">商品信息：</span>{r.product_info}</div>
                           {r.rationale && <div><span className="font-semibold text-muted">归类依据：</span><span style={{ color: '#475569' }}>{r.rationale}</span></div>}
@@ -251,7 +250,7 @@ export default function BatchClassifier({ onBack }: Props) {
       </div>
 
       {toast && (
-        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
+        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter bg-ink dark:bg-gray-700" style={{ boxShadow: '0 20px 48px rgba(0,0,0,0.3)' }}>
           <span className="text-emerald-400">✓</span> {toast}
         </div>
       )}

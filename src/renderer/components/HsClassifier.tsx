@@ -156,8 +156,8 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
                   style={done ? { background: p(0.12), color: theme.primary } : active ? { background: theme.primary, color: '#fff' } : { color: '#cbd5e1' }}>
                   {done ? '✓' : active ? '' : i + 1}
                 </span>
-                <span className="text-[13px] transition-colors duration-500"
-                  style={{ color: done ? theme.primary : active ? theme.primary : '#94a3b8' }}>
+                <span className="text-[13px] transition-colors duration-500 text-muted"
+                  style={{ color: done ? theme.primary : active ? theme.primary : undefined }}>
                   {label}
                 </span>
                 {active && (
@@ -289,13 +289,12 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           </div>
 
           <div className="mt-5 text-center">
-            <span className="text-[12px]" style={{ color: '#94a3b8' }}>
+            <span className="text-[12px] text-muted">
               试试{' '}
               {shortcuts.map((s, i) => (
                 <span key={s}>
                   <button onClick={() => { setInput(s); textareaRef.current?.focus() }}
-                    className="cursor-pointer bg-transparent border-none p-0 hover:text-primary-500 transition-colors"
-                    style={{ color: '#94a3b8' }}>{s}</button>
+                    className="cursor-pointer bg-transparent border-none p-0 hover:text-primary-500 transition-colors text-muted">{s}</button>
                   {i < shortcuts.length - 1 && <span style={{ color: '#cbd5e1' }}> · </span>}
                 </span>
               ))}
@@ -305,9 +304,9 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           {recentHistory.length > 0 && (
             <div className="mt-8">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] uppercase tracking-[0.12em] font-semibold" style={{ color: '#94a3b8' }}>最近归类</span>
+                <span className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">最近归类</span>
                 {history.length > 5 && (
-                  <button onClick={() => setShowAllHistory(true)} className="text-[11px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors" style={{ color: '#94a3b8' }}>查看全部 →</button>
+                  <button onClick={() => setShowAllHistory(true)} className="text-[11px] bg-transparent border-none cursor-pointer hover:text-primary-500 transition-colors text-muted">查看全部 →</button>
                 )}
               </div>
               <div className="space-y-0.5">
@@ -348,7 +347,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
         </div>
 
         {toast && (
-          <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
+          <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter bg-ink dark:bg-gray-700" style={{ boxShadow: '0 20px 48px rgba(0,0,0,0.3)' }}>
             <span className="text-emerald-400">✓</span> {toast}
           </div>
         )}
@@ -392,7 +391,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
                 <div className="mt-3 text-[12px] leading-relaxed px-4 py-3 rounded-xl border" style={{ borderColor: p(0.15), background: p(0.03), color: '#475569' }}>
                   <div className="font-semibold mb-1.5" style={{ color: theme.primary }}>基于 AI 假设信息归类</div>
                   <div className="whitespace-pre-wrap">{assumptions}</div>
-                  <div className="mt-2 text-[11px]" style={{ color: '#94a3b8' }}>以上信息非用户提供的真实完整数据，归类仅供报关参考</div>
+                  <div className="mt-2 text-[11px] text-muted">以上信息非用户提供的真实完整数据，归类仅供报关参考</div>
                 </div>
               )}
             </div>
@@ -426,7 +425,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
       </div>
 
       {toast && (
-        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
+        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter bg-ink dark:bg-gray-700" style={{ boxShadow: '0 20px 48px rgba(0,0,0,0.3)' }}>
           <span className="text-emerald-400">✓</span> {toast}
         </div>
       )}

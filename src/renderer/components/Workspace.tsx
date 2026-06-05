@@ -33,7 +33,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
 
   if (!declaration && !selectedDeclaration) {
     return (
-      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.04) 0%, rgba(var(--primary-rgb), 0.02) 50%, #F8FAFC 100%)` }}>
+      <main className="flex-1 flex items-center justify-center overflow-y-auto" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.04) 0%, rgba(var(--primary-rgb), 0.02) 50%, var(--surface) 100%)` }}>
         <div className="text-center py-16 px-8 w-full max-w-[480px]">
           <div className="flex justify-center mb-5">
             <span className="w-16 h-16 rounded-2xl flex items-center justify-center bg-primary-100">
@@ -48,7 +48,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           >新建申报单</button>
           {(recentDeclarations || []).slice(0, 5).length > 0 && (
             <div className="text-left">
-              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold mb-3" style={{ color: '#94a3b8' }}>最近使用</div>
+              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold mb-3 text-muted">最近使用</div>
               <div className="space-y-1">
                 {(recentDeclarations || []).slice(0, 5).map(d => (
                   <button key={d.id}
@@ -454,7 +454,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
               </div>
             )}
             {isExtracting && (
-              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.06), rgba(var(--primary-rgb), 0.02), #F8FAFC)`, borderColor: `rgba(var(--primary-rgb), 0.12)` }}>
+              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.06), rgba(var(--primary-rgb), 0.02), var(--surface))`, borderColor: `rgba(var(--primary-rgb), 0.12)` }}>
                 <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                 <div className="text-sm text-muted">AI 正在提取单证数据并审核，请稍候...</div>
               </div>
