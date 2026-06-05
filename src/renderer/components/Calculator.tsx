@@ -130,7 +130,7 @@ export default function Calculator() {
   }, [result])
 
   const SectionLabel = ({ children }: { children: string }) => (
-    <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-muted mb-3">{children}</div>
+    <div className="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted mb-3">{children}</div>
   )
 
   return (
