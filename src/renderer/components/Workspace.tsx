@@ -89,6 +89,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null)
   const [selectedType, setSelectedType] = useState<DeclarationTypeKey | null>(null)
   const [typeConfigs, setTypeConfigs] = useState<DeclarationTypeConfig[]>([])
+  const [enterprises, setEnterprises] = useState<any[]>([])
   const dirtyRef = useRef(false)
   const transportSectionRef = useRef<HTMLDivElement>(null)
   const cargoSectionRef = useRef<HTMLDivElement>(null)
@@ -100,6 +101,15 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     if (window.api?.getSchemaAll) {
       window.api.getSchemaAll().then((configs: DeclarationTypeConfig[]) => {
         if (Array.isArray(configs)) setTypeConfigs(configs)
+      }).catch(() => {})
+    }
+  }, [])
+
+  // Load enterprises for selector
+  useEffect(() => {
+    if (window.api?.enterprisesList) {
+      window.api.enterprisesList().then((list: any[]) => {
+        if (Array.isArray(list)) setEnterprises(list)
       }).catch(() => {})
     }
   }, [])
@@ -556,6 +566,33 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             <div className="flex items-center justify-between px-6 py-[18px] border-b border-gray-200">
               <h3 className="text-lg font-semibold">③ 申报单数据</h3>
               <div className="flex items-center gap-2 no-drag">
+                {/* Enterprise selector */}
+                {enterprises.length > 0 && (
+                  <div className="relative">
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const ent = enterprises.find(en => en.id === e.target.value)
+                        if (ent) {
+                          markDirty()
+                          setFields(prev => ({
+                            ...prev,
+                            declaration_unit_name: ent.name,
+                            declaration_unit_credit_code: ent.credit_code || '',
+                            declaration_unit_customs_code: ent.customs_code || '',
+                          }))
+                        }
+                      }}
+                      className="h-[34px] rounded-md border border-gray-200 pl-2.5 pr-7 text-[12px] font-medium outline-none bg-white focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
+                    >
+                      <option value="">选择申报单位...</option>
+                      {enterprises.map((e: any) => (
+                        <option key={e.id} value={e.id}>{e.short_name || e.name}{e.is_default ? ' (默认)' : ''}</option>
+                      ))}
+                    </select>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
+                  </div>
+                )}
                 {/* Type selector */}
                 <div className="relative">
                   <select
