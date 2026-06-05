@@ -10,7 +10,8 @@
     "build": "npm run build:renderer && npm run build:main",
     "build:renderer": "vite build --config vite.config.ts",
     "build:main": "tsc -p tsconfig.main.json",
-    "start": "electron ."
+    "start": "electron .",
+    "test": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -38,7 +39,8 @@
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
     "typescript": "^6.0.3",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^3.2.6"
   },
   "dependencies": {
     "adm-zip": "^0.5.17",
