@@ -135,9 +135,18 @@ export default function Sidebar({
                         : 'hover:bg-surface dark:hover:bg-gray-800'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="font-semibold text-sm min-w-0 flex-1">
-                      {d.displayName}
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-sm truncate">{d.displayName}</div>
+                      <div className="text-[11px] text-muted mt-0.5">
+                        {d.type && typeNames[d.type] ? `${typeNames[d.type]} · ` : ''}{d.updatedAt}
+                      </div>
+                      <div className="text-[11px] text-muted mt-0.5 flex items-center gap-1.5">
+                        <span>{d.cargoCount} 行货物</span>
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                      </div>
                     </div>
                     {!isEditing && (
                       <button
@@ -147,18 +156,12 @@ export default function Sidebar({
                             onDelete(d.id)
                           }
                         }}
-                        className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 cursor-pointer transition-colors shrink-0 ml-2"
+                        className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 cursor-pointer transition-colors shrink-0 ml-2 mt-0.5"
                         title="删除申报单"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
                       </button>
                     )}
-                  </div>
-                  <div className="text-[11px] text-muted mt-1 flex items-center gap-1.5">
-                    {d.type && typeNames[d.type] ? `${typeNames[d.type]} · ` : ''}{d.updatedAt} · {d.cargoCount} 行
-                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] font-semibold ${badge.className}`}>
-                      {badge.label}
-                    </span>
                   </div>
                 </div>
               )
