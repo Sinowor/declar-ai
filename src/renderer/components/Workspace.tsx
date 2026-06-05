@@ -430,7 +430,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
               </div>
             )}
             {isExtracting && (
-              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.06), rgba(var(--primary-rgb), 0.02), #FAFAFE)`, borderColor: `rgba(var(--primary-rgb), 0.12)` }}>
+              <div className="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ background: `linear-gradient(135deg, rgba(var(--primary-rgb), 0.06), rgba(var(--primary-rgb), 0.02), #F8FAFC)`, borderColor: `rgba(var(--primary-rgb), 0.12)` }}>
                 <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                 <div className="text-sm text-muted">AI 正在提取单证数据并审核，请稍候...</div>
               </div>

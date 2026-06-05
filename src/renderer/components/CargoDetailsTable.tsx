@@ -179,7 +179,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
           </tbody>
           {details.length > 0 && (
             <tfoot>
-              <tr className="border-t-2 border-gray-200 bg-[#FAFAFE] font-bold text-primary-600 sticky bottom-0 z-10">
+              <tr className="border-t-2 border-gray-200 bg-surface font-bold text-primary-600 sticky bottom-0 z-10">
                 <td className="px-3.5 py-3 font-semibold text-left">合计</td>
                 {visibleColumns.map(col => {
                   if (col.field_type === 'number') {
