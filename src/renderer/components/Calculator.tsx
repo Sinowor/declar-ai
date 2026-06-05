@@ -60,8 +60,10 @@ function supLabel(code: string | null): string {
 
 export default function Calculator() {
   const [mode, setMode] = useState<Mode>('lookup')
+  const [priceTerm, setPriceTerm] = useState<'cif' | 'fob'>('cif')
   const [hsCode, setHsCode] = useState('')
   const [countryCode, setCountryCode] = useState('CN')
+  const [cifValue, setCifValue] = useState('')
   const [fobValue, setFobValue] = useState('')
   const [freight, setFreight] = useState('')
   const [insurance, setInsurance] = useState('')
@@ -113,10 +115,12 @@ export default function Calculator() {
   }
 
   const doCalculate = (t: TariffData) => {
-    const fob = parseFloat(fobValue) || 0
-    const fr = parseFloat(freight) || 0
-    const ins = parseFloat(insurance) || 0
-    const cif = fob + fr + ins
+    const cif = priceTerm === 'cif'
+      ? (parseFloat(cifValue) || 0)
+      : (parseFloat(fobValue) || 0) + (parseFloat(freight) || 0) + (parseFloat(insurance) || 0)
+    const fob = priceTerm === 'cif' ? cif : (parseFloat(fobValue) || 0)
+    const fr = priceTerm === 'cif' ? 0 : (parseFloat(freight) || 0)
+    const ins = priceTerm === 'cif' ? 0 : (parseFloat(insurance) || 0)
     const qty = parseFloat(quantity) || 1
     const dutyRate = t.mfn_rate || 0
     const vatRate = t.vat_rate
@@ -170,26 +174,57 @@ export default function Calculator() {
               {currencies.map((c: any) => <option key={c.code} value={c.code}>{c.name}</option>)}
             </select>
           </div>
+
+          {/* Price term toggle */}
           <div>
-            <label className="block text-[12px] font-medium text-muted mb-1">FOB 货值</label>
-            <input value={fobValue} onChange={e => setFobValue(e.target.value)}
-              placeholder="100000"
-              className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
-          </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <label className="block text-[12px] font-medium text-muted mb-1">运费</label>
-              <input value={freight} onChange={e => setFreight(e.target.value)}
-                placeholder="0"
-                className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
-            </div>
-            <div className="flex-1">
-              <label className="block text-[12px] font-medium text-muted mb-1">保费</label>
-              <input value={insurance} onChange={e => setInsurance(e.target.value)}
-                placeholder="0"
-                className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
+            <label className="block text-[12px] font-medium text-muted mb-1">价格术语</label>
+            <div className="flex bg-surface dark:bg-gray-800 rounded-md p-0.5">
+              {[
+                { id: 'cif' as const, label: 'CIF' },
+                { id: 'fob' as const, label: 'FOB' },
+              ].map(pt => (
+                <button key={pt.id} onClick={() => { setPriceTerm(pt.id); setResult(null) }}
+                  className={`flex-1 h-7 rounded text-[12px] font-medium cursor-pointer border-none transition-colors ${
+                    priceTerm === pt.id ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'
+                  }`}>
+                  {pt.label}
+                </button>
+              ))}
             </div>
           </div>
+
+          {priceTerm === 'cif' ? (
+            <div>
+              <label className="block text-[12px] font-medium text-muted mb-1">完税价格 (CIF)</label>
+              <input value={cifValue} onChange={e => setCifValue(e.target.value)}
+                placeholder="100000"
+                className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-[12px] font-medium text-muted mb-1">FOB 货值</label>
+                <input value={fobValue} onChange={e => setFobValue(e.target.value)}
+                  placeholder="100000"
+                  className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-[12px] font-medium text-muted mb-1">运费</label>
+                  <input value={freight} onChange={e => setFreight(e.target.value)}
+                    placeholder="0"
+                    className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[12px] font-medium text-muted mb-1">保费</label>
+                  <input value={insurance} onChange={e => setInsurance(e.target.value)}
+                    placeholder="0"
+                    className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans tabular-nums" />
+                </div>
+              </div>
+            </>
+          )}
+
           <div>
             <label className="block text-[12px] font-medium text-muted mb-1">数量</label>
             <div className="flex gap-2">
@@ -245,9 +280,11 @@ export default function Calculator() {
           </div>
           <div className="p-6 space-y-3">
             {[
-              { label: '货值 (FOB)', value: `¥ ${fmt(result.fob_value)}` },
-              { label: '运费', value: result.freight > 0 ? `¥ ${fmt(result.freight)}` : '—' },
-              { label: '保费', value: result.insurance > 0 ? `¥ ${fmt(result.insurance)}` : '—' },
+              ...(result.fob_value > 0 && result.fob_value < result.cif_value ? [
+                { label: '货值 (FOB)', value: `¥ ${fmt(result.fob_value)}` },
+                { label: '运费', value: result.freight > 0 ? `¥ ${fmt(result.freight)}` : '—' },
+                { label: '保费', value: result.insurance > 0 ? `¥ ${fmt(result.insurance)}` : '—' },
+              ] : []),
               { label: '完税价格 (CIF)', value: `¥ ${fmt(cif)}`, bold: true },
             ].map(row => (
               <div key={row.label} className="flex items-center justify-between text-[14px]">
@@ -324,6 +361,8 @@ export default function Calculator() {
                   onClick={() => {
                     setMode('calc')
                     setHsCode(item.hs_code); setCountryCode(item.country_code || 'CN')
+                    setPriceTerm(item.fob_value > 0 && item.fob_value < item.cif_value ? 'fob' : 'cif')
+                    setCifValue(String(item.cif_value))
                     setFobValue(String(item.fob_value || item.cif_value))
                     setFreight(String(item.freight || 0)); setInsurance(String(item.insurance || 0))
                     setQuantity(String(item.quantity || 1)); setCurrency(item.currency || 'CNY')
