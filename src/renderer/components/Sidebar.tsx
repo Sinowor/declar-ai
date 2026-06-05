@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import type { DeclarationItem } from '../App'
-import Logo from './Logo'
 import { IconSearch, IconChevronLeft, IconPlus, IconList } from './Icons'
 
 const statusBadge: Record<string, { label: string; className: string }> = {
@@ -65,14 +64,8 @@ export default function Sidebar({
       }}
       className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-5 pb-3 shrink-0 drag-region sidebar-header">
-        {!collapsed && (
-          <div className="flex items-center gap-2.5 font-bold text-lg whitespace-nowrap">
-            <Logo size={34} />
-            <span>DeclarAI</span>
-          </div>
-        )}
+      {/* Header — collapse button only */}
+      <div className="flex items-center justify-end px-4 pt-4 pb-2 shrink-0 drag-region sidebar-header">
         <button
           onClick={onToggleCollapse}
           className="w-7 h-7 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex items-center justify-center cursor-pointer text-xs text-muted hover:bg-surface dark:hover:bg-gray-800 shrink-0 no-drag"

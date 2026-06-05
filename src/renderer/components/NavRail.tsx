@@ -1,4 +1,5 @@
 import type { FC } from 'react'
+import Logo from './Logo'
 import { IconDocNav, IconSearchNav, IconGearNav } from './Icons'
 
 type ModuleId = 'declarations' | 'hs-classifier' | 'settings'
@@ -52,17 +53,25 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
   return (
     <nav
       className="flex flex-col shrink-0 items-center bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-20 drag-region"
-      style={{ width: 60 }}
+      style={{ width: 64 }}
     >
       {/* macOS traffic light clearance */}
-      <div style={{ height: isMac ? 28 : 8 }} className="shrink-0" />
+      <div style={{ height: isMac ? 38 : 8 }} className="shrink-0" />
+
+      {/* Logo + app name */}
+      <div className="flex flex-col items-center gap-0.5 pb-3 w-full no-drag">
+        <Logo size={22} />
+        <span className="text-[11px] font-semibold text-ink leading-none">DeclarAI</span>
+      </div>
+
+      {/* Divider */}
+      <div className="w-10 h-px bg-gray-200 dark:bg-gray-700 mb-2" />
 
       {/* Main nav items */}
-      <div style={{ flex: '1 1 30%' }} />
       <div className="flex flex-col items-center gap-1 px-2 no-drag w-full">
         {navItems.map(renderItem)}
       </div>
-      <div style={{ flex: '1 1 50%' }} />
+      <div style={{ flex: '1 1 55%' }} />
 
       {/* Edit mode actions */}
       {editing && (
