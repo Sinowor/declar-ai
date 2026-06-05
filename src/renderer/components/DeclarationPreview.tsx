@@ -62,7 +62,7 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
             <p className="text-muted text-sm mt-1">{fieldEntries.length} 个字段 · {cargoDetails.length} 行货物</p>
           </div>
           <div className="no-drag">
-            <button onClick={onEnterEdit} className="h-10 px-6 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer hover:bg-primary-600 transition-all">进入编辑</button>
+            <button onClick={onEnterEdit} className="h-10 px-6 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer hover:bg-primary-600 transition-colors">进入编辑</button>
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
         )}
 
         <div className="flex justify-center pb-8">
-          <button onClick={onEnterEdit} className="h-10 px-8 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer hover:bg-primary-600 transition-all">进入编辑</button>
+          <button onClick={onEnterEdit} className="h-10 px-8 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer hover:bg-primary-600 transition-colors">进入编辑</button>
         </div>
       </div>
     </main>

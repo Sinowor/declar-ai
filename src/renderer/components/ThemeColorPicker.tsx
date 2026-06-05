@@ -16,7 +16,7 @@ export default function ThemeColorPicker() {
             className="flex flex-col items-center gap-1.5 cursor-pointer bg-transparent border-none p-0"
           >
             <div
-              className="w-8 h-8 rounded-full transition-all"
+              className="w-8 h-8 rounded-full transition-shadow"
               style={{
                 background: t.gradient,
                 boxShadow: themeId === t.id ? `0 0 0 2px white, 0 0 0 3px ${t.primary}` : 'none',

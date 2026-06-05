@@ -66,6 +66,13 @@ body {
 }
 .pulse-ai { animation: pulse-ring 2s infinite; }
 
+/* ── Toast animation ── */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-enter { animation: toast-in 0.3s ease-out; }
+
 /* ── Accessibility ── */
 button:focus-visible, select:focus-visible, input:focus-visible {
   outline: 2px solid rgba(var(--primary-rgb), 0.5);

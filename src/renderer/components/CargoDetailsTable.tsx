@@ -76,7 +76,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
         value={value ?? ''}
         step={isNumber ? '0.01' : undefined}
         onChange={(e) => updateRow(index, field, isNumber ? (parseFloat(e.target.value) || 0) : e.target.value)}
-        className="w-full h-8 rounded-md border border-transparent hover:bg-slate-50 focus:border-primary-500 px-2 text-sm outline-none bg-transparent focus:bg-white transition-all font-sans"
+        className="w-full h-8 rounded-md border border-transparent hover:bg-slate-50 focus:border-primary-500 px-2 text-sm outline-none bg-transparent focus:bg-white transition-[border-color,box-shadow] font-sans"
         placeholder="—"
       />
     )
@@ -92,7 +92,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
             <button
               onClick={() => setMenuOpen(v => !v)}
               title="列显示"
-              className={`h-8 px-2.5 rounded-sm text-muted text-sm font-medium transition-all cursor-pointer border-none bg-transparent hover:bg-surface ${hiddenKeys.size > 0 ? 'text-primary-500' : ''}`}
+              className={`h-8 px-2.5 rounded-sm text-muted text-sm font-medium transition-colors cursor-pointer border-none bg-transparent hover:bg-surface ${hiddenKeys.size > 0 ? 'text-primary-500' : ''}`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3"/><path d="M12 5v0"/><path d="M12 19v0"/><path d="M5 12v0"/><path d="M19 12v0"/>
@@ -127,7 +127,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
             )}
           </div>
           <button onClick={addRow}
-            className="h-8 px-3 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface transition-all cursor-pointer border-none bg-transparent"
+            className="h-8 px-3 rounded-sm text-muted text-sm font-medium hover:text-ink hover:bg-surface transition-colors cursor-pointer border-none bg-transparent"
           >
             + 添加货物
           </button>
@@ -152,7 +152,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
           </thead>
           <tbody>
             {details.map((d, i) => (
-              <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50">
+              <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
                 <td className="px-3.5 py-2.5 text-muted text-xs">{i + 1}</td>
                 {visibleColumns.map(col => (
                   <td key={col.source_key} className={`px-3.5 py-2.5 ${col.field_type === 'number' ? 'text-right tabular-nums' : 'whitespace-nowrap'}`}>
@@ -161,7 +161,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
                 ))}
                 <td className="px-2 py-2.5">
                   {details.length > 1 && (
-                    <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-all" title="删除行">
+                    <button onClick={() => deleteRow(i)} className="text-muted hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded text-sm cursor-pointer transition-colors" title="删除行">
                       <IconTrash />
                     </button>
                   )}

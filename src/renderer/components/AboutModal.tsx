@@ -45,7 +45,7 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
         </div>
         <button
           onClick={onClose}
-          className="mt-6 h-9 px-6 rounded-sm bg-primary-500 text-white border-none text-sm font-semibold cursor-pointer hover:bg-primary-600 transition-all"
+          className="mt-6 h-9 px-6 rounded-sm bg-primary-500 text-white border-none text-sm font-semibold cursor-pointer hover:bg-primary-600 transition-colors"
         >
           关闭
         </button>

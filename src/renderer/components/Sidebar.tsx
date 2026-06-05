@@ -86,7 +86,7 @@ export default function Sidebar({
                 placeholder="搜索申报单..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full h-9 rounded-md border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-all"
+                className="w-full h-9 rounded-md border border-gray-200 pl-8 pr-3 text-[13px] bg-surface outline-none focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 transition-colors"
               />
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function Sidebar({
             共 {declarations.length} 份申报单
           </div>
           <div
-            className={`flex-1 overflow-y-auto px-4 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
+            className={`flex-1 overflow-y-auto px-4 transition-opacity duration-300 ${isLocked ? 'opacity-50 pointer-events-none' : ''}`}
           >
             {isLocked && (
               <div className="flex items-center justify-center gap-1.5 py-3 text-xs text-muted">
@@ -111,7 +111,7 @@ export default function Sidebar({
                 <div
                   key={d.id}
                   onClick={() => onSelect(d.id)}
-                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-all mb-1 group relative ${
+                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-colors mb-1 group relative ${
                     isEditing
                       ? 'bg-primary-50 ring-1 ring-primary-200'
                       : isActive
@@ -131,7 +131,7 @@ export default function Sidebar({
                             onDelete(d.id)
                           }
                         }}
-                        className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 cursor-pointer transition-all shrink-0 ml-2"
+                        className="opacity-0 group-hover:opacity-100 w-7 h-7 rounded-md flex items-center justify-center text-muted hover:text-red-500 hover:bg-red-50 cursor-pointer transition-colors shrink-0 ml-2"
                         title="删除申报单"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
@@ -163,14 +163,14 @@ export default function Sidebar({
               {isLocked ? (
                 <button
                   onClick={onExitDeclaration}
-                  className="w-full h-10 rounded-sm border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-all"
+                  className="w-full h-10 rounded-sm border border-gray-200 bg-white text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface transition-colors"
                 >
                   ← 退出当前申报单
                 </button>
               ) : (
                 <button
                   onClick={onNewDeclaration}
-                  className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-all"
+                  className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-colors"
                 >
                   <IconPlus /><span>新建申报单</span>
                 </button>

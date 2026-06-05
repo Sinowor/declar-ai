@@ -60,12 +60,12 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                 type="text"
                 value={storageRoot}
                 readOnly
-                className="flex-1 h-9 rounded-[10px] border border-gray-200 px-3 text-sm bg-[#FAFBFC] font-sans text-muted cursor-default"
+                className="flex-1 h-9 rounded-md border border-gray-200 px-3 text-sm bg-[#FAFBFC] font-sans text-muted cursor-default"
                 title={storageRoot}
               />
               <button
                 onClick={handleSelectFolder}
-                className="h-9 px-4 rounded-sm border border-gray-200 bg-white text-sm text-muted font-medium cursor-pointer hover:bg-surface transition-all shrink-0"
+                className="h-9 px-4 rounded-sm border border-gray-200 bg-white text-sm text-muted font-medium cursor-pointer hover:bg-surface transition-colors shrink-0"
               >
                 选择文件夹
               </button>
@@ -74,7 +74,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
               <p className="text-xs text-muted">申报单数据和文件将保存在此文件夹中。修改后需重启应用生效。</p>
               <button
                 onClick={handleSave}
-                className={`h-7 px-3 rounded-sm text-xs font-medium cursor-pointer transition-all border-none ${
+                className={`h-7 px-3 rounded-sm text-xs font-medium cursor-pointer transition-colors border-none ${
                   saved ? 'bg-emerald-50 text-emerald-600' : 'bg-primary-500 text-white hover:bg-primary-600'
                 }`}
               >
@@ -123,8 +123,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
             </div>
             <div className="text-xs text-muted">基于 AI 的报关单自动化制单系统</div>
             <div className="flex gap-2 pt-2">
-              <button onClick={onShowAbout} className="h-8 px-4 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-all">关于 DeclarAI</button>
-              <button onClick={onShowLicense} className="h-8 px-4 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-all">查看许可证</button>
+              <button onClick={onShowAbout} className="h-8 px-4 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-colors">关于 DeclarAI</button>
+              <button onClick={onShowLicense} className="h-8 px-4 rounded-sm border border-gray-200 bg-white text-xs text-muted font-medium cursor-pointer hover:bg-surface transition-colors">查看许可证</button>
             </div>
           </div>
         </div>

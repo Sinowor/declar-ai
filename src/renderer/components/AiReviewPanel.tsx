@@ -59,7 +59,7 @@ export default function AiReviewPanel({
           <button
             onClick={onStartReview}
             disabled={isReviewing}
-            className="h-7 px-3 rounded-full bg-white text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-all disabled:opacity-50"
+            className="h-7 px-3 rounded-full bg-white text-ink border border-gray-200 text-xs font-semibold cursor-pointer hover:bg-surface transition-colors disabled:opacity-50"
           >
             {isReviewing ? '审核中...' : reviewCompleted ? '重新审核' : '开始审核'}
           </button>
@@ -89,7 +89,7 @@ export default function AiReviewPanel({
           {onConfirmAll && issues.length - resolved.size > 0 && (
             <button
               onClick={onConfirmAll}
-              className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-all"
+              className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-colors"
             >
               全部确认
             </button>
@@ -97,7 +97,7 @@ export default function AiReviewPanel({
           <button
             onClick={onStartReview}
             disabled={isReviewing}
-            className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-all disabled:opacity-50"
+            className="h-7 px-3 rounded-full text-xs font-semibold cursor-pointer border border-gray-200 bg-white text-muted hover:text-ink transition-colors disabled:opacity-50"
           >
             {isReviewing ? '审核中...' : '重新审核'}
           </button>
@@ -112,7 +112,7 @@ export default function AiReviewPanel({
           return (
             <div
               key={i}
-              className={`px-6 py-4 border-b border-slate-50 last:border-b-0 flex gap-3.5 items-start transition-all ${
+              className={`px-6 py-4 border-b border-slate-50 last:border-b-0 flex gap-3.5 items-start transition-colors ${
                 isResolved ? 'opacity-50' : ''
               }`}
             >
@@ -162,7 +162,7 @@ export default function AiReviewPanel({
                     />
                     <button
                       onClick={() => handleConfirm(i)}
-                      className="h-9 px-4 rounded-sm bg-primary-500 text-white border-none text-[13px] font-semibold cursor-pointer hover:bg-primary-600 transition-all whitespace-nowrap"
+                      className="h-9 px-4 rounded-sm bg-primary-500 text-white border-none text-[13px] font-semibold cursor-pointer hover:bg-primary-600 transition-colors whitespace-nowrap"
                     >
                       确认
                     </button>

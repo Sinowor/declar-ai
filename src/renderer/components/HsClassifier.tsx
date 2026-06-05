@@ -152,7 +152,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             const done = processingStep > i; const active = processingStep === i
             return (
               <div key={label} className="step-enter flex items-center gap-3 justify-center" style={{ animationDelay: `${i * 0.12}s` }}>
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-500"
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-500"
                   style={done ? { background: p(0.12), color: theme.primary } : active ? { background: theme.primary, color: '#fff' } : { color: '#cbd5e1' }}>
                   {done ? '✓' : active ? '' : i + 1}
                 </span>
@@ -201,7 +201,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           </div>
 
           {/* Edit area */}
-          <div className="bg-white border-2 border-gray-200 focus-within:border-primary-500 rounded-2xl transition-all duration-200 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
+          <div className="bg-white border-2 border-gray-200 focus-within:border-primary-500 rounded-2xl transition-[border-color,box-shadow] duration-200 overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.04)' }}>
             <textarea ref={textareaRef} value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) doClassify() }}
@@ -211,11 +211,11 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             />
             <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-gray-100">
               <button onClick={() => doClassify(true)}
-                className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer transition-all bg-white border"
+                className="h-9 px-4 rounded-lg text-[13px] font-medium cursor-pointer transition-colors bg-white border"
                 style={{ borderColor: p(0.2), color: theme.primary }}
               >跳过，直接归类</button>
               <button onClick={() => doClassify(false)}
-                className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer transition-all hover:opacity-90 active:scale-[0.98]"
+                className="h-9 px-5 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer transition-colors hover:opacity-90 active:scale-[0.98]"
                 style={{ background: `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` }}
               >补充信息并归类</button>
             </div>
@@ -231,7 +231,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
       <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
         <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center justify-between">
           <h2 className="text-lg font-semibold">归类历史</h2>
-          <button onClick={() => setShowAllHistory(false)} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-all">返回</button>
+          <button onClick={() => setShowAllHistory(false)} className="no-drag h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink cursor-pointer transition-colors">返回</button>
         </div>
         <div className="px-8 pb-12 flex-1 max-w-[900px] mx-auto w-full">
           {history.length === 0 ? (
@@ -240,7 +240,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             <div className="space-y-1">
               {history.map(item => (
                 <button key={item.id} onClick={() => handleHistoryClick(item)}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
+                  className="w-full flex items-center gap-4 px-5 py-3.5 rounded-xl text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
                 >
                   <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
                   <span className="flex-1 min-w-0 text-sm font-medium truncate">{item.product_description}</span>
@@ -264,7 +264,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
           <h1 className="text-center text-[24px] font-bold mb-2 text-ink">AI 预归类</h1>
           <p className="text-center text-[13px] text-muted mb-8">智能检索《进出口税则》，结果仅供参考</p>
 
-          <div className={`bg-white border-2 rounded-2xl transition-all duration-200 ${
+          <div className={`bg-white border-2 rounded-2xl transition-[border-color,box-shadow] duration-200 ${
             focused ? 'border-primary-500 shadow-[0_0_0_4px_var(--primary-rgb)_0.06]' : 'border-gray-200 shadow-card'
           }`} style={focused ? { boxShadow: `0 0 0 4px ${p(0.06)}` } : {}}>
             <textarea ref={textareaRef} value={input}
@@ -282,7 +282,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
             `}</style>
             <div className="flex items-center justify-end px-5 py-3 border-t border-gray-100">
               <button onClick={() => doClassify()} disabled={!input.trim()}
-                className="h-9 px-5 rounded-lg text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
+                className="h-9 px-5 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-colors hover:opacity-90 active:scale-[0.98]"
                 style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : '#94a3b8' }}
               >开始归类分析 <span className="text-[10px] opacity-40 ml-0.5">⌘↵</span></button>
             </div>
@@ -313,7 +313,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
               <div className="space-y-0.5">
                 {recentHistory.map(item => (
                   <button key={item.id} onClick={() => handleHistoryClick(item)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ background: confDot[item.confidence || 'low'] }} />
                     <span className="flex-1 min-w-0 text-[13px] font-medium truncate">{item.product_description}</span>
@@ -331,7 +331,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
 
           {onBatchMode && (
             <button onClick={onBatchMode}
-              className="w-full mt-5 flex items-center justify-between px-5 py-3.5 rounded-xl cursor-pointer border transition-all hover:shadow-sm text-left"
+              className="w-full mt-5 flex items-center justify-between px-5 py-3.5 rounded-xl cursor-pointer border transition-[border-color,background-color] hover:shadow-sm text-left"
               style={{ background: `linear-gradient(135deg, ${p(0.04)}, ${p(0.01)})`, borderColor: p(0.12) }}
               onMouseEnter={e => { (e.target as HTMLElement).style.borderColor = p(0.25); (e.target as HTMLElement).style.background = `linear-gradient(135deg, ${p(0.07)}, ${p(0.02)})` }}
               onMouseLeave={e => { (e.target as HTMLElement).style.borderColor = p(0.12); (e.target as HTMLElement).style.background = `linear-gradient(135deg, ${p(0.04)}, ${p(0.01)})` }}
@@ -348,7 +348,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
         </div>
 
         {toast && (
-          <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100]" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
+          <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
             <span className="text-emerald-400">✓</span> {toast}
           </div>
         )}
@@ -360,7 +360,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
   return (
     <main className="flex-1 overflow-y-auto flex flex-col bg-surface">
       <div className="px-8 pt-5 pb-3 shrink-0 drag-region flex items-center gap-3">
-        <button onClick={handleNewQuery} className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-all inline-flex items-center gap-1">← 返回</button>
+        <button onClick={handleNewQuery} className="no-drag shrink-0 h-7 px-3 rounded-full text-[12px] text-muted border border-gray-200 bg-white hover:text-ink hover:border-gray-300 cursor-pointer transition-colors inline-flex items-center gap-1">← 返回</button>
         <div className="flex items-center gap-2 min-w-0 flex-1"><span className="text-sm text-muted truncate">{result.product_description}</span></div>
       </div>
 
@@ -396,7 +396,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
                 </div>
               )}
             </div>
-            <button onClick={handleCopyCode} className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-all shrink-0"
+            <button onClick={handleCopyCode} className="h-9 px-4 rounded-lg border text-[13px] font-medium cursor-pointer transition-colors shrink-0"
               style={{ borderColor: p(0.2), color: theme.primary, background: p(0.03) }}
               onMouseEnter={e => { (e.target as HTMLElement).style.background = p(0.07) }}
               onMouseLeave={e => { (e.target as HTMLElement).style.background = p(0.03) }}>复制编码</button>
@@ -426,7 +426,7 @@ export default function HsClassifier({ onBatchMode }: { onBatchMode?: () => void
       </div>
 
       {toast && (
-        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100]" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
+        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-5 py-2.5 rounded-xl text-sm font-medium z-[100] toast-enter" style={{ background: '#1e293b', boxShadow: '0 20px 48px rgba(15,23,42,0.15)' }}>
           <span className="text-emerald-400">✓</span> {toast}
         </div>
       )}

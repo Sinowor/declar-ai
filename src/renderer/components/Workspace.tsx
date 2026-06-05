@@ -41,7 +41,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           <h3 className="text-xl font-bold mb-2">准备开始制单</h3>
           <p className="text-muted text-sm mb-8">从左侧选择申报单，或创建新的申报单</p>
           <button onClick={onNewDeclaration}
-            className="h-10 px-6 rounded-lg text-white border-none font-semibold text-sm cursor-pointer transition-all hover:opacity-90 active:scale-[0.98] mb-10"
+            className="h-10 px-6 rounded-sm text-white border-none font-semibold text-sm cursor-pointer transition-colors hover:opacity-90 active:scale-[0.98] mb-10"
             style={{ background: 'var(--gradient)' }}
           >新建申报单</button>
           {(recentDeclarations || []).slice(0, 5).length > 0 && (
@@ -51,7 +51,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 {(recentDeclarations || []).slice(0, 5).map(d => (
                   <button key={d.id}
                     onClick={() => onSelectDeclaration?.(d.id)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white/80 hover:bg-white border border-white/50 hover:border-gray-200 hover:shadow-sm transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left cursor-pointer bg-white/80 hover:bg-white border border-white/50 hover:border-gray-200 hover:shadow-sm transition-[background-color,border-color,box-shadow]"
                   >
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                       d.status === 'done' ? 'bg-emerald-400' : d.status === 'review' ? 'bg-amber-400' : d.status === 'draft' ? 'bg-slate-300' : 'bg-sky-400'
@@ -400,13 +400,13 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                     )) : <span className="text-muted text-sm">暂未导入文件</span>}
                     <button
                       onClick={() => setShowDropZone(v => !v)}
-                      className={`h-[30px] px-2.5 rounded-full text-[13px] font-medium cursor-pointer transition-all border ${showDropZone ? 'border-primary-300 text-primary-500 bg-primary-50' : 'border-dashed border-gray-300 text-muted hover:border-gray-400 hover:text-ink'}`}
+                      className={`h-[30px] px-2.5 rounded-full text-[13px] font-medium cursor-pointer transition-colors border ${showDropZone ? 'border-primary-300 text-primary-500 bg-primary-50' : 'border-dashed border-gray-300 text-muted hover:border-gray-400 hover:text-ink'}`}
                       title="追加文件"
                     >+ 添加文件</button>
                   </div>
                   <button onClick={handleAIExtract} disabled={isExtracting || files.length === 0}
                     title={files.length === 0 ? '请先导入单证文件' : ''}
-                    className={`shrink-0 ml-4 h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-all ${files.length === 0 ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600'}`}
+                    className={`shrink-0 ml-4 h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-colors ${files.length === 0 ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600'}`}
                   >
                     {isExtracting ? '提取+审核中...' : <><IconAI /><span>重新提取</span></>}
                   </button>
@@ -423,7 +423,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             {!extractionCompleted && files.length > 0 && (
               <div className="flex justify-end mt-4">
                 <button onClick={handleAIExtract} disabled={isExtracting}
-                  className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-all ${isExtracting ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600 pulse-ai'}`}
+                  className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-colors ${isExtracting ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600 pulse-ai'}`}
                 >
                   {isExtracting ? '提取+审核中...' : <><IconAI /><span>AI 提取并审核</span></>}
                 </button>
@@ -493,7 +493,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold"><span className="text-amber-600">&#9888;</span> {pendingCount > 0 ? `${pendingCount} 个待确认项` : '全部已确认'}</span>
                     <div className="flex gap-2">
-                      {pendingCount > 0 && <button onClick={resolveAll} className="h-7 px-3 rounded-sm text-xs font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-all">全部确认</button>}
+                      {pendingCount > 0 && <button onClick={resolveAll} className="h-7 px-3 rounded-sm text-xs font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors">全部确认</button>}
                     </div>
                   </div>
                   <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
@@ -501,7 +501,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                       const isResolved = resolvedIssues.has(i)
                       return (
                         <div key={i}
-                          className={`flex items-start gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-50 ${isResolved ? 'opacity-40' : ''}`}
+                          className={`flex items-start gap-3 px-3 py-2 rounded-md transition-colors hover:bg-slate-50 ${isResolved ? 'opacity-40' : ''}`}
                         >
                           <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                             isResolved ? 'bg-emerald-100 text-emerald-600' : issue.severity === 'high' ? 'bg-red-100 text-red-600' : issue.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-sky-100 text-sky-600'
@@ -520,7 +520,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                           </div>
                           {!isResolved && (
                             <button onClick={() => resolveIssue(i)}
-                              className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-all"
+                              className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 bg-white text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors"
                             >确认</button>
                           )}
                         </div>
@@ -547,7 +547,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <select
                     value={selectedType || '__universal'}
                     onChange={(e) => handleTypeChange(e.target.value)}
-                    className="h-[34px] rounded-[10px] border border-gray-200 pl-3 pr-8 text-[13px] font-medium outline-none bg-white focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
+                    className="h-[34px] rounded-md border border-gray-200 pl-3 pr-8 text-[13px] font-medium outline-none bg-white focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 cursor-pointer appearance-none"
                   >
                   <option value="__universal">通用视图（全部字段）</option>
                   {typeConfigs.map(tc => (
@@ -557,7 +557,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
                 </div>
                 <button onClick={() => handleSave()} disabled={isSaving}
-                  className={`h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-all ${saveDone ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-primary-500 hover:bg-primary-600'} ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-colors ${saveDone ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-primary-500 hover:bg-primary-600'} ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isSaving ? '保存中...' : saveDone ? <><span>✓</span><span>已保存</span></> : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
                 </button>
@@ -596,7 +596,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                             <select
                               value={value || ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: e.target.value }) }}
-                              className={`h-9 rounded-[10px] border px-3 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
+                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
                             >
                               <option value="">—</option>
                               {(m.options || []).map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -605,17 +605,17 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                             <input type="number"
                               value={value ?? ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: parseFloat(e.target.value) || 0 }) }}
-                              className={`h-9 rounded-[10px] border px-3 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
+                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
                             />
                           ) : m.field_type === 'readonly' ? (
                             <input type="text" value={value || ''} disabled
-                              className="h-9 rounded-[10px] border border-gray-200 px-3 text-sm bg-gray-50 opacity-50 font-sans"
+                              className="h-9 rounded-md border border-gray-200 px-3 text-sm bg-gray-50 opacity-50 font-sans"
                             />
                           ) : (
                             <input type="text"
                               value={value || ''}
                               onChange={(e) => { markDirty(); setFields({ ...fields, [m.source_key]: e.target.value }) }}
-                              className={`h-9 rounded-[10px] border px-3 text-sm outline-none transition-all focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
+                              className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] focus:bg-white font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200'}`}
                             />
                           )}
                           {isMissing && <div className="text-[11px] text-amber-600">"{selectedConfig!.title}" 必填项</div>}
@@ -644,7 +644,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
       </div>
 
       {toast && (
-        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-ink text-white px-6 py-3 rounded-xl text-sm font-medium z-[100] shadow-[0_20px_48px_rgba(15,23,42,0.2)] flex items-center gap-2">
+        <div role="alert" aria-live="polite" className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-ink text-white px-6 py-3 rounded-xl text-sm font-medium z-[100] toast-enter shadow-[0_20px_48px_rgba(15,23,42,0.2)] flex items-center gap-2">
           <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✗' : 'ℹ️'}</span>
           <span>{toast.msg}</span>
         </div>
