@@ -191,10 +191,10 @@ export default function Calculator() {
       </div>
 
       {mode === 'calc' && (
-        <label className="flex items-center gap-1.5 cursor-pointer select-none">
+        <label className="flex items-center gap-2 px-2.5 py-1.5 rounded-md cursor-pointer select-none hover:bg-surface dark:hover:bg-gray-800 transition-colors">
           <input type="checkbox" checked={manualMode} onChange={e => setManualMode(e.target.checked)}
-            className="w-3.5 h-3.5 rounded border-gray-300 text-primary-500" />
-          <span className="text-[11px] text-muted">手动输入税率</span>
+            className="w-4 h-4 rounded border-gray-300 text-primary-500 focus:ring-2 focus:ring-primary-500/20 cursor-pointer" />
+          <span className="text-[12px] text-muted">手动输入税率（不查税率表）</span>
         </label>
       )}
 
@@ -446,10 +446,12 @@ export default function Calculator() {
       </div>
 
       {/* Right: Result */}
-      <div className="flex-1 overflow-y-auto flex items-start justify-center pt-[12vh]">
+      <div className="flex-1 overflow-y-auto flex items-center justify-center">
         {!tariff && !result && !error && (
-          <div className="text-center text-muted">
-            <div className="text-4xl mb-4 opacity-20">🖩</div>
+          <div className="text-center text-muted -mt-10">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="mx-auto mb-4 opacity-20">
+              <rect x="3" y="2" width="18" height="20" rx="2" /><line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="10" x2="16" y2="10" /><circle cx="8.5" cy="16.5" r="1.5" fill="currentColor" /><line x1="13" y1="16" x2="17" y2="16" />
+            </svg>
             <div className="text-[15px] font-medium mb-1">输入 HS 编码查询税率或计算税费</div>
             <div className="text-[13px]">
               {mode === 'lookup' ? '查看最惠国税率、增值税率、监管条件' : '输入货值、运费、保费计算综合税费'}
@@ -457,8 +459,10 @@ export default function Calculator() {
           </div>
         )}
         {error && (
-          <div className="text-center">
-            <div className="text-amber-500 text-4xl mb-4">⚠</div>
+          <div className="text-center -mt-10">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-3 text-amber-500">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
             <div className="text-[15px] font-medium text-amber-600 mb-1">{error}</div>
             <div className="text-[13px] text-muted">请检查 HS 编码是否正确</div>
           </div>
