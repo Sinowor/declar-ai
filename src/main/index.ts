@@ -10,6 +10,7 @@ import { registerFileIpc } from './ipc/file'
 import { registerAIIpc } from './ipc/ai'
 import { registerHsCodeIpc } from './ipc/hs-code'
 import { registerDataIpc } from './ipc/data'
+import { registerExportIpc } from './ipc/export'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -38,6 +39,7 @@ async function initApp() {
   registerAIIpc()
   await registerHsCodeIpc()
   registerDataIpc()
+  registerExportIpc()
 }
 
 function createWindow() {

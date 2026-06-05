@@ -50,6 +50,8 @@ const api = {
   templatesList: (typeKey?: string) => ipcRenderer.invoke('data:templates:list', typeKey),
   templatesSave: (template: { id?: string; name: string; type_key: string; template_data: string }) => ipcRenderer.invoke('data:templates:save', template),
   templatesDelete: (id: string) => ipcRenderer.invoke('data:templates:delete', id),
+  exportTransitExcel: (declarationId: string) => ipcRenderer.invoke('export:transit-excel', declarationId),
+  exportTransitPdf: (declarationId: string) => ipcRenderer.invoke('export:transit-pdf', declarationId),
 
   // App
   getAppConfig: () => ipcRenderer.invoke('app:config'),

@@ -567,12 +567,39 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 </select>
                   <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
                 </div>
+                {/* Export buttons — transit only */}
+                {selectedType === 'transit_transport' && (
+                  <>
+                    <button
+                      onClick={async () => {
+                        if (!window.api?.exportTransitExcel) return
+                        showToast('正在导出 Excel...')
+                        const res = await window.api.exportTransitExcel(declaration!.id)
+                        if (res.success) showToast('Excel 已导出')
+                        else showToast(`导出失败: ${res.error}`, 'error')
+                      }}
+                      className="h-[34px] px-3 rounded-sm border border-gray-200 bg-white text-muted text-[13px] font-medium cursor-pointer hover:text-emerald-600 hover:border-emerald-300 transition-colors"
+                      title="导出 Excel"
+                    >导出 Excel</button>
+                    <button
+                      onClick={async () => {
+                        if (!window.api?.exportTransitPdf) return
+                        showToast('正在导出 PDF...')
+                        const res = await window.api.exportTransitPdf(declaration!.id)
+                        if (res.success) showToast('PDF 已导出')
+                        else showToast(`导出失败: ${res.error}`, 'error')
+                      }}
+                      className="h-[34px] px-3 rounded-sm border border-gray-200 bg-white text-muted text-[13px] font-medium cursor-pointer hover:text-red-500 hover:border-red-300 transition-colors"
+                      title="导出 PDF"
+                    >导出 PDF</button>
+                    <span className="w-px h-5 bg-gray-200" />
+                  </>
+                )}
                 {/* Save as template */}
                 <button
                   onClick={async () => {
                     const name = prompt('模板名称（如：天津→二连 转关）')
                     if (!name?.trim() || !window.api?.templatesSave) return
-                    // Save basic info + BL fields as template data
                     const templateKeys = [
                       'customs_declaration_port', 'entry_exit_port', 'declaration_unit_name',
                       'declaration_unit_credit_code', 'declaration_unit_customs_code',
