@@ -4,6 +4,7 @@ import type { ThemeMode } from '../contexts/ThemeContext'
 import ThemeColorPicker from './ThemeColorPicker'
 import CustomsOfficeManager from './CustomsOfficeManager'
 import EnterpriseManager from './EnterpriseManager'
+import SimpleDataManager from './SimpleDataManager'
 
 interface Props {
   onShowAbout: () => void
@@ -159,6 +160,36 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                 </div>
                 <div className="p-6">
                   <EnterpriseManager />
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold">币制管理</h3>
+                </div>
+                <div className="p-6">
+                  <SimpleDataManager title="币制" columns={[{key:'code',label:'代码'},{key:'name',label:'名称'}]}
+                    listMethod="currenciesList" saveMethod="currenciesSave" deleteMethod="currenciesDelete" />
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold">包装种类管理</h3>
+                </div>
+                <div className="p-6">
+                  <SimpleDataManager title="包装种类" columns={[{key:'code',label:'代码'},{key:'name',label:'名称'}]}
+                    listMethod="packagingList" saveMethod="packagingSave" deleteMethod="packagingDelete" />
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
+                <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold">国家/地区管理</h3>
+                </div>
+                <div className="p-6">
+                  <SimpleDataManager title="国家/地区" columns={[{key:'code',label:'代码'},{key:'name',label:'名称'}]}
+                    listMethod="countriesList" saveMethod="countriesSave" deleteMethod="countriesDelete" />
                 </div>
               </div>
             </>

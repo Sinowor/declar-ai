@@ -88,4 +88,28 @@ export function registerDataIpc() {
     execute('DELETE FROM declaration_templates WHERE id = ?', [id])
     return { success: true }
   })
+
+  // ═══ Generic basic data (currencies, packaging, countries) ═══
+  const registerSimpleCrud = (channel: string, table: string, codeField = 'code', nameField = 'name') => {
+    ipcMain.handle(`data:${channel}:list`, async () => {
+      return queryAll(`SELECT * FROM ${table} ORDER BY ${codeField}`)
+    })
+    ipcMain.handle(`data:${channel}:save`, async (_event, item: { code: string; name: string }) => {
+      const existing = queryOne(`SELECT ${codeField} FROM ${table} WHERE ${codeField} = ?`, [item.code])
+      if (existing) {
+        execute(`UPDATE ${table} SET ${nameField} = ? WHERE ${codeField} = ?`, [item.name, item.code])
+      } else {
+        execute(`INSERT INTO ${table} (${codeField}, ${nameField}) VALUES (?, ?)`, [item.code, item.name])
+      }
+      return { success: true }
+    })
+    ipcMain.handle(`data:${channel}:delete`, async (_event, code: string) => {
+      execute(`DELETE FROM ${table} WHERE ${codeField} = ?`, [code])
+      return { success: true }
+    })
+  }
+
+  registerSimpleCrud('currencies', 'currencies')
+  registerSimpleCrud('packaging', 'packaging_types')
+  registerSimpleCrud('countries', 'countries')
 }

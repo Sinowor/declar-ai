@@ -229,6 +229,67 @@ function initSchema() {
     }
   }
 
+  // ═══ v1.3: basic data — currencies, packaging, countries ═══
+  db.run(`
+    CREATE TABLE IF NOT EXISTS currencies (
+      code TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    )
+  `)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS packaging_types (
+      code TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    )
+  `)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS countries (
+      code TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    )
+  `)
+
+  // Seed basic data if empty
+  const seedIfEmpty = (table: string, data: [string, string][]) => {
+    if (!db) return
+    const c = queryOne(`SELECT COUNT(*) as cnt FROM ${table}`) as any
+    if (c && c.cnt === 0) {
+      for (const [code, name] of data) {
+        db.run(`INSERT INTO ${table} (code, name) VALUES (?, ?)`, [code, name])
+      }
+    }
+  }
+
+  seedIfEmpty('currencies', [
+    ['CNY', '人民币'], ['USD', '美元'], ['EUR', '欧元'], ['JPY', '日元'],
+    ['HKD', '港币'], ['GBP', '英镑'], ['KRW', '韩元'], ['AUD', '澳元'],
+    ['CAD', '加元'], ['CHF', '瑞士法郎'], ['SGD', '新加坡元'], ['RUB', '卢布'],
+  ])
+
+  seedIfEmpty('packaging_types', [
+    ['CT', '纸箱'], ['BX', '木箱'], ['PL', '托盘'], ['DR', '桶装'],
+    ['BG', '袋装'], ['RL', '卷装'], ['CS', '箱装'], ['PK', '包装'],
+    ['NT', '裸装'], ['OT', '其他'],
+  ])
+
+  seedIfEmpty('countries', [
+    ['CN', '中国'], ['US', '美国'], ['DE', '德国'], ['JP', '日本'],
+    ['KR', '韩国'], ['GB', '英国'], ['FR', '法国'], ['IT', '意大利'],
+    ['CA', '加拿大'], ['AU', '澳大利亚'], ['RU', '俄罗斯'], ['IN', '印度'],
+    ['BR', '巴西'], ['VN', '越南'], ['TH', '泰国'], ['MY', '马来西亚'],
+    ['SG', '新加坡'], ['ID', '印度尼西亚'], ['PH', '菲律宾'], ['MM', '缅甸'],
+    ['MN', '蒙古'], ['KZ', '哈萨克斯坦'], ['UZ', '乌兹别克斯坦'],
+    ['PK', '巴基斯坦'], ['BD', '孟加拉国'], ['TR', '土耳其'],
+    ['ZA', '南非'], ['NG', '尼日利亚'], ['EG', '埃及'],
+    ['MX', '墨西哥'], ['AR', '阿根廷'], ['CL', '智利'],
+    ['NL', '荷兰'], ['BE', '比利时'], ['ES', '西班牙'], ['PT', '葡萄牙'],
+    ['PL', '波兰'], ['CZ', '捷克'], ['UA', '乌克兰'],
+    ['AE', '阿联酋'], ['SA', '沙特阿拉伯'], ['IR', '伊朗'],
+  ])
+
   saveDb()
 }
 
