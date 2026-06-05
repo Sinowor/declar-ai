@@ -293,25 +293,27 @@ export default function AttachmentPanel({ declarationId }: Props) {
       </div>
 
       {/* Uploaded files */}
-      <div>
-        <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">
-          上传文件{uploadedFiles.length > 0 ? ` (${uploadedFiles.length})` : ''}
-        </div>
-        {uploadedFiles.length > 0 ? (
+      {uploadedFiles.length > 0 ? (
+        <div>
+          <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">
+            上传文件 ({uploadedFiles.length})
+          </div>
           <div className="px-3 pb-2">
             {uploadedFiles.map(f => <FileRow key={f.id} file={f} />)}
           </div>
-        ) : (
+        </div>
+      ) : files.length > 0 ? (
+        <div>
+          <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">上传文件</div>
           <div className="px-6 py-8 text-center text-[13px] text-muted">
-            <div className="flex justify-center mb-2 opacity-30"><IconDocument /></div>
-            暂未导入文件。在「① 导入单证」中上传单证文件。
+            在「① 导入单证」中上传单证文件。
           </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {/* Generated files */}
       {generatedFiles.length > 0 && (
-        <div className="border-t border-gray-100">
+        <div className={`${uploadedFiles.length > 0 ? 'border-t border-gray-100' : ''}`}>
           <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">
             生成文件 ({generatedFiles.length})
           </div>
@@ -321,10 +323,11 @@ export default function AttachmentPanel({ declarationId }: Props) {
         </div>
       )}
 
+      {/* Overall empty state */}
       {files.length === 0 && (
         <div className="px-6 py-10 text-center text-[13px] text-muted">
           <div className="flex justify-center mb-2 opacity-30"><IconDocument /></div>
-          暂无文件
+          暂无文件。在「① 导入单证」中上传单证文件。
         </div>
       )}
     </div>
