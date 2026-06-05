@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useTheme } from '../contexts/ThemeContext'
+import type { ThemeMode } from '../contexts/ThemeContext'
 import ThemeColorPicker from './ThemeColorPicker'
 import CustomsOfficeManager from './CustomsOfficeManager'
 import EnterpriseManager from './EnterpriseManager'
@@ -24,6 +26,7 @@ const tabs: { id: TabId; label: string }[] = [
 ]
 
 export default function Settings({ onShowAbout, onShowLicense }: Props) {
+  const { themeMode, setThemeMode } = useTheme()
   const [activeTab, setActiveTab] = useState<TabId>('general')
   const [storageRoot, setStorageRoot] = useState('')
   const [saved, setSaved] = useState(false)
@@ -166,7 +169,30 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
               <div className="px-6 py-[18px] border-b border-gray-200">
                 <h3 className="text-lg font-semibold">外观</h3>
               </div>
-              <div className="p-6">
+              <div className="p-6 space-y-6">
+                {/* Appearance mode */}
+                <div>
+                  <div className="text-xs text-muted mb-3 uppercase tracking-wider font-medium">外观模式</div>
+                  <div className="flex gap-1">
+                    {([
+                      { id: 'light' as ThemeMode, label: '浅色', icon: '☀' },
+                      { id: 'dark' as ThemeMode, label: '深色', icon: '☾' },
+                      { id: 'system' as ThemeMode, label: '跟随系统', icon: '⟳' },
+                    ]).map(m => (
+                      <button key={m.id}
+                        onClick={() => setThemeMode(m.id)}
+                        className={`flex items-center gap-1.5 h-8 px-3 rounded-md text-[12px] font-medium cursor-pointer transition-colors border ${
+                          themeMode === m.id
+                            ? 'bg-primary-50 text-primary-600 border-primary-200'
+                            : 'bg-white text-muted border-gray-200 hover:border-gray-300 hover:text-ink'
+                        }`}
+                      >
+                        <span className="text-sm">{m.icon}</span>
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <ThemeColorPicker />
               </div>
             </div>
