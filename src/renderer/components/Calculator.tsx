@@ -340,7 +340,7 @@ export default function Calculator() {
                 <div className="text-[12px] text-muted mb-1">监管条件</div>
                 <div className="text-[13px] font-medium leading-relaxed">{supLabel(tariff.supervision)}</div>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )
