@@ -1,3 +1,8 @@
+// Hot reload main process in dev mode
+if (process.env.NODE_ENV === 'development') {
+  try { require('electron-reload')(__dirname) } catch {}
+}
+
 import { app, BrowserWindow } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
