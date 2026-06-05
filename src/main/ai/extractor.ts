@@ -1,9 +1,52 @@
 import { v4 as uuid } from 'uuid'
+import * as fs from 'fs'
 import { queryAll, queryOne, execute } from '../db'
 import { getAIClient, getModel } from './client'
-import { getExtractionPrompt, getReviewPrompt } from './prompts'
+import { getExtractionPrompt, getReviewPrompt, getSystemDateContext } from './prompts'
 import { declarationJsonPath, readJsonFile, writeJsonFile } from '../storage'
 import type { UniversalDeclarationData, ExtractionNote, ReviewIssue } from '../../shared/types'
+
+// ═══ AI File Tagging ═══
+const TAG_OPTIONS = ['箱单', '发票', '合同', '提单', '运单', '原产地证', '报关单', '其他']
+
+async function tagFileWithAI(fileName: string, textSample: string): Promise<string[]> {
+  try {
+    const client = getAIClient()
+    const response = await client.chat.completions.create({
+      model: getModel(),
+      messages: [
+        { role: 'system', content: `${getSystemDateContext()}\n\n你是一个贸易单证识别器。根据文件名和文本内容，判断文件类型。从以下选项中选择最匹配的 1-2 个标签：箱单、发票、合同、提单、运单、原产地证、报关单、其他。如果无法判断或不属于以上类型，返回["其他"]。返回JSON：{"tags":["标签1","标签2"]}。只返回JSON。` },
+        { role: 'user', content: `文件名: ${fileName}\n\n内容预览:\n${textSample.slice(0, 500)}` },
+      ],
+      temperature: 0.1, max_tokens: 128,
+      response_format: { type: 'json_object' },
+    })
+    const content = response.choices[0]?.message?.content
+    if (content) {
+      const parsed = JSON.parse(content)
+      if (Array.isArray(parsed.tags) && parsed.tags.length > 0) {
+        return parsed.tags.filter((t: string) => TAG_OPTIONS.includes(t)).slice(0, 2)
+      }
+    }
+    throw new Error('Invalid tag response')
+  } catch (err: any) {
+    console.warn('[extractor] AI file tagging failed:', err.message)
+    return ['其他']
+  }
+}
+
+export async function tagUploadedFiles(declarationId: string): Promise<void> {
+  const files = queryAll('SELECT id, file_name, extracted_text FROM declaration_files WHERE declaration_id = ? AND category = ?', [declarationId, 'uploaded'])
+  for (const f of files as any[]) {
+    try {
+      const tags = await tagFileWithAI(f.file_name, f.extracted_text || '')
+      execute('UPDATE declaration_files SET tags = ? WHERE id = ?', [JSON.stringify(tags), f.id])
+      console.log(`[extractor] Tagged file ${f.file_name}:`, tags)
+    } catch (err: any) {
+      console.warn(`[extractor] Failed to tag file ${f.file_name}:`, err.message)
+    }
+  }
+}
 
 export async function runAIExtraction(declarationId: string): Promise<{
   success: boolean
@@ -78,9 +121,24 @@ export async function runAIExtraction(declarationId: string): Promise<{
       extractedData.file_warnings = [...codeWarnings, ...extractedData.file_warnings]
     }
 
+    // Auto-tag uploaded files
+    tagUploadedFiles(declarationId).catch(err => console.warn('[extractor] File tagging failed (non-fatal):', err.message))
+
     const row: any = queryOne('SELECT folder_path FROM declarations WHERE id = ?', [declarationId])
     if (row) {
       writeJsonFile(declarationJsonPath(row.folder_path), extractedData)
+      // Record as generated file
+      const jsonPath = declarationJsonPath(row.folder_path)
+      const existing = queryOne("SELECT id FROM declaration_files WHERE declaration_id = ? AND output_type = 'extraction_json'", [declarationId])
+      if (existing) {
+        execute('UPDATE declaration_files SET file_name = ?, file_path = ?, file_size = ?, created_at = datetime("now","localtime") WHERE id = ?', ['提取结果.json', jsonPath, fs.statSync(jsonPath).size, (existing as any).id])
+      } else {
+        execute(
+          `INSERT INTO declaration_files (id, declaration_id, file_name, file_path, file_type, file_size, category, tags, purpose, output_type)
+           VALUES (?, ?, ?, ?, ?, ?, 'generated', NULL, ?, ?)`,
+          [uuid(), declarationId, '提取结果.json', jsonPath, 'json', fs.statSync(jsonPath).size, 'AI 提取的结构化数据', 'extraction_json']
+        )
+      }
     }
     execute(
       "UPDATE declarations SET status = 'review', updated_at = datetime('now','localtime') WHERE id = ?",

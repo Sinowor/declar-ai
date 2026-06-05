@@ -4,6 +4,7 @@ import type { ReviewIssue, FileWarning, FieldMapping, DeclarationTypeConfig, Dec
 import { FIELD_LABELS, CARGO_FIELD_LABELS, SECTION_LABELS } from '../../shared/types'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
+import AttachmentPanel from './AttachmentPanel'
 import DeclarationPreview from './DeclarationPreview'
 import { IconSave, IconAI, IconDocument } from './Icons'
 
@@ -638,6 +639,11 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
               onUpdate={(details) => { markDirty(); setCargoDetails(details) }}
               cargoColumns={cargoColumns}
             />
+          </div>
+
+          {/* Attachment Management */}
+          <div className="mt-6">
+            <AttachmentPanel declarationId={declaration!.id} />
           </div>
 
         </div>

@@ -15,6 +15,10 @@ const api = {
   getFiles: (declarationId: string) => ipcRenderer.invoke('file:list', declarationId),
   deleteFile: (fileId: string) => ipcRenderer.invoke('file:delete', fileId),
   getFilePath: (file: File) => webUtils.getPathForFile(file),
+  openFile: (fileId: string) => ipcRenderer.invoke('file:open', fileId),
+  revealFile: (fileId: string) => ipcRenderer.invoke('file:reveal', fileId),
+  listAllFiles: (declarationId: string) => ipcRenderer.invoke('file:list-all', declarationId),
+  updateFileTags: (fileId: string, tags: string[]) => ipcRenderer.invoke('file:update-tags', fileId, tags),
 
   // AI operations
   aiExtract: (declarationId: string) => ipcRenderer.invoke('ai:extract', declarationId),

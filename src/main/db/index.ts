@@ -106,6 +106,25 @@ function initSchema() {
   db.run('CREATE INDEX IF NOT EXISTS idx_files_decl ON declaration_files(declaration_id)')
   db.run('CREATE INDEX IF NOT EXISTS idx_conversations_decl ON ai_conversations(declaration_id)')
 
+  // ═══ Migrations ═══
+  // v1.1: attachment management — add category, tags, purpose, output_type to declaration_files
+  const fileCols = db.exec("PRAGMA table_info('declaration_files')")
+  if (fileCols.length > 0) {
+    const existingCols = new Set(fileCols[0].values.map((r: any) => r[1]))
+    if (!existingCols.has('category')) {
+      db.run("ALTER TABLE declaration_files ADD COLUMN category TEXT NOT NULL DEFAULT 'uploaded'")
+    }
+    if (!existingCols.has('tags')) {
+      db.run("ALTER TABLE declaration_files ADD COLUMN tags TEXT DEFAULT '[\"其他\"]'")
+    }
+    if (!existingCols.has('purpose')) {
+      db.run('ALTER TABLE declaration_files ADD COLUMN purpose TEXT')
+    }
+    if (!existingCols.has('output_type')) {
+      db.run('ALTER TABLE declaration_files ADD COLUMN output_type TEXT')
+    }
+  }
+
   saveDb()
 }
 

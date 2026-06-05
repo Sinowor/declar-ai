@@ -1,4 +1,4 @@
-import { ipcMain, dialog } from 'electron'
+import { ipcMain, dialog, shell } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
 import { getDb, queryOne, queryAll, execute, uuid } from '../db'
@@ -95,6 +95,39 @@ export async function registerFileIpc() {
       fs.unlinkSync(file.file_path)
     }
     execute('DELETE FROM declaration_files WHERE id = ?', [fileId])
+    return { success: true }
+  })
+
+  // ═══ Attachment Management ═══
+
+  ipcMain.handle('file:open', async (_event, fileId: string) => {
+    const file: any = queryOne('SELECT file_path FROM declaration_files WHERE id = ?', [fileId])
+    if (!file || !fs.existsSync(file.file_path)) {
+      return { success: false, error: '文件不存在' }
+    }
+    const err = await shell.openPath(file.file_path)
+    if (err) return { success: false, error: err }
+    return { success: true }
+  })
+
+  ipcMain.handle('file:reveal', async (_event, fileId: string) => {
+    const file: any = queryOne('SELECT file_path FROM declaration_files WHERE id = ?', [fileId])
+    if (!file || !fs.existsSync(file.file_path)) {
+      return { success: false, error: '文件不存在' }
+    }
+    shell.showItemInFolder(file.file_path)
+    return { success: true }
+  })
+
+  ipcMain.handle('file:list-all', async (_event, declarationId: string) => {
+    return queryAll(
+      'SELECT id, declaration_id, file_name, file_path, file_type, file_size, category, tags, purpose, output_type, created_at FROM declaration_files WHERE declaration_id = ? ORDER BY category, created_at',
+      [declarationId]
+    )
+  })
+
+  ipcMain.handle('file:update-tags', async (_event, fileId: string, tags: string[]) => {
+    execute('UPDATE declaration_files SET tags = ? WHERE id = ?', [JSON.stringify(tags), fileId])
     return { success: true }
   })
 }
