@@ -54,8 +54,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 680,
     title: 'DeclarAI - 过境转关报关单自动化制单',
-    titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
-    titleBarOverlay: process.platform === "darwin" ? { height: 28, symbolColor: "#64748B" } : undefined,
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     frame: process.platform === 'darwin',
     autoHideMenuBar: process.platform !== 'darwin',
     webPreferences: {

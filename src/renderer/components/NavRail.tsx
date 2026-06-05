@@ -54,10 +54,10 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
   return (
     <nav
       className="flex flex-col shrink-0 items-center bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-20 drag-region"
-      style={{ width: 74 }}
+      style={{ width: 60 }}
     >
-      {/* Spacing below titleBarOverlay */}
-      <div style={{ height: isMac ? 6 : 8 }} className="shrink-0" />
+      {/* macOS traffic light clearance */}
+      <div style={{ height: isMac ? 38 : 8 }} className="shrink-0" />
 
       {/* Logo + app name */}
       <button onClick={onLogoClick} title="关于 DeclarAI"
