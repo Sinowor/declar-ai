@@ -55,6 +55,7 @@ function createWindow() {
     minHeight: 680,
     title: 'DeclarAI - 过境转关报关单自动化制单',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    trafficLightPosition: process.platform === "darwin" ? { x: 8, y: 8 } : undefined,
     frame: process.platform === 'darwin',
     autoHideMenuBar: process.platform !== 'darwin',
     webPreferences: {

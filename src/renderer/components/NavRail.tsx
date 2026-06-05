@@ -57,7 +57,7 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
       style={{ width: 60 }}
     >
       {/* macOS traffic light clearance */}
-      <div style={{ height: isMac ? 38 : 8 }} className="shrink-0" />
+      <div style={{ height: isMac ? 28 : 8 }} className="shrink-0" />
 
       {/* Logo + app name */}
       <button onClick={onLogoClick} title="关于 DeclarAI"
