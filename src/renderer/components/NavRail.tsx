@@ -54,7 +54,7 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
   return (
     <nav
       className="flex flex-col shrink-0 items-center bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-20 drag-region"
-      style={{ width: 60 }}
+      style={{ width: 74 }}
     >
       {/* macOS traffic light clearance */}
       <div style={{ height: isMac ? 28 : 8 }} className="shrink-0" />
@@ -62,12 +62,12 @@ export default function NavRail({ active, onChange, editing, onExitEdit, onToggl
       {/* Logo + app name */}
       <button onClick={onLogoClick} title="关于 DeclarAI"
         className="flex flex-col items-center gap-0.5 pb-3 w-full no-drag cursor-pointer border-none bg-transparent hover:opacity-80 transition-opacity">
-        <Logo size={22} />
+        <Logo size={26} />
         <span className="text-[11px] font-semibold text-ink leading-none">DeclarAI</span>
       </button>
 
       {/* Divider */}
-      <div className="w-10 h-px bg-gray-200 dark:bg-gray-700 mb-2" />
+      <div className="w-12 h-px bg-gray-200 dark:bg-gray-700 mb-2" />
 
       {/* Main nav items */}
       <div className="flex flex-col items-center gap-1 px-2 no-drag w-full">
