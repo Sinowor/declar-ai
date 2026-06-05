@@ -74,12 +74,18 @@ export default function Calculator() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copyMsg, setCopyMsg] = useState('')
+  const [countrySearch, setCountrySearch] = useState('')
+  const [showCountries, setShowCountries] = useState(false)
   const [countries, setCountries] = useState<any[]>([])
   const [currencies, setCurrencies] = useState<any[]>([])
 
   const api = (window as any).api
 
-  useEffect(() => { api?.countriesList?.().then((l: any[]) => { if (Array.isArray(l)) setCountries(l) }).catch(() => {}) }, [])
+  useEffect(() => { api?.countriesList?.().then((l: any[]) => { if (Array.isArray(l)) { setCountries(l); const cn = l.find((c: any) => c.code === 'CN'); if (cn) setCountrySearch(cn.name) } }).catch(() => {}) }, [])
+
+  // Filter countries for combobox
+  const filteredCountries = countrySearch ? countries.filter((c: any) => c.name.includes(countrySearch) || c.code.toLowerCase().includes(countrySearch.toLowerCase())) : countries.slice(0, 20)
+  const selectedCountryName = countries.find((c: any) => c.code === countryCode)?.name || '中国'
   useEffect(() => { api?.currenciesList?.().then((l: any[]) => { if (Array.isArray(l)) setCurrencies(l) }).catch(() => {}) }, [])
   useEffect(() => { api?.calculatorHistory?.().then((l: any[]) => { if (Array.isArray(l)) setHistory(l) }).catch(() => {}) }, [])
 
@@ -171,9 +177,23 @@ export default function Calculator() {
                   </div>
                 </div>
               </div>
-              <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 cursor-pointer">
-                {countries.map((c: any) => <option key={c.code} value={c.code}>{c.name}</option>)}
-              </select>
+              <div className="relative">
+                <input value={showCountries ? countrySearch : selectedCountryName}
+                  onFocus={() => { setShowCountries(true); setCountrySearch('') }}
+                  onChange={e => { setCountrySearch(e.target.value); setShowCountries(true) }}
+                  onBlur={() => setTimeout(() => setShowCountries(false), 200)}
+                  placeholder="搜索国家..."
+                  className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 cursor-text" />
+                {showCountries && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-panel z-50 max-h-[180px] overflow-y-auto">
+                    {filteredCountries.map((c: any) => (
+                      <button key={c.code} onMouseDown={() => { setCountryCode(c.code); setCountrySearch(c.name); setShowCountries(false) }}
+                        className={`w-full text-left px-3 py-1.5 text-[13px] cursor-pointer border-none bg-transparent hover:bg-surface dark:hover:bg-gray-800 transition-colors ${c.code === countryCode ? 'text-primary-500 font-medium' : ''}`}>{c.name} <span className="text-muted text-[11px] ml-1">{c.code}</span></button>
+                    ))}
+                    {filteredCountries.length === 0 && <div className="px-3 py-2 text-[12px] text-muted">无匹配</div>}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
