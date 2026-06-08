@@ -54,6 +54,7 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [hsSidebarCollapsed, setHsSidebarCollapsed] = useState(false)
   const [kbSidebarCollapsed, setKbSidebarCollapsed] = useState(false)
+  const [kbDirty, setKbDirty] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -157,6 +158,14 @@ export default function App() {
     }
   }
 
+  const handleModuleChange = (module: ModuleId) => {
+    if (activeModule === 'knowledge' && module !== 'knowledge' && kbDirty) {
+      if (!confirm('知识库有未保存的更改，确定要离开吗？')) return
+      setKbDirty(false)
+    }
+    setActiveModule(module)
+  }
+
   // Auto-collapse sidebar on entering edit mode, restore on exit
   useEffect(() => {
     setSidebarCollapsed(!!editingId)
@@ -200,7 +209,7 @@ export default function App() {
       {!isMac && <TitleBar />}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
       {/* ═══ Left Icon Rail ═══ */}
-      <NavRail active={activeModule} onChange={setActiveModule}
+      <NavRail active={activeModule} onChange={handleModuleChange}
         editing={!!editingId}
         sidebarCollapsed={activeModule === 'declarations' ? sidebarCollapsed : activeModule === 'hs-classifier' ? hsSidebarCollapsed : kbSidebarCollapsed}
         onExitEdit={handleExitEdit}
@@ -255,7 +264,7 @@ export default function App() {
         <Calculator />
       )}
       {activeModule === 'knowledge' && (
-        <KnowledgeBase sidebarCollapsed={kbSidebarCollapsed} onToggleSidebar={() => setKbSidebarCollapsed(v => !v)} />
+        <KnowledgeBase sidebarCollapsed={kbSidebarCollapsed} onToggleSidebar={() => setKbSidebarCollapsed(v => !v)} onDirtyChange={setKbDirty} />
       )}
       {activeModule === 'settings' && (
         <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />

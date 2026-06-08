@@ -56,6 +56,11 @@ export function registerKnowledgeIpc() {
 
   // Delete
   ipcMain.handle('knowledge:delete', async (_event, id: string) => {
+    // Clean up physical files before cascade deletes the DB rows
+    const files = queryAll('SELECT file_path FROM knowledge_files WHERE entry_id = ?', [id]) as any[]
+    for (const f of files) {
+      try { if (fs.existsSync(f.file_path)) fs.unlinkSync(f.file_path) } catch {}
+    }
     execute('DELETE FROM knowledge_entries WHERE id = ?', [id])
     return { success: true }
   })

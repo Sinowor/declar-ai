@@ -48,6 +48,7 @@
     "vitest": "^3.2.6"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "adm-zip": "^0.5.17",
     "dotenv": "^17.4.2",
     "electron": "^42.3.2",
@@ -56,6 +57,7 @@
     "pdfjs-dist": "^4.10.38",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
     "sql.js": "^1.14.1",
     "uuid": "^14.0.0",
     "xlsx": "^0.18.5"
