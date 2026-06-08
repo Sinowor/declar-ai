@@ -16,8 +16,8 @@ export function registerKnowledgeIpc() {
     let sql = 'SELECT e.id, e.title, e.hs_code, e.tags, e.is_pinned, e.source_type, e.created_at, e.updated_at, (SELECT COUNT(*) FROM knowledge_files WHERE entry_id = e.id) as file_count FROM knowledge_entries e WHERE 1=1'
     const params: any[] = []
     if (opts?.tag) {
-      sql += ' AND e.tags LIKE ?'
-      params.push(`%"${opts.tag}"%`)
+      sql += ' AND EXISTS (SELECT 1 FROM json_each(e.tags) WHERE value = ?)'
+      params.push(opts.tag)
     }
     if (opts?.search) {
       sql += ' AND (e.title LIKE ? OR e.content LIKE ?)'
