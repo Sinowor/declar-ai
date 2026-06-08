@@ -479,6 +479,18 @@ function initSchema() {
 
   // ═══ v2.6: knowledge base ═══
   db.run(`
+    CREATE TABLE IF NOT EXISTS knowledge_files (
+      id TEXT PRIMARY KEY,
+      entry_id TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_size INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (entry_id) REFERENCES knowledge_entries(id) ON DELETE CASCADE
+    )
+  `)
+  
+  db.run(`
     CREATE TABLE IF NOT EXISTS knowledge_entries (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL DEFAULT '',

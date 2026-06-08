@@ -55,9 +55,9 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
     const entry = await api.knowledgeGet(id)
     setSelectedEntry(entry)
     setForm({ title: entry.title, content: entry.content, tags: (parseTags(entry.tags)).join(', ') })
-    if (api?.getFiles) {
-      const fl = await api.getFiles(id)
-      if (Array.isArray(fl)) setFiles(fl.map((f: any) => ({ id: f.id, file_name: f.file_name, file_path: f.file_path })))
+    if (api?.knowledgeFilesList) {
+      const fl = await api.knowledgeFilesList(id)
+      if (Array.isArray(fl)) setFiles(fl)
       else setFiles([])
     }
   }
@@ -95,19 +95,14 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
   }
 
   const handleFilePick = async () => {
-    if (!api?.openFileDialog) return
-    const paths = await api.openFileDialog()
-    if (paths?.length && selectedEntry?.id) {
-      const imported = await api.importFiles(selectedEntry.id, paths)
-      if (Array.isArray(imported)) {
-        setFiles(prev => [...prev, ...imported.map((f: any) => ({ id: f.id, file_name: f.file_name }))])
-      }
-    }
+    if (!selectedEntry?.id || !api?.knowledgeFileAdd) return
+    const imported = await api.knowledgeFileAdd(selectedEntry.id)
+    if (Array.isArray(imported)) setFiles(prev => [...prev, ...imported])
   }
 
   const handleRemoveFile = async (idx: number) => {
     const f = files[idx]
-    if (f.id && api?.deleteFile) await api.deleteFile(f.id)
+    if (f.id && api?.knowledgeFileDelete) await api.knowledgeFileDelete(f.id)
     setFiles(prev => prev.filter((_, i) => i !== idx))
   }
 
