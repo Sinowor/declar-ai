@@ -13,21 +13,21 @@ function kbFilesDir(): string {
 export function registerKnowledgeIpc() {
   // List entries with optional tag/search filter
   ipcMain.handle('knowledge:list', async (_event, opts?: { tag?: string; search?: string; hs_code?: string }) => {
-    let sql = 'SELECT id, title, hs_code, tags, is_pinned, source_type, created_at, updated_at FROM knowledge_entries WHERE 1=1'
+    let sql = 'SELECT e.id, e.title, e.hs_code, e.tags, e.is_pinned, e.source_type, e.created_at, e.updated_at, (SELECT COUNT(*) FROM knowledge_files WHERE entry_id = e.id) as file_count FROM knowledge_entries e WHERE 1=1'
     const params: any[] = []
     if (opts?.tag) {
-      sql += ' AND tags LIKE ?'
+      sql += ' AND e.tags LIKE ?'
       params.push(`%"${opts.tag}"%`)
     }
     if (opts?.search) {
-      sql += ' AND (title LIKE ? OR content LIKE ?)'
+      sql += ' AND (e.title LIKE ? OR e.content LIKE ?)'
       params.push(`%${opts.search}%`, `%${opts.search}%`)
     }
     if (opts?.hs_code) {
-      sql += ' AND hs_code LIKE ?'
+      sql += ' AND e.hs_code LIKE ?'
       params.push(`%${opts.hs_code}%`)
     }
-    sql += ' ORDER BY is_pinned DESC, updated_at DESC'
+    sql += ' ORDER BY e.is_pinned DESC, e.updated_at DESC'
     return queryAll(sql, params)
   })
 
@@ -68,6 +68,18 @@ export function registerKnowledgeIpc() {
   // Tags
   ipcMain.handle('knowledge:tags', async () => {
     return queryAll('SELECT * FROM knowledge_tags ORDER BY name')
+  })
+
+  ipcMain.handle('knowledge:tag-add', async (_event, name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed) return { success: false, error: '标签名不能为空' }
+    execute('INSERT OR IGNORE INTO knowledge_tags (name) VALUES (?)', [trimmed])
+    return { success: true }
+  })
+
+  ipcMain.handle('knowledge:tag-delete', async (_event, name: string) => {
+    execute('DELETE FROM knowledge_tags WHERE name = ?', [name])
+    return { success: true }
   })
 
   // Search (full text in title + content)

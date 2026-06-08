@@ -4,10 +4,11 @@ import ReactMarkdown from 'react-markdown'
 interface Entry {
   id: string; title: string; content: string; hs_code: string | null
   tags: string; source_type: string; is_pinned: number
-  created_at: string; updated_at: string
+  created_at: string; updated_at: string; file_count: number
 }
-interface AttachedFile { id?: string; file_name: string; file_path?: string }
+interface AttachedFile { id?: string; file_name: string; file_path?: string; file_size?: number }
 interface DbTag { name: string; color: string | null }
+interface RelatedEntry { id: string; title: string; hs_code: string; tags: string }
 
 function timeAgo(d: string): string {
   const diff = Date.now() - new Date(d).getTime()
@@ -19,6 +20,13 @@ function timeAgo(d: string): string {
 
 function parseTags(t: string): string[] {
   try { return JSON.parse(t) } catch { return [] }
+}
+
+function formatSize(bytes?: number): string {
+  if (!bytes) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDirtyChange }: {
@@ -42,10 +50,26 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   const [dbTags, setDbTags] = useState<DbTag[]>([])
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([])
   const [showTagSuggestions, setShowTagSuggestions] = useState(false)
+  const [relatedNotes, setRelatedNotes] = useState<RelatedEntry[]>([])
+  const [showTagManager, setShowTagManager] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [autoSaved, setAutoSaved] = useState(false)
+  const savedForm = useRef({ title: '', content: '', tags: '', hs_code: '' })
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
+  const tagDropdownRef = useRef<HTMLDivElement>(null)
 
   const api = (window as any).api
+
+  // ── Dirty check: compare current form against saved snapshot ──
+  const isDirty = useCallback(() => {
+    const s = savedForm.current
+    return form.title !== s.title || form.content !== s.content || form.tags !== s.tags || form.hs_code !== s.hs_code
+  }, [form])
+
+  // Sync dirty state with parent
+  useEffect(() => { onDirtyChange?.(dirty) }, [dirty, onDirtyChange])
 
   const loadEntries = useCallback(async (tag?: string, q?: string) => {
     if (!api?.knowledgeList) return
@@ -61,11 +85,14 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   }, [])
 
   // Load DB tags on mount
-  useEffect(() => {
+  const loadDbTags = useCallback(async () => {
     if (api?.knowledgeTags) {
-      api.knowledgeTags().then((tags: DbTag[]) => { if (Array.isArray(tags)) setDbTags(tags) }).catch(() => {})
+      const tags = await api.knowledgeTags()
+      if (Array.isArray(tags)) setDbTags(tags)
     }
   }, [])
+
+  useEffect(() => { loadDbTags() }, [loadDbTags])
 
   // Debounced search
   useEffect(() => {
@@ -74,16 +101,77 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
   }, [search, activeTag, loadEntries])
 
-  // Propagate dirty state to parent
+  // ── Auto-save: 2s after last edit ──
   useEffect(() => {
-    onDirtyChange?.(dirty)
-  }, [dirty, onDirtyChange])
+    if (!dirty || !form.title.trim() || !editing) return
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    autoSaveTimer.current = setTimeout(async () => {
+      const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
+      try {
+        const res = await api.knowledgeSave({
+          id: selectedEntry?.id, title: form.title.trim(), content: form.content,
+          tags: JSON.stringify(tagArr), hs_code: form.hs_code.trim() || null,
+          is_pinned: selectedEntry?.is_pinned || 0,
+        })
+        if (res?.success) {
+          savedForm.current = { ...form }
+          setDirty(false)
+          setAutoSaved(true)
+          setTimeout(() => setAutoSaved(false), 1500)
+          if (res.id) {
+            setSelectedId(res.id)
+            if (!selectedEntry?.id) await loadEntry(res.id)
+          }
+          await loadEntries(activeTag, search || undefined)
+        }
+      } catch {}
+    }, 2000)
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current) }
+  }, [form, dirty, editing])
+
+  // ── Ctrl+S / Cmd+S ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault()
+        if (editing && form.title.trim()) handleSave()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [editing, form, selectedEntry])
+
+  // ── Click-outside for tag dropdown ──
+  useEffect(() => {
+    if (!showTagSuggestions) return
+    const handler = (e: MouseEvent) => {
+      if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target as Node) &&
+          tagInputRef.current && !tagInputRef.current.contains(e.target as Node)) {
+        setShowTagSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showTagSuggestions])
+
+  // ── Load related notes when selectedEntry changes ──
+  useEffect(() => {
+    if (selectedEntry?.hs_code && api?.knowledgeRelated) {
+      api.knowledgeRelated(selectedEntry.hs_code).then((related: RelatedEntry[]) => {
+        if (Array.isArray(related)) setRelatedNotes(related.filter((r: RelatedEntry) => r.id !== selectedEntry.id))
+      }).catch(() => setRelatedNotes([]))
+    } else {
+      setRelatedNotes([])
+    }
+  }, [selectedEntry?.hs_code, selectedEntry?.id])
 
   const loadEntry = async (id: string) => {
     if (!api?.knowledgeGet) return
     const entry = await api.knowledgeGet(id)
     setSelectedEntry(entry)
-    setForm({ title: entry.title, content: entry.content, tags: parseTags(entry.tags).join(', '), hs_code: entry.hs_code || '' })
+    const f = { title: entry.title, content: entry.content, tags: parseTags(entry.tags).join(', '), hs_code: entry.hs_code || '' }
+    setForm(f)
+    savedForm.current = f
     if (api?.knowledgeFilesList) {
       const fl = await api.knowledgeFilesList(id)
       if (Array.isArray(fl)) setFiles(fl)
@@ -93,7 +181,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   }
 
   const confirmDiscard = (): boolean => {
-    if (!dirty) return true
+    if (!isDirty()) return true
     return confirm('你有未保存的更改，确定要离开吗？')
   }
 
@@ -105,13 +193,20 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   const handleNew = () => {
     if (!confirmDiscard()) return
     setSelectedId(null); setSelectedEntry(null); setEditing(true)
-    setForm({ title: '', content: '', tags: '', hs_code: '' }); setFiles([])
-    setDirty(false)
+    const f = { title: '', content: '', tags: '', hs_code: '' }
+    setForm(f); savedForm.current = f; setFiles([])
+    setDirty(false); setRelatedNotes([])
   }
 
-  const markDirty = (patch: typeof form) => {
+  const setFormAndDirty = (patch: typeof form) => {
     setForm(patch)
-    setDirty(true)
+    setDirty(isDirtyRef(patch))
+  }
+
+  // ref-based dirty check for use in closures
+  const isDirtyRef = (patch: typeof form) => {
+    const s = savedForm.current
+    return patch.title !== s.title || patch.content !== s.content || patch.tags !== s.tags || patch.hs_code !== s.hs_code
   }
 
   const handleSave = async () => {
@@ -125,6 +220,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
         is_pinned: selectedEntry?.is_pinned || 0,
       })
       if (res?.success) {
+        savedForm.current = { ...form }
         await loadEntries(activeTag, search || undefined)
         setEditing(false)
         setDirty(false)
@@ -139,7 +235,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     if (!selectedEntry || !confirm('确定删除这条笔记？')) return
     if (api?.knowledgeDelete) {
       await api.knowledgeDelete(selectedEntry.id)
-      setSelectedId(null); setSelectedEntry(null); setDirty(false)
+      setSelectedId(null); setSelectedEntry(null); setDirty(false); setRelatedNotes([])
       await loadEntries(activeTag, search || undefined)
     }
   }
@@ -149,13 +245,9 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     let title = form.title.trim()
     if (!title) {
       const unnamed = entries.filter(e => /^未命名\d*$/.test(e.title))
-      if (unnamed.length === 0) {
-        title = '未命名'
-      } else {
-        const nums = unnamed.map(e => {
-          const m = e.title.match(/^未命名(\d+)$/)
-          return m ? parseInt(m[1]) : 0
-        })
+      if (unnamed.length === 0) { title = '未命名' }
+      else {
+        const nums = unnamed.map(e => { const m = e.title.match(/^未命名(\d+)$/); return m ? parseInt(m[1]) : 0 })
         title = `未命名${Math.max(...nums, 0) + 1}`
       }
       setForm(prev => ({ ...prev, title }))
@@ -166,6 +258,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
       tags: JSON.stringify(tagArr), hs_code: form.hs_code.trim() || null,
     })
     if (!res?.success || !res.id) return null
+    savedForm.current = { ...form, title }
     setSelectedId(res.id); setDirty(false)
     await loadEntry(res.id)
     await loadEntries(activeTag, search || undefined)
@@ -198,7 +291,8 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   const handleAddLink = () => {
     if (!linkUrl.trim()) return
     const mdLink = linkTitle.trim() ? `[${linkTitle.trim()}](${linkUrl.trim()})` : linkUrl.trim()
-    setForm(prev => ({ ...prev, content: prev.content ? prev.content + '\n' + mdLink : mdLink }))
+    const newContent = form.content ? form.content + '\n' + mdLink : mdLink
+    setForm(prev => ({ ...prev, content: newContent }))
     setDirty(true)
     setLinkUrl(''); setLinkTitle('')
   }
@@ -228,12 +322,12 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   const handleTagInputChange = (value: string) => {
     setForm({ ...form, tags: value })
     setDirty(true)
-    // Show suggestions based on last partial tag
     const parts = value.split(/[,，]/)
     const lastPart = parts[parts.length - 1].trim().toLowerCase()
     if (lastPart.length > 0) {
+      const existing = parts.map(p => p.trim())
       const matches = dbTags
-        .filter(t => t.name.toLowerCase().includes(lastPart) && !parts.map(p => p.trim()).includes(t.name))
+        .filter(t => t.name.toLowerCase().includes(lastPart) && !existing.includes(t.name))
         .map(t => t.name)
         .slice(0, 5)
       setTagSuggestions(matches)
@@ -254,11 +348,24 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   }
 
   const handleToggleEditing = (enter: boolean) => {
-    if (!enter && dirty) {
+    if (!enter && isDirty()) {
       if (!confirm('你有未保存的更改，确定要离开编辑模式吗？')) return
     }
     setEditing(enter)
     if (!enter) setDirty(false)
+  }
+
+  const handleAddDbTag = async () => {
+    if (!newTagName.trim() || !api?.knowledgeTagAdd) return
+    await api.knowledgeTagAdd(newTagName.trim())
+    setNewTagName('')
+    await loadDbTags()
+  }
+
+  const handleDeleteDbTag = async (name: string) => {
+    if (!api?.knowledgeTagDelete) return
+    await api.knowledgeTagDelete(name)
+    await loadDbTags()
   }
 
   return (
@@ -271,14 +378,37 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索笔记..."
             className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-surface dark:bg-gray-800 font-sans" />
         </div>
-        <div className="px-4 pb-3 flex flex-wrap gap-1">
+        <div className="px-4 pb-2 flex flex-wrap gap-1">
           <button onClick={() => setActiveTag('')}
             className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
           {allTags.map(t => (
             <button key={t} onClick={() => setActiveTag(activeTag === t ? '' : t)}
               className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
           ))}
+          <button onClick={() => setShowTagManager(!showTagManager)}
+            className="px-2 py-0.5 rounded text-[11px] text-muted cursor-pointer border border-dashed border-gray-200 dark:border-gray-700 hover:text-ink hover:border-gray-400 transition-colors"
+            title="管理标签">+</button>
         </div>
+        {showTagManager && (
+          <div className="px-4 pb-3">
+            <div className="flex gap-1 mb-2">
+              <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="新标签名"
+                className="flex-1 h-6 rounded border border-gray-200 dark:border-gray-700 px-2 text-[11px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
+                onKeyDown={e => { if (e.key === 'Enter') handleAddDbTag() }} />
+              <button onClick={handleAddDbTag}
+                className="h-6 px-2 rounded text-[10px] font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors shrink-0">添加</button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {dbTags.map(t => (
+                <span key={t.name} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group">
+                  {t.name}
+                  <button onClick={() => handleDeleteDbTag(t.name)}
+                    className="text-muted hover:text-red-500 cursor-pointer leading-none opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <button onClick={handleNew}
           className="mx-4 mb-3 h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors">+ 新建笔记</button>
         <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -292,6 +422,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                   <div className="flex items-center gap-1.5">
                     {e.is_pinned ? <span className="text-[10px] shrink-0">📌</span> : null}
                     <div className="text-[13px] font-medium truncate flex-1">{e.title}</div>
+                    {e.file_count > 0 && <span className="text-[10px] text-muted/40 shrink-0" title={`${e.file_count} 个附件`}>📎</span>}
                     <button onClick={(ev) => { ev.stopPropagation(); togglePin(e); }}
                       className="opacity-0 group-hover:opacity-100 text-[11px] text-muted hover:text-amber-500 cursor-pointer shrink-0 transition-opacity"
                       title={e.is_pinned ? '取消置顶' : '置顶'}>📌</button>
@@ -333,6 +464,8 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                 {selectedEntry && <span>{parseTags(selectedEntry.tags).join(' · ') || '未分类'}</span>}
                 {selectedEntry?.hs_code && <span className="font-mono text-[11px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded">HS: {selectedEntry.hs_code}</span>}
                 {selectedEntry && <span>{timeAgo(selectedEntry.updated_at)}</span>}
+                {autoSaved && <span className="text-[11px] text-green-500">已自动保存</span>}
+                {saving && <span className="text-[11px] text-muted">保存中...</span>}
               </div>
               <div className="flex items-center gap-2 no-drag">
                 <button onClick={() => handleToggleEditing(true)}
@@ -344,13 +477,12 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
 
             {editing ? (
               <div className="px-8 pb-12 flex-1 space-y-3">
-                <input value={form.title} onChange={e => markDirty({ ...form, title: e.target.value })} placeholder="标题"
+                <input value={form.title} onChange={e => setFormAndDirty({ ...form, title: e.target.value })} placeholder="标题"
                   className="w-full text-[22px] font-bold outline-none border-none bg-transparent text-ink placeholder:text-muted" />
                 <div className="flex gap-3">
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative" ref={tagDropdownRef}>
                     <input ref={tagInputRef} value={form.tags} onChange={e => handleTagInputChange(e.target.value)}
                       onFocus={() => { const parts = form.tags.split(/[,，]/); const last = parts[parts.length - 1].trim(); if (last) handleTagInputChange(form.tags) }}
-                      onBlur={() => setTimeout(() => setShowTagSuggestions(false), 150)}
                       placeholder="标签，逗号分隔（如：归类经验, 口岸须知）"
                       className="w-full h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
                     {showTagSuggestions && (
@@ -362,10 +494,10 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                       </div>
                     )}
                   </div>
-                  <input value={form.hs_code} onChange={e => markDirty({ ...form, hs_code: e.target.value })} placeholder="HS编码（可选）"
+                  <input value={form.hs_code} onChange={e => setFormAndDirty({ ...form, hs_code: e.target.value })} placeholder="HS编码（可选）"
                     className="w-40 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-mono" />
                 </div>
-                <textarea value={form.content} onChange={e => markDirty({ ...form, content: e.target.value })} placeholder="输入正文（支持 Markdown）..."
+                <textarea value={form.content} onChange={e => setFormAndDirty({ ...form, content: e.target.value })} placeholder="输入正文（支持 Markdown）..."
                   className="w-full flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-y" />
 
                 {/* File attachments */}
@@ -379,6 +511,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                       {files.map((f, i) => (
                         <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
                           <span className="cursor-pointer hover:text-primary-500 hover:underline" onClick={() => handleOpenFile(f.id)}>{f.file_name}</span>
+                          {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
                           <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
                         </span>
                       ))}
@@ -424,9 +557,24 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                         <div className="flex flex-wrap gap-2">
                           {files.map((f, i) => (
                             <span key={i} onClick={() => handleOpenFile(f.id)}
-                              className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-pointer hover:text-primary-500 hover:border-primary-300 dark:hover:border-primary-700 hover:underline transition-colors">
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-pointer hover:text-primary-500 hover:border-primary-300 dark:hover:border-primary-700 hover:underline transition-colors">
                               {f.file_name}
+                              {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
                             </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {relatedNotes.length > 0 && (
+                      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">相关笔记</div>
+                        <div className="space-y-1">
+                          {relatedNotes.map(r => (
+                            <button key={r.id} onClick={() => handleSelect(r.id)}
+                              className="block w-full text-left px-3 py-2 rounded-md text-[13px] hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+                              <span className="font-medium">{r.title}</span>
+                              {r.hs_code && <span className="ml-2 text-[11px] font-mono text-muted">HS: {r.hs_code}</span>}
+                            </button>
                           ))}
                         </div>
                       </div>
