@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface Entry {
   id: string; title: string; content: string; hs_code: string | null
   tags: string; source_type: string; is_pinned: number
   created_at: string; updated_at: string
 }
+interface AttachedFile { id?: string; file_name: string; file_path?: string }
 
 function timeAgo(d: string): string {
   const diff = Date.now() - new Date(d).getTime()
@@ -24,81 +25,108 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null)
   const [search, setSearch] = useState('')
   const [activeTag, setActiveTag] = useState('')
-  const [tags, setTags] = useState<string[]>([])
+  const [allTags, setAllTags] = useState<string[]>([])
   const [editing, setEditing] = useState(false)
-  const [preview, setPreview] = useState(true)
-  const [form, setForm] = useState({ title: '', content: '', hs_code: '', tags: '' })
-  const [saved, setSaved] = useState(false)
+  const [form, setForm] = useState({ title: '', content: '', tags: '' })
+  const [saving, setSaving] = useState(false)
+  const [files, setFiles] = useState<AttachedFile[]>([])
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const api = (window as any).api
 
   const loadEntries = async (tag?: string, q?: string) => {
     if (!api?.knowledgeList) return
     const list = await api.knowledgeList({ tag, search: q })
-    if (Array.isArray(list)) setEntries(list)
+    if (Array.isArray(list)) {
+      setEntries(list)
+      // Collect all unique tags from entries
+      const tagSet = new Set<string>()
+      for (const e of list) {
+        for (const t of parseTags(e.tags)) tagSet.add(t)
+      }
+      setAllTags(Array.from(tagSet))
+    }
   }
 
   useEffect(() => { loadEntries(activeTag, search || undefined) }, [activeTag, search])
-  useEffect(() => { api?.knowledgeTags?.().then((t: any[]) => { if (Array.isArray(t)) setTags(t.map(x => x.name)) }).catch(() => {}) }, [])
 
   const loadEntry = async (id: string) => {
     if (!api?.knowledgeGet) return
     const entry = await api.knowledgeGet(id)
     setSelectedEntry(entry)
-    setForm({ title: entry.title, content: entry.content, hs_code: entry.hs_code || '', tags: (parseTags(entry.tags)).join(', ') })
+    setForm({ title: entry.title, content: entry.content, tags: (parseTags(entry.tags)).join(', ') })
+    if (api?.getFiles) {
+      const fl = await api.getFiles(id)
+      if (Array.isArray(fl)) setFiles(fl.map((f: any) => ({ id: f.id, file_name: f.file_name, file_path: f.file_path })))
+      else setFiles([])
+    }
   }
 
   const handleSelect = (id: string) => {
-    setSelectedId(id); setEditing(false); setPreview(true); loadEntry(id)
+    setSelectedId(id); setEditing(false); loadEntry(id)
   }
 
   const handleNew = () => {
-    setSelectedId(null); setSelectedEntry(null); setEditing(true); setPreview(false)
-    setForm({ title: '', content: '', hs_code: '', tags: '' })
+    setSelectedId(null); setSelectedEntry(null); setEditing(true)
+    setForm({ title: '', content: '', tags: '' }); setFiles([])
   }
 
   const handleSave = async () => {
     if (!form.title.trim()) return
+    setSaving(true)
     const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-    if (api?.knowledgeSave) {
+    try {
       const res = await api.knowledgeSave({
-        id: selectedEntry?.id, title: form.title.trim(), content: form.content,
-        hs_code: form.hs_code.trim() || undefined, tags: JSON.stringify(tagArr),
+        id: selectedEntry?.id, title: form.title.trim(), content: form.content, tags: JSON.stringify(tagArr),
       })
-      if (res.success) {
-        loadEntries(activeTag, search || undefined)
-        setEditing(false); setPreview(true); setSaved(true); setTimeout(() => setSaved(false), 1500)
-        if (res.id && !selectedEntry) { setSelectedId(res.id); loadEntry(res.id) }
-        else if (selectedEntry) loadEntry(selectedEntry.id)
+      if (res?.success) {
+        await loadEntries(activeTag, search || undefined)
+        setEditing(false)
+        if (res.id) { setSelectedId(res.id); await loadEntry(res.id) }
+        else if (selectedEntry) await loadEntry(selectedEntry.id)
       }
-    }
+    } catch (e) { console.error('Save failed:', e) }
+    finally { setSaving(false) }
   }
 
   const handleDelete = async () => {
     if (!selectedEntry || !confirm('确定删除这条笔记？')) return
-    if (api?.knowledgeDelete) { await api.knowledgeDelete(selectedEntry.id); setSelectedId(null); setSelectedEntry(null); loadEntries(activeTag, search || undefined) }
+    if (api?.knowledgeDelete) { await api.knowledgeDelete(selectedEntry.id); setSelectedId(null); setSelectedEntry(null); await loadEntries(activeTag, search || undefined) }
   }
 
-  const renderMd = (content: string) => {
-    return content.split('\n').map((line, i) => {
-      if (line.startsWith('# ')) return <h1 key={i} className="text-[22px] font-bold mt-6 mb-3">{line.slice(2)}</h1>
-      if (line.startsWith('## ')) return <h2 key={i} className="text-[17px] font-semibold mt-5 mb-2">{line.slice(3)}</h2>
-      if (line.startsWith('### ')) return <h3 key={i} className="text-[14px] font-semibold mt-4 mb-1.5">{line.slice(4)}</h3>
-      if (line.startsWith('- ')) return <li key={i} className="ml-4 text-[14px] leading-relaxed list-disc">{line.slice(2)}</li>
-      if (line.startsWith('> ')) return <blockquote key={i} className="border-l-2 border-primary-300 dark:border-primary-700 pl-3 text-[13px] text-muted italic my-2">{line.slice(2)}</blockquote>
-      if (line.trim() === '') return <div key={i} className="h-2" />
-      return <p key={i} className="text-[14px] leading-relaxed">{line}</p>
-    })
+  const handleFilePick = async () => {
+    if (!api?.openFileDialog) return
+    const paths = await api.openFileDialog()
+    if (paths?.length && selectedEntry?.id) {
+      const imported = await api.importFiles(selectedEntry.id, paths)
+      if (Array.isArray(imported)) {
+        setFiles(prev => [...prev, ...imported.map((f: any) => ({ id: f.id, file_name: f.file_name }))])
+      }
+    }
   }
+
+  const handleRemoveFile = async (idx: number) => {
+    const f = files[idx]
+    if (f.id && api?.deleteFile) await api.deleteFile(f.id)
+    setFiles(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  const renderMd = (content: string) => content.split('\n').map((line, i) => {
+    if (line.startsWith('# ')) return <h1 key={i} className="text-[22px] font-bold mt-6 mb-3">{line.slice(2)}</h1>
+    if (line.startsWith('## ')) return <h2 key={i} className="text-[17px] font-semibold mt-5 mb-2">{line.slice(3)}</h2>
+    if (line.startsWith('### ')) return <h3 key={i} className="text-[14px] font-semibold mt-4 mb-1.5">{line.slice(4)}</h3>
+    if (line.startsWith('- ')) return <li key={i} className="ml-4 text-[14px] leading-relaxed list-disc">{line.slice(2)}</li>
+    if (line.startsWith('> ')) return <blockquote key={i} className="border-l-2 border-primary-300 dark:border-primary-700 pl-3 text-[13px] text-muted italic my-2">{line.slice(2)}</blockquote>
+    if (line.trim() === '') return <div key={i} className="h-2" />
+    return <p key={i} className="text-[14px] leading-relaxed">{line}</p>
+  })
 
   return (
     <div className="flex-1 flex overflow-hidden">
       {/* Sidebar */}
       <aside style={{ width: sidebarCollapsed ? 0 : 280, minWidth: sidebarCollapsed ? 0 : 280, transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)', overflow: 'hidden' }}
         className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10">
-        <div className="px-4 pt-4 pb-3 drag-region">
-          <div className="text-[15px] font-semibold">知识库</div>
-        </div>
+        <div className="px-4 pt-4 pb-3 drag-region"><div className="text-[15px] font-semibold">知识库</div></div>
         <div className="px-4 pb-3">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索笔记..."
             className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-surface dark:bg-gray-800 font-sans" />
@@ -106,7 +134,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
         <div className="px-4 pb-3 flex flex-wrap gap-1">
           <button onClick={() => setActiveTag('')}
             className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
-          {tags.map(t => (
+          {allTags.map(t => (
             <button key={t} onClick={() => setActiveTag(activeTag === t ? '' : t)}
               className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
           ))}
@@ -122,10 +150,9 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
                 <button key={e.id} onClick={() => handleSelect(e.id)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg cursor-pointer border-none transition-colors ${selectedId === e.id ? 'bg-surface dark:bg-gray-800' : 'bg-transparent hover:bg-surface dark:hover:bg-gray-800'}`}>
                   <div className="text-[13px] font-medium truncate">{e.title}</div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {e.hs_code && <span className="text-[10px] font-mono text-primary-500">{e.hs_code}</span>}
-                    {parseTags(e.tags).slice(0, 2).map(t => <span key={t} className="text-[10px] text-muted">{t}</span>)}
-                    <span className="text-[10px] text-muted/60 ml-auto">{timeAgo(e.updated_at)}</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {parseTags(e.tags).map(t => <span key={t} className="text-[10px] text-muted bg-surface dark:bg-gray-800 px-1 rounded">{t}</span>)}
+                    <span className="text-[10px] text-muted/50 ml-auto">{timeAgo(e.updated_at)}</span>
                   </div>
                 </button>
               ))}
@@ -148,48 +175,69 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
           </div>
         ) : (
           <>
-            {/* Metadata bar */}
             <div className="px-8 pt-6 pb-4 drag-region flex items-center justify-between">
               <div className="flex items-center gap-3 text-[12px] text-muted">
-                {selectedEntry?.hs_code && <span className="font-mono text-primary-500">{selectedEntry.hs_code}</span>}
                 {selectedEntry && <span>{parseTags(selectedEntry.tags).join(' · ') || '未分类'}</span>}
                 {selectedEntry && <span>{timeAgo(selectedEntry.updated_at)}</span>}
               </div>
               <div className="flex items-center gap-2 no-drag">
-                <button onClick={() => { setEditing(true); setPreview(false) }}
-                  className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${!editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>编辑</button>
-                <button onClick={() => { setEditing(false); setPreview(true) }}
+                <button onClick={() => { setEditing(true) }}
+                  className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>编辑</button>
+                <button onClick={() => { setEditing(false) }}
                   className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${!editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>预览</button>
               </div>
             </div>
 
             {editing ? (
-              /* Edit mode */
               <div className="px-8 pb-12 flex-1 space-y-3">
                 <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="标题"
-                  className="w-full text-[22px] font-bold outline-none border-none bg-transparent text-ink" />
-                <div className="flex gap-3">
-                  <input value={form.hs_code} onChange={e => setForm({ ...form, hs_code: e.target.value })} placeholder="HS 编码 (可选)"
-                    className="w-40 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
-                  <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="标签，逗号分隔"
-                    className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                  className="w-full text-[22px] font-bold outline-none border-none bg-transparent text-ink placeholder:text-muted" />
+                <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="标签，逗号分隔（如：归类经验, 口岸须知）"
+                  className="w-full h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="输入正文..."
+                  className="w-full flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-none" />
+
+                {/* File attachments */}
+                <div>
+                  <div className="text-[11px] font-medium text-muted mb-2">附件</div>
+                  <div className="flex flex-wrap gap-2">
+                    {files.map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        {f.file_name}
+                        <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
+                      </span>
+                    ))}
+                    <button onClick={handleFilePick}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 text-muted hover:text-ink hover:border-gray-400 transition-colors bg-transparent">
+                      + 添加附件
+                    </button>
+                  </div>
+                  <input ref={fileRef} type="file" multiple hidden onChange={async () => {}} />
                 </div>
-                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Markdown 正文..."
-                  className="w-full flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-none" />
-                <div className="flex gap-2">
-                  <button onClick={handleSave}
-                    className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors">{saved ? '已保存' : '保存'}</button>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={handleSave} disabled={saving}
+                    className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors disabled:opacity-50">{saving ? '保存中...' : '保存'}</button>
                   {selectedEntry && <button onClick={handleDelete}
                     className="h-8 px-3 rounded-sm text-xs cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-red-500 transition-colors">删除</button>}
                 </div>
               </div>
             ) : (
-              /* Preview mode */
               <div className="px-8 pb-12 flex-1 max-w-[800px]">
                 {selectedEntry && (
                   <>
                     <h1 className="text-[26px] font-bold tracking-tight mb-6">{selectedEntry.title}</h1>
-                    <div className="prose">{renderMd(selectedEntry.content)}</div>
+                    <div>{renderMd(selectedEntry.content)}</div>
+                    {files.length > 0 && (
+                      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">附件 ({files.length})</div>
+                        <div className="flex flex-wrap gap-2">
+                          {files.map((f, i) => (
+                            <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700">{f.file_name}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
