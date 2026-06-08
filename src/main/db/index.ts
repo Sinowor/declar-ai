@@ -39,6 +39,7 @@ export async function getDb(): Promise<SqlJsDatabase> {
 
   try {
     initSchema()
+    saveDb() // persist schema + seed data to disk immediately
   } catch (err: any) {
     console.error('[db] Schema initialization failed:', err.message)
     db.close(); db = null
