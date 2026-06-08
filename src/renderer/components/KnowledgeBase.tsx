@@ -29,6 +29,10 @@ function formatSize(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function isImageFile(name: string): boolean {
+  return /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(name)
+}
+
 export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDirtyChange }: {
   sidebarCollapsed: boolean; onToggleSidebar: () => void
   onDirtyChange?: (dirty: boolean) => void
@@ -129,17 +133,29 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current) }
   }, [form, dirty, editing])
 
-  // ── Ctrl+S / Cmd+S ──
+  // ── Auto-sync dirty state from form vs saved snapshot ──
+  useEffect(() => {
+    const s = savedForm.current
+    const isD = form.title !== s.title || form.content !== s.content || form.tags !== s.tags || form.hs_code !== s.hs_code
+    setDirty(isD)
+  }, [form])
+
+  // ── Ctrl+S / Cmd+S save, Ctrl+N / Cmd+N new ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault()
-        if (editing && form.title.trim()) handleSave()
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 's') {
+          e.preventDefault()
+          if (editing && form.title.trim()) handleSave()
+        } else if (e.key === 'n') {
+          e.preventDefault()
+          handleNew()
+        }
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [editing, form, selectedEntry])
+  }, [editing, form, selectedEntry, dirty])
 
   // ── Click-outside for tag dropdown ──
   useEffect(() => {
@@ -293,7 +309,6 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     const mdLink = linkTitle.trim() ? `[${linkTitle.trim()}](${linkUrl.trim()})` : linkUrl.trim()
     const newContent = form.content ? form.content + '\n' + mdLink : mdLink
     setForm(prev => ({ ...prev, content: newContent }))
-    setDirty(true)
     setLinkUrl(''); setLinkTitle('')
   }
 
@@ -320,8 +335,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   }
 
   const handleTagInputChange = (value: string) => {
-    setForm({ ...form, tags: value })
-    setDirty(true)
+    setForm(prev => ({ ...prev, tags: value }))
     const parts = value.split(/[,，]/)
     const lastPart = parts[parts.length - 1].trim().toLowerCase()
     if (lastPart.length > 0) {
@@ -341,8 +355,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     const parts = form.tags.split(/[,，]/).map(t => t.trim())
     parts[parts.length - 1] = tag
     const newTags = parts.join(', ')
-    setForm({ ...form, tags: newTags })
-    setDirty(true)
+    setForm(prev => ({ ...prev, tags: newTags }))
     setShowTagSuggestions(false)
     tagInputRef.current?.focus()
   }
@@ -510,6 +523,11 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                     <div className="flex flex-wrap gap-2">
                       {files.map((f, i) => (
                         <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                          {isImageFile(f.file_name) ? (
+                            <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
+                              <img src={`file://${f.file_path}`} className="w-full h-full object-cover" alt="" />
+                            </span>
+                          ) : null}
                           <span className="cursor-pointer hover:text-primary-500 hover:underline" onClick={() => handleOpenFile(f.id)}>{f.file_name}</span>
                           {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
                           <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
@@ -548,9 +566,13 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                 {selectedEntry && (
                   <>
                     <h1 className="text-[26px] font-bold tracking-tight mb-6">{selectedEntry.title}</h1>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown>{selectedEntry.content}</ReactMarkdown>
-                    </div>
+                    {selectedEntry.content.trim() ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{selectedEntry.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="text-[14px] text-muted/40 italic mt-8">暂无内容，点击「编辑」开始书写</div>
+                    )}
                     {files.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                         <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">附件 ({files.length})</div>
@@ -558,6 +580,11 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                           {files.map((f, i) => (
                             <span key={i} onClick={() => handleOpenFile(f.id)}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-pointer hover:text-primary-500 hover:border-primary-300 dark:hover:border-primary-700 hover:underline transition-colors">
+                              {isImageFile(f.file_name) ? (
+                                <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
+                                  <img src={`file://${f.file_path}`} className="w-full h-full object-cover" alt="" />
+                                </span>
+                              ) : null}
                               {f.file_name}
                               {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
                             </span>
