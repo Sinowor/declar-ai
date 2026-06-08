@@ -66,6 +66,7 @@ const api = {
   knowledgeSearch: (q: string) => ipcRenderer.invoke('knowledge:search', q),
   knowledgeRelated: (hsCode: string) => ipcRenderer.invoke('knowledge:related', hsCode),
   knowledgeFilesList: (entryId: string) => ipcRenderer.invoke('knowledge:files-list', entryId),
+  knowledgeFileAddByPaths: (entryId: string, paths: string[]) => ipcRenderer.invoke('knowledge:file-add-by-paths', entryId, paths),
   knowledgeFileAdd: (entryId: string) => ipcRenderer.invoke('knowledge:file-add', entryId),
   knowledgeFileDelete: (fileId: string) => ipcRenderer.invoke('knowledge:file-delete', fileId),
   knowledgeFileOpen: (fileId: string) => ipcRenderer.invoke('knowledge:file-open', fileId),

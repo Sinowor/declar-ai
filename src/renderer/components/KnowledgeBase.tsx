@@ -30,6 +30,9 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
   const [form, setForm] = useState({ title: '', content: '', tags: '' })
   const [saving, setSaving] = useState(false)
   const [files, setFiles] = useState<AttachedFile[]>([])
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkTitle, setLinkTitle] = useState('')
+  const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const api = (window as any).api
@@ -94,19 +97,44 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
     if (api?.knowledgeDelete) { await api.knowledgeDelete(selectedEntry.id); setSelectedId(null); setSelectedEntry(null); await loadEntries(activeTag, search || undefined) }
   }
 
+  const ensureEntry = async (): Promise<string | null> => {
+    if (selectedEntry?.id) return selectedEntry.id
+    if (!form.title.trim()) { alert('请先输入笔记标题'); return null }
+    const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
+    const res = await api.knowledgeSave({ title: form.title.trim(), content: form.content, tags: JSON.stringify(tagArr) })
+    if (!res?.success || !res.id) return null
+    setSelectedId(res.id); await loadEntry(res.id)
+    return res.id
+  }
+
   const handleFilePick = async () => {
     if (!api?.knowledgeFileAdd) return
-    // Save first if new note
-    let entryId = selectedEntry?.id
-    if (!entryId) {
-      if (!form.title.trim()) return
-      const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-      const res = await api.knowledgeSave({ title: form.title.trim(), content: form.content, tags: JSON.stringify(tagArr) })
-      if (!res?.success || !res.id) return
-      entryId = res.id; setSelectedId(res.id); await loadEntry(res.id)
-    }
+    const entryId = await ensureEntry()
+    if (!entryId) return
     const imported = await api.knowledgeFileAdd(entryId)
     if (Array.isArray(imported)) setFiles(prev => [...prev, ...imported])
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false)
+    if (!api?.getFilePath || !api?.knowledgeFileAddByPaths) return
+    const entryId = await ensureEntry()
+    if (!entryId) return
+    const paths: string[] = []
+    for (const f of Array.from(e.dataTransfer.files)) {
+      try { const p = api.getFilePath(f); if (p) paths.push(p) } catch {}
+    }
+    if (paths.length > 0) {
+      const imported = await api.knowledgeFileAddByPaths(entryId, paths)
+      if (Array.isArray(imported)) setFiles(prev => [...prev, ...imported])
+    }
+  }
+
+  const handleAddLink = () => {
+    if (!linkUrl.trim()) return
+    const mdLink = linkTitle.trim() ? `[${linkTitle.trim()}](${linkUrl.trim()})` : linkUrl.trim()
+    setForm(prev => ({ ...prev, content: prev.content ? prev.content + '\n' + mdLink : mdLink }))
+    setLinkUrl(''); setLinkTitle('')
   }
 
   const handleRemoveFile = async (idx: number) => {
@@ -203,20 +231,37 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
 
                 {/* File attachments */}
                 <div>
-                  <div className="text-[11px] font-medium text-muted mb-2">附件</div>
-                  <div className="flex flex-wrap gap-2">
-                    {files.map((f, i) => (
-                      <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                        {f.file_name}
-                        <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
-                      </span>
-                    ))}
-                    <button onClick={handleFilePick}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 text-muted hover:text-ink hover:border-gray-400 transition-colors bg-transparent">
-                      + 添加附件
-                    </button>
+                  <div className="text-[11px] font-medium text-muted mb-2">附件 · 拖拽文件到此处</div>
+                  <div className={`border-2 border-dashed rounded-lg p-4 mb-3 transition-colors ${dragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700'}`}
+                    onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}>
+                    <div className="flex flex-wrap gap-2">
+                      {files.map((f, i) => (
+                        <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                          {f.file_name}
+                          <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
+                        </span>
+                      ))}
+                      {files.length === 0 && <span className="text-[12px] text-muted/50">拖拽文件到此处，或点击按钮选择</span>}
+                    </div>
                   </div>
-                  <input ref={fileRef} type="file" multiple hidden onChange={async () => {}} />
+                  <button onClick={handleFilePick}
+                    className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors">+ 添加附件</button>
+                </div>
+
+                {/* Link input */}
+                <div>
+                  <div className="text-[11px] font-medium text-muted mb-2">添加链接</div>
+                  <div className="flex gap-2">
+                    <input value={linkTitle} onChange={e => setLinkTitle(e.target.value)} placeholder="链接标题"
+                      className="w-32 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                    <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..."
+                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
+                      onKeyDown={e => { if (e.key === 'Enter') handleAddLink() }} />
+                    <button onClick={handleAddLink}
+                      className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors shrink-0">添加</button>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-2">

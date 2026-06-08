@@ -89,6 +89,26 @@ export function registerKnowledgeIpc() {
     return queryAll('SELECT * FROM knowledge_files WHERE entry_id = ? ORDER BY created_at', [entryId])
   })
 
+  ipcMain.handle('knowledge:file-add-by-paths', async (_event, entryId: string, filePaths: string[]) => {
+    const dir = kbFilesDir()
+    const imported: any[] = []
+    for (const srcPath of filePaths) {
+      const fileName = path.basename(srcPath)
+      let destPath = path.join(dir, fileName)
+      if (fs.existsSync(destPath)) {
+        const ext = path.extname(fileName); const base = path.basename(fileName, ext)
+        let c = 1
+        while (fs.existsSync(destPath)) { destPath = path.join(dir, `${base}_${c}${ext}`); c++ }
+      }
+      fs.copyFileSync(srcPath, destPath)
+      const id = uuid()
+      execute('INSERT INTO knowledge_files (id, entry_id, file_name, file_path, file_size) VALUES (?,?,?,?,?)',
+        [id, entryId, fileName, destPath, fs.statSync(destPath).size])
+      imported.push({ id, file_name: fileName, file_path: destPath })
+    }
+    return imported
+  })
+
   ipcMain.handle('knowledge:file-add', async (_event, entryId: string) => {
     const result = await dialog.showOpenDialog({
       properties: ['openFile', 'multiSelections'],
