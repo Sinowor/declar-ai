@@ -95,8 +95,17 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
   }
 
   const handleFilePick = async () => {
-    if (!selectedEntry?.id || !api?.knowledgeFileAdd) return
-    const imported = await api.knowledgeFileAdd(selectedEntry.id)
+    if (!api?.knowledgeFileAdd) return
+    // Save first if new note
+    let entryId = selectedEntry?.id
+    if (!entryId) {
+      if (!form.title.trim()) return
+      const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
+      const res = await api.knowledgeSave({ title: form.title.trim(), content: form.content, tags: JSON.stringify(tagArr) })
+      if (!res?.success || !res.id) return
+      entryId = res.id; setSelectedId(res.id); await loadEntry(res.id)
+    }
+    const imported = await api.knowledgeFileAdd(entryId)
     if (Array.isArray(imported)) setFiles(prev => [...prev, ...imported])
   }
 
