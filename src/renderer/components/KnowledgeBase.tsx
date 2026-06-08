@@ -146,10 +146,23 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
 
   const ensureEntry = async (): Promise<string | null> => {
     if (selectedEntry?.id) return selectedEntry.id
-    if (!form.title.trim()) { alert('请先输入笔记标题'); return null }
+    let title = form.title.trim()
+    if (!title) {
+      const unnamed = entries.filter(e => /^未命名\d*$/.test(e.title))
+      if (unnamed.length === 0) {
+        title = '未命名'
+      } else {
+        const nums = unnamed.map(e => {
+          const m = e.title.match(/^未命名(\d+)$/)
+          return m ? parseInt(m[1]) : 0
+        })
+        title = `未命名${Math.max(...nums, 0) + 1}`
+      }
+      setForm(prev => ({ ...prev, title }))
+    }
     const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
     const res = await api.knowledgeSave({
-      title: form.title.trim(), content: form.content,
+      title, content: form.content,
       tags: JSON.stringify(tagArr), hs_code: form.hs_code.trim() || null,
     })
     if (!res?.success || !res.id) return null
