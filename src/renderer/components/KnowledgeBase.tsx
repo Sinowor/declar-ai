@@ -58,6 +58,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   const [showTagManager, setShowTagManager] = useState(false)
   const [newTagName, setNewTagName] = useState('')
   const [autoSaved, setAutoSaved] = useState(false)
+  const tagManagerRef = useRef<HTMLDivElement>(null)
   const savedForm = useRef({ title: '', content: '', tags: '', hs_code: '' })
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -156,6 +157,18 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [editing, form, selectedEntry, dirty])
+
+  // ── Click-outside for tag manager popover ──
+  useEffect(() => {
+    if (!showTagManager) return
+    const handler = (e: MouseEvent) => {
+      if (tagManagerRef.current && !tagManagerRef.current.contains(e.target as Node)) {
+        setShowTagManager(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showTagManager])
 
   // ── Click-outside for tag dropdown ──
   useEffect(() => {
@@ -389,39 +402,42 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
         <div className="px-4 pt-4 pb-3 drag-region"><div className="text-[15px] font-semibold">知识库</div></div>
         <div className="px-4 pb-3">
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索笔记..."
-            className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-surface dark:bg-gray-800 font-sans" />
+            className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans placeholder:text-muted/50" />
         </div>
-        <div className="px-4 pb-2 flex flex-wrap gap-1">
+        <div className="px-4 pb-2 max-h-[72px] overflow-y-auto flex flex-wrap gap-1">
           <button onClick={() => setActiveTag('')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
+            className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
           {allTags.map(t => (
             <button key={t} onClick={() => setActiveTag(activeTag === t ? '' : t)}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
+              className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
           ))}
-          <button onClick={() => setShowTagManager(!showTagManager)}
-            className="px-2 py-0.5 rounded text-[11px] text-muted cursor-pointer border border-dashed border-gray-200 dark:border-gray-700 hover:text-ink hover:border-gray-400 transition-colors"
-            title="管理标签">+</button>
-        </div>
-        {showTagManager && (
-          <div className="px-4 pb-3">
-            <div className="flex gap-1 mb-2">
-              <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="新标签名"
-                className="flex-1 h-6 rounded border border-gray-200 dark:border-gray-700 px-2 text-[11px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
-                onKeyDown={e => { if (e.key === 'Enter') handleAddDbTag() }} />
-              <button onClick={handleAddDbTag}
-                className="h-6 px-2 rounded text-[10px] font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors shrink-0">添加</button>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {dbTags.map(t => (
-                <span key={t.name} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 group">
-                  {t.name}
-                  <button onClick={() => handleDeleteDbTag(t.name)}
-                    className="text-muted hover:text-red-500 cursor-pointer leading-none opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-                </span>
-              ))}
-            </div>
+          <div className="relative shrink-0" ref={tagManagerRef}>
+            <button onClick={() => setShowTagManager(!showTagManager)}
+              className="px-2 py-0.5 rounded text-[11px] text-muted cursor-pointer border border-dashed border-gray-200 dark:border-gray-700 hover:text-ink hover:border-gray-400 transition-colors"
+              title="管理标签">+</button>
+            {showTagManager && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-30 p-2.5">
+                <div className="flex gap-1 mb-2">
+                  <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="新标签名"
+                    className="flex-1 h-6 rounded border border-gray-200 dark:border-gray-700 px-2 text-[11px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
+                    onKeyDown={e => { if (e.key === 'Enter') handleAddDbTag() }} />
+                  <button onClick={handleAddDbTag}
+                    className="h-6 px-2 rounded text-[10px] font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors shrink-0">添加</button>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {dbTags.length === 0 && <span className="text-[10px] text-muted/50">暂无预设标签</span>}
+                  {dbTags.map(t => (
+                    <span key={t.name} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-surface dark:bg-gray-700 border border-gray-200 dark:border-gray-600 group">
+                      {t.name}
+                      <button onClick={() => handleDeleteDbTag(t.name)}
+                        className="text-muted hover:text-red-500 cursor-pointer leading-none opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
         <button onClick={handleNew}
           className="mx-4 mb-3 h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors">+ 新建笔记</button>
         <div className="flex-1 overflow-y-auto px-4 pb-4">
@@ -465,39 +481,48 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
           </div>
         ) : (
           <>
-            <div className="px-8 pt-6 pb-4 drag-region flex items-center justify-between">
-              <div className="flex items-center gap-3 text-[12px] text-muted">
-                {selectedEntry && (
-                  <button onClick={() => selectedEntry && togglePin(selectedEntry)}
-                    className="cursor-pointer text-[13px] hover:scale-110 transition-transform"
-                    title={selectedEntry?.is_pinned ? '取消置顶' : '置顶'}>
-                    {selectedEntry?.is_pinned ? '📌' : '📍'}
-                  </button>
+            <div className="px-8 pt-6 pb-4 drag-region flex items-start justify-between">
+              <div className="flex flex-col gap-1 min-w-0 flex-1 mr-4">
+                <div className="flex items-center gap-2 text-[12px] text-muted flex-wrap">
+                  {selectedEntry && (
+                    <button onClick={() => selectedEntry && togglePin(selectedEntry)}
+                      className="cursor-pointer text-[13px] hover:scale-110 transition-transform shrink-0"
+                      title={selectedEntry?.is_pinned ? '取消置顶' : '置顶'}>
+                      {selectedEntry?.is_pinned ? '📌' : '📍'}
+                    </button>
+                  )}
+                  {selectedEntry && <span className="truncate">{parseTags(selectedEntry.tags).join(' · ') || '未分类'}</span>}
+                  {selectedEntry?.hs_code && <span className="font-mono text-[11px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">HS: {selectedEntry.hs_code}</span>}
+                  {selectedEntry && <span className="shrink-0">{timeAgo(selectedEntry.updated_at)}</span>}
+                </div>
+                {(autoSaved || saving) && (
+                  <div className="flex items-center gap-2 text-[11px]">
+                    {autoSaved && <span className="text-green-500">已自动保存</span>}
+                    {saving && <span className="text-muted">保存中...</span>}
+                  </div>
                 )}
-                {selectedEntry && <span>{parseTags(selectedEntry.tags).join(' · ') || '未分类'}</span>}
-                {selectedEntry?.hs_code && <span className="font-mono text-[11px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded">HS: {selectedEntry.hs_code}</span>}
-                {selectedEntry && <span>{timeAgo(selectedEntry.updated_at)}</span>}
-                {autoSaved && <span className="text-[11px] text-green-500">已自动保存</span>}
-                {saving && <span className="text-[11px] text-muted">保存中...</span>}
               </div>
-              <div className="flex items-center gap-2 no-drag">
-                <button onClick={() => handleToggleEditing(true)}
-                  className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>编辑</button>
-                <button onClick={() => handleToggleEditing(false)}
-                  className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${!editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>预览</button>
+              <div className="flex items-center gap-2 no-drag shrink-0">
+                {editing ? (
+                  <button onClick={() => handleToggleEditing(false)}
+                    className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">预览</button>
+                ) : (
+                  <button onClick={() => handleToggleEditing(true)}
+                    className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">编辑</button>
+                )}
               </div>
             </div>
 
             {editing ? (
-              <div className="px-8 pb-12 flex-1 space-y-3">
+              <div className="px-8 pb-12 flex-1 flex flex-col space-y-3">
                 <input value={form.title} onChange={e => setFormAndDirty({ ...form, title: e.target.value })} placeholder="标题"
-                  className="w-full text-[22px] font-bold outline-none border-none bg-transparent text-ink placeholder:text-muted" />
+                  className="w-full text-[22px] font-bold outline-none border-none bg-transparent text-ink placeholder:text-muted/40" />
                 <div className="flex gap-3">
                   <div className="flex-1 relative" ref={tagDropdownRef}>
                     <input ref={tagInputRef} value={form.tags} onChange={e => handleTagInputChange(e.target.value)}
                       onFocus={() => { const parts = form.tags.split(/[,，]/); const last = parts[parts.length - 1].trim(); if (last) handleTagInputChange(form.tags) }}
                       placeholder="标签，逗号分隔（如：归类经验, 口岸须知）"
-                      className="w-full h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                      className="w-full h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40" />
                     {showTagSuggestions && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20 overflow-hidden">
                         {tagSuggestions.map(t => (
@@ -508,10 +533,10 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                     )}
                   </div>
                   <input value={form.hs_code} onChange={e => setFormAndDirty({ ...form, hs_code: e.target.value })} placeholder="HS编码（可选）"
-                    className="w-40 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-mono" />
+                    className="w-40 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-mono placeholder:text-muted/40" />
                 </div>
                 <textarea value={form.content} onChange={e => setFormAndDirty({ ...form, content: e.target.value })} placeholder="输入正文（支持 Markdown）..."
-                  className="w-full flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-y" />
+                  className="w-full min-h-[300px] h-[400px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-y placeholder:text-muted/40" />
 
                 {/* File attachments */}
                 <div>
@@ -533,7 +558,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                           <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
                         </span>
                       ))}
-                      {files.length === 0 && <span className="text-[12px] text-muted/50">拖拽文件到此处，或点击按钮选择</span>}
+                      {files.length === 0 && <span className="text-[12px] text-muted/60">拖拽文件到此处，或点击下方按钮选择</span>}
                     </div>
                   </div>
                   <button onClick={handleFilePick}
@@ -544,17 +569,17 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                 <div>
                   <div className="text-[11px] font-medium text-muted mb-2">添加链接</div>
                   <div className="flex gap-2">
-                    <input value={linkTitle} onChange={e => setLinkTitle(e.target.value)} placeholder="链接标题"
-                      className="w-32 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                    <input value={linkTitle} onChange={e => setLinkTitle(e.target.value)} placeholder="标题（可选）"
+                      className="w-28 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40" />
                     <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..."
-                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
+                      className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40"
                       onKeyDown={e => { if (e.key === 'Enter') handleAddLink() }} />
                     <button onClick={handleAddLink}
                       className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors shrink-0">添加</button>
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-4">
                   <button onClick={handleSave} disabled={saving}
                     className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors disabled:opacity-50">{saving ? '保存中...' : '保存'}</button>
                   {selectedEntry && <button onClick={handleDelete}
@@ -571,7 +596,9 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                         <ReactMarkdown>{selectedEntry.content}</ReactMarkdown>
                       </div>
                     ) : (
-                      <div className="text-[14px] text-muted/40 italic mt-8">暂无内容，点击「编辑」开始书写</div>
+                      <div className="mt-6 py-12 text-center text-[13px] text-muted/50 italic border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+                        暂无内容，点击上方「编辑」开始书写
+                      </div>
                     )}
                     {files.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
