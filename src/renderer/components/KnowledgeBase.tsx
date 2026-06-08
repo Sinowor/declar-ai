@@ -158,8 +158,8 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
               <div className="flex items-center gap-2 no-drag">
                 <button onClick={() => { setEditing(true); setPreview(false) }}
                   className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${!editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>编辑</button>
-                <button onClick={() => setPreview(true)}
-                  className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${preview && !editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>预览</button>
+                <button onClick={() => { setEditing(false); setPreview(true) }}
+                  className={`h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border transition-colors ${!editing ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>预览</button>
               </div>
             </div>
 
@@ -175,7 +175,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar }: { s
                     className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
                 </div>
                 <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} placeholder="Markdown 正文..."
-                  className="w-full flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-none" />
+                  className="w-full flex-1 min-h-[300px] rounded-lg border border-gray-200 dark:border-gray-700 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-none" />
                 <div className="flex gap-2">
                   <button onClick={handleSave}
                     className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors">{saved ? '已保存' : '保存'}</button>
