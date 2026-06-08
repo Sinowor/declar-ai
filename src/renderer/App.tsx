@@ -5,6 +5,7 @@ import Workspace from './components/Workspace'
 import HsClassifier from './components/HsClassifier'
 import BatchClassifier from './components/BatchClassifier'
 import Calculator from './components/Calculator'
+import KnowledgeBase from './components/KnowledgeBase'
 import TitleBar from './components/TitleBar'
 import Settings from './components/Settings'
 import AboutModal from './components/AboutModal'
@@ -52,6 +53,7 @@ export default function App() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [hsSidebarCollapsed, setHsSidebarCollapsed] = useState(false)
+  const [kbSidebarCollapsed, setKbSidebarCollapsed] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -200,11 +202,12 @@ export default function App() {
       {/* ═══ Left Icon Rail ═══ */}
       <NavRail active={activeModule} onChange={setActiveModule}
         editing={!!editingId}
-        sidebarCollapsed={activeModule === 'declarations' ? sidebarCollapsed : hsSidebarCollapsed}
+        sidebarCollapsed={activeModule === 'declarations' ? sidebarCollapsed : activeModule === 'hs-classifier' ? hsSidebarCollapsed : kbSidebarCollapsed}
         onExitEdit={handleExitEdit}
         onToggleSidebar={() => {
           if (activeModule === 'declarations') setSidebarCollapsed(v => !v)
-          else setHsSidebarCollapsed(v => !v)
+          else if (activeModule === 'hs-classifier') setHsSidebarCollapsed(v => !v)
+          else setKbSidebarCollapsed(v => !v)
         }}
         onLogoClick={() => setAboutOpen(true)}
       />
@@ -250,6 +253,9 @@ export default function App() {
       )}
       {activeModule === 'calculator' && (
         <Calculator />
+      )}
+      {activeModule === 'knowledge' && (
+        <KnowledgeBase sidebarCollapsed={kbSidebarCollapsed} onToggleSidebar={() => setKbSidebarCollapsed(v => !v)} />
       )}
       {activeModule === 'settings' && (
         <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />

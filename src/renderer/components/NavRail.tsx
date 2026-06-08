@@ -1,13 +1,14 @@
 import type { FC } from 'react'
 import Logo from './Logo'
-import { IconDocNav, IconSearchNav, IconGearNav, IconCalcNav } from './Icons'
+import { IconDocNav, IconSearchNav, IconGearNav, IconCalcNav, IconKbNav } from './Icons'
 
-type ModuleId = 'declarations' | 'hs-classifier' | 'calculator' | 'settings'
+type ModuleId = 'declarations' | 'hs-classifier' | 'calculator' | 'knowledge' | 'settings'
 
 const navItems: NavItem[] = [
   { id: 'declarations', label: 'DeclarAI 制单', shortLabel: '制单', icon: IconDocNav },
   { id: 'hs-classifier', label: 'DeclarAI 归类', shortLabel: '归类', icon: IconSearchNav },
   { id: 'calculator', label: '费率计算器', shortLabel: '计算器', icon: IconCalcNav },
+  { id: 'knowledge', label: '知识库', shortLabel: '知识库', icon: IconKbNav },
 ]
 
 const bottomItems: NavItem[] = [

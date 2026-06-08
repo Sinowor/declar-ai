@@ -477,6 +477,33 @@ function initSchema() {
       db.run(`INSERT OR IGNORE INTO hs_codes (code) VALUES ('96050000'), ('96061000'), ('96062100'), ('96062200'), ('96062900'), ('96063000'), ('96071100'), ('96071900'), ('96072000'), ('96081000'), ('96082000'), ('96083010'), ('96083020'), ('96083090'), ('96084000'), ('96085000'), ('96086000'), ('96089100'), ('96089910'), ('96089920'), ('96089990'), ('96091010'), ('96091020'), ('96092000'), ('96099000'), ('96100000'), ('96110000'), ('96121000'), ('96122000'), ('96131000'), ('96132000'), ('96138000'), ('96139000'), ('96140010'), ('96140090'), ('96151100'), ('96151900'), ('96159000'), ('96161000'), ('96162000'), ('96170011'), ('96170019'), ('96170090'), ('96180000'), ('96190011'), ('96190019'), ('96190020'), ('96190090'), ('96200010'), ('96200090'), ('97012100'), ('97012200'), ('97012900'), ('97019111'), ('97019119'), ('97019120'), ('97019200'), ('97019900'), ('97021000'), ('97029000'), ('97031000'), ('97039000'), ('97040010'), ('97040090'), ('97051000'), ('97052100'), ('97052200'), ('97052900'), ('97053100'), ('97053900'), ('97061000'), ('97069000')`)
   }
 
+  // ═══ v2.6: knowledge base ═══
+  db.run(`
+    CREATE TABLE IF NOT EXISTS knowledge_entries (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL DEFAULT '',
+      hs_code TEXT,
+      tags TEXT NOT NULL DEFAULT '[]',
+      source_type TEXT NOT NULL DEFAULT 'manual',
+      is_pinned INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+    )
+  `)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS knowledge_tags (
+      name TEXT PRIMARY KEY,
+      color TEXT
+    )
+  `)
+  const tagCount = queryOne('SELECT COUNT(*) as cnt FROM knowledge_tags') as any
+  if (tagCount && tagCount.cnt === 0) {
+    for (const t of ['归类经验', '口岸须知', '操作流程', '客户备注', '法规政策']) {
+      db.run('INSERT OR IGNORE INTO knowledge_tags (name) VALUES (?)', [t])
+    }
+  }
+
   // ═══ v2.5: calculator history ═══
   db.run(`
     CREATE TABLE IF NOT EXISTS calculator_history (
