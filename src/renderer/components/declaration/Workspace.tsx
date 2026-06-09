@@ -522,7 +522,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             {!extractionCompleted && files.length > 0 && (
               <div className="flex justify-end mt-4">
                 <button onClick={handleAIExtract} disabled={isExtracting}
-                  className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-colors ${isExtracting ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600 pulse-ai'}`}
+                  className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-colors ${isExtracting ? 'bg-primary-300 cursor-not-allowed' : 'transition-all hover:shadow-lg hover:shadow-primary-500/20 pulse-ai" style={{ background: "var(--gradient) }}'}`}
                 >
                   {isExtracting ? '提取+审核中...' : <><IconAI /><span>AI 提取并审核</span></>}
                 </button>

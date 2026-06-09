@@ -41,16 +41,21 @@ export default function NavRail({ active, onChange, editing, sidebarCollapsed, o
     const isActive = active === item.id
     const Icon = item.icon
     return (
-      <button
-        key={item.id}
-        onClick={() => onChange(item.id)}
-        title={item.label}
-        className="flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer border-none bg-transparent hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-        style={{ color: isActive ? 'var(--primary)' : 'var(--muted)' }}
-      >
-        <Icon />
-        <span className={`text-[10px] font-medium leading-none ${isActive ? '' : 'opacity-70'}`}>{item.shortLabel}</span>
-      </button>
+      <div key={item.id} className="relative">
+        {isActive && (
+          <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full"
+            style={{ background: 'linear-gradient(to bottom, var(--primary), rgba(var(--gradient-rgb), 0.3))' }} />
+        )}
+        <button
+          onClick={() => onChange(item.id)}
+          title={item.label}
+          className="flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer border-none bg-transparent hover:bg-slate-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          style={{ color: isActive ? 'var(--primary)' : 'var(--muted)' }}
+        >
+          <Icon />
+          <span className={`text-[10px] font-medium leading-none ${isActive ? '' : 'opacity-70'}`}>{item.shortLabel}</span>
+        </button>
+      </div>
     )
   }
 

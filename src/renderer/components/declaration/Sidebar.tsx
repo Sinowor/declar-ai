@@ -191,7 +191,7 @@ export default function Sidebar({
               ) : (
                 <button
                   onClick={onNewDeclaration}
-                  className="w-full h-10 rounded-md bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-colors"
+                  className="w-full h-10 rounded-md text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-primary-500/20" style={{ background: "var(--gradient)" }}
                 >
                   <IconPlus /><span>新建申报单</span>
                 </button>

@@ -340,7 +340,8 @@ export default function Calculator() {
           )}
 
           <button onClick={handleLookup} disabled={loading || (mode === 'lookup' && !hsCode.trim())}
-            className={`w-full h-10 rounded-md text-white border-none font-semibold text-sm cursor-pointer transition-colors active:scale-[0.98] ${loading || (mode === 'lookup' && !hsCode.trim()) ? 'bg-primary-300 cursor-not-allowed' : 'bg-primary-500 hover:bg-primary-600'}`}>
+            className={`w-full h-10 rounded-md text-white border-none font-semibold text-sm cursor-pointer active:scale-[0.98] transition-all ${loading || (mode === 'lookup' && !hsCode.trim()) ? 'bg-primary-300 cursor-not-allowed' : 'hover:shadow-lg hover:shadow-primary-500/20'}`}
+            style={loading || (mode === 'lookup' && !hsCode.trim()) ? undefined : { background: 'var(--gradient)' }}>
             {loading ? '查询中...' : result ? '重新计算' : tariff ? '重新查询' : mode === 'lookup' ? '查询税率' : '计算税费'}
           </button>
         </div>

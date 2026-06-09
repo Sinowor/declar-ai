@@ -165,7 +165,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
 
                 <div className="flex gap-2 pt-4">
                   <button onClick={k.handleSave} disabled={k.saving}
-                    className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors disabled:opacity-50">{k.saving ? '保存中...' : '保存'}</button>
+                    className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer active:scale-[0.97] transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-primary-500/20" style={{ background: "var(--gradient)" }}>{k.saving ? '保存中...' : '保存'}</button>
                   {k.selectedEntry && <button onClick={k.handleDelete}
                     className="h-8 px-3 rounded-sm text-xs cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-red-500 transition-colors">删除</button>}
                 </div>

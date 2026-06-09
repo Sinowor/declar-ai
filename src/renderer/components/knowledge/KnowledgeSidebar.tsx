@@ -75,7 +75,7 @@ export default function KnowledgeSidebar({
         </div>
       </div>
       <button onClick={onNew}
-        className="mx-4 mb-3 h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors">+ 新建笔记</button>
+        className="mx-4 mb-3 h-7 px-3 rounded-sm text-xs font-medium cursor-pointer transition-all hover:shadow-lg hover:shadow-primary-500/20 text-white border-none active:scale-[0.97]" style={{ background: "var(--gradient)" }}>+ 新建笔记</button>
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {entries.length === 0 ? (
           <div className="text-center py-12 text-[13px] text-muted">暂无笔记</div>

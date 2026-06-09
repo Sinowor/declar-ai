@@ -123,7 +123,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                     <button
                       onClick={handleSave}
                       className={`h-7 px-3 rounded-sm text-xs font-medium cursor-pointer transition-colors border-none ${
-                        saved ? 'bg-emerald-50 text-emerald-600' : 'bg-primary-500 text-white hover:bg-primary-600'
+                        saved ? 'bg-emerald-50 text-emerald-600' : 'transition-all hover:shadow-lg hover:shadow-primary-500/20 text-white" style={{ background: "var(--gradient) }}'
                       }`}
                     >
                       {saved ? '已保存 ✓' : '保存'}
