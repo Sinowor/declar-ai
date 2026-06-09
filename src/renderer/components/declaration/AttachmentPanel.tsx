@@ -152,13 +152,13 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
               setEditFileId(editFileId === file.id ? null : file.id)
               setCustomTag('')
             }}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors select-none"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-medium cursor-pointer bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors select-none"
           >
             {tag}
             {tags.length > 1 && (
               <button
                 onClick={(e) => { e.stopPropagation(); removeTag(file.id, tag) }}
-                className="ml-0.5 text-primary-400 hover:text-red-500 cursor-pointer leading-none text-[10px]"
+                className="ml-0.5 text-primary-400 hover:text-red-500 cursor-pointer leading-none text-[12px]"
               >×</button>
             )}
           </span>
@@ -166,7 +166,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
         {tags.length < 2 && (
           <button
             onClick={(e) => { e.stopPropagation(); setEditFileId(file.id); setCustomTag('') }}
-            className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] text-muted hover:text-primary-500 hover:bg-primary-50 cursor-pointer transition-colors border border-dashed border-gray-300"
+            className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[12px] text-muted hover:text-primary-500 hover:bg-primary-50 cursor-pointer transition-colors border border-dashed border-gray-300"
             title="添加标签"
           >+</button>
         )}
@@ -180,7 +180,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
               {TAG_OPTIONS.filter(t => !tags.includes(t)).map(opt => (
                 <button key={opt}
                   onClick={() => addTag(file.id, opt)}
-                  className="px-2 py-0.5 rounded-full text-[11px] font-medium cursor-pointer bg-surface border border-gray-200 dark:border-gray-700 text-muted hover:text-primary-500 hover:border-primary-300 transition-colors"
+                  className="px-2 py-0.5 rounded-full text-[12px] font-medium cursor-pointer bg-surface border border-gray-200 dark:border-gray-700 text-muted hover:text-primary-500 hover:border-primary-300 transition-colors"
                 >{opt}</button>
               ))}
             </div>
@@ -197,7 +197,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
               <button
                 onClick={() => handleCustomTag(file.id)}
                 disabled={!customTag.trim()}
-                className="h-7 px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-primary-500 text-white border-none disabled:opacity-40 hover:bg-primary-600 transition-colors"
+                className="h-7 px-2 rounded-md text-[12px] font-semibold cursor-pointer bg-primary-500 text-white border-none disabled:opacity-40 hover:bg-primary-600 transition-colors"
               >确定</button>
             </div>
             <button
@@ -217,7 +217,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
     return (
       <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors group">
         {/* File type badge */}
-        <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-[10px] font-bold shrink-0 ${
+        <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-[12px] font-bold shrink-0 ${
           typeLabel === 'PDF' ? 'bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300' :
           typeLabel === 'XLS' ? 'bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300' :
           typeLabel === 'DOC' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' :
@@ -228,16 +228,16 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[13px] font-medium truncate" title={file.file_name}>{file.file_name}</span>
-            {file.purpose && <span className="text-[11px] text-muted shrink-0">{file.purpose}</span>}
+            {file.purpose && <span className="text-[12px] text-muted shrink-0">{file.purpose}</span>}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             {file.category === 'uploaded' ? (
               <div className="relative">{renderTagChips(file)}</div>
             ) : (
-              <span className="text-[11px] text-muted">{file.output_type || '生成文件'}</span>
+              <span className="text-[12px] text-muted">{file.output_type || '生成文件'}</span>
             )}
-            <span className="text-[11px] text-muted/60">{formatTime(file.created_at)}</span>
-            {file.file_size > 0 && <span className="text-[11px] text-muted/50">{formatSize(file.file_size)}</span>}
+            <span className="text-[12px] text-muted/60">{formatTime(file.created_at)}</span>
+            {file.file_size > 0 && <span className="text-[12px] text-muted/50">{formatSize(file.file_size)}</span>}
           </div>
         </div>
         {/* Actions */}
@@ -294,13 +294,13 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
       <div className="flex items-center px-6 py-[18px] border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold">附件管理</h3>
-        <span className="ml-2 text-[11px] text-muted">{files.length} 个文件</span>
+        <span className="ml-2 text-[12px] text-muted">{files.length} 个文件</span>
       </div>
 
       {/* Uploaded files */}
       {uploadedFiles.length > 0 ? (
         <div>
-          <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">
+          <div className="px-6 py-2.5 text-[12px] uppercase tracking-[0.12em] font-semibold text-muted">
             上传文件 ({uploadedFiles.length})
           </div>
           <div className="px-3 pb-2">
@@ -309,7 +309,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
         </div>
       ) : files.length > 0 ? (
         <div>
-          <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">上传文件</div>
+          <div className="px-6 py-2.5 text-[12px] uppercase tracking-[0.12em] font-semibold text-muted">上传文件</div>
           <div className="px-6 py-8 text-center text-[13px] text-muted">
             在「① 导入单证」中上传单证文件。
           </div>
@@ -319,7 +319,7 @@ export default function AttachmentPanel({ declarationId, refreshKey }: Props) {
       {/* Generated files */}
       {generatedFiles.length > 0 && (
         <div className={`${uploadedFiles.length > 0 ? 'border-t border-gray-100 dark:border-gray-800' : ''}`}>
-          <div className="px-6 py-2.5 text-[11px] uppercase tracking-[0.12em] font-semibold text-muted">
+          <div className="px-6 py-2.5 text-[12px] uppercase tracking-[0.12em] font-semibold text-muted">
             生成文件 ({generatedFiles.length})
           </div>
           <div className="px-3 pb-2">

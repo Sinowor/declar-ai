@@ -63,7 +63,7 @@ function formatCalcText(r: CalcResult, dir: string): string {
 }
 
 function SectionLabel({ children }: { children: string }) {
-  return <div className="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted mb-3">{children}</div>
+  return <div className="text-[12px] uppercase tracking-[0.1em] font-semibold text-muted mb-3">{children}</div>
 }
 
 export default function Calculator() {
@@ -216,7 +216,7 @@ export default function Calculator() {
                   <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-panel z-50 max-h-[180px] overflow-y-auto">
                     {filteredCountries.map((c: any) => (
                       <button key={c.code} onMouseDown={() => { setCountryCode(c.code); setCountrySearch(c.name); setShowCountries(false) }}
-                        className={`w-full text-left px-3 py-1.5 text-[13px] cursor-pointer border-none bg-transparent hover:bg-surface dark:hover:bg-gray-800 transition-colors ${c.code === countryCode ? 'text-primary-500 font-medium' : ''}`}>{c.name} <span className="text-muted text-[11px] ml-1">{c.code}</span></button>
+                        className={`w-full text-left px-3 py-1.5 text-[13px] cursor-pointer border-none bg-transparent hover:bg-surface dark:hover:bg-gray-800 transition-colors ${c.code === countryCode ? 'text-primary-500 font-medium' : ''}`}>{c.name} <span className="text-muted text-[12px] ml-1">{c.code}</span></button>
                     ))}
                     {filteredCountries.length === 0 && <div className="px-3 py-2 text-[12px] text-muted">无匹配</div>}
                   </div>
@@ -274,7 +274,7 @@ export default function Calculator() {
                       { id: 'preferential' as RateType, label: '协定' },
                       { id: 'manual' as RateType, label: '手动录入' },
                     ].map(rt => (
-                      <button key={rt.id} onClick={() => setRateType(rt.id)} className={`px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer border transition-colors active:scale-95 ${rateType === rt.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{rt.label}</button>
+                      <button key={rt.id} onClick={() => setRateType(rt.id)} className={`px-2.5 py-1 rounded text-[12px] font-medium cursor-pointer border transition-colors active:scale-95 ${rateType === rt.id ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{rt.label}</button>
                     ))}
                   </div>
 
@@ -289,7 +289,7 @@ export default function Calculator() {
                           { label: '消费税', value: manualConsRate, setter: setManualConsRate, placeholder: '0' },
                         ].map(f => (
                           <div key={f.label}>
-                            <label className="block text-[11px] font-medium text-muted mb-1">{f.label}</label>
+                            <label className="block text-[12px] font-medium text-muted mb-1">{f.label}</label>
                             <input value={f.value} onChange={e => f.setter(e.target.value)} placeholder={f.placeholder || ''}
                               className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-600 px-2 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-700 tabular-nums text-center" />
                           </div>
@@ -327,14 +327,14 @@ export default function Calculator() {
                 <span className="text-amber-500 shrink-0 mt-0.5">⚠</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-[12px] font-medium text-amber-700 dark:text-amber-300">税号未在《进出口税则》中找到</div>
-                  <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">税号 "{warnCode}" 未在税则中验证，可能是输入有误。您可以修改后重试，或继续使用。</div>
+                  <div className="text-[12px] text-amber-600 dark:text-amber-400 mt-0.5">税号 "{warnCode}" 未在税则中验证，可能是输入有误。您可以修改后重试，或继续使用。</div>
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
                 <button onClick={() => { setWarnCode(''); document.querySelector<HTMLInputElement>('.hs-input')?.focus() }}
-                  className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 transition-colors">修改税号</button>
+                  className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-amber-300 dark:border-amber-700 bg-white dark:bg-gray-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 transition-colors">修改税号</button>
                 <button onClick={() => { setWarnCode(''); handleLookup() }}
-                  className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border-none bg-amber-500 hover:bg-amber-600 text-white transition-colors">仍要查询</button>
+                  className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border-none bg-amber-500 hover:bg-amber-600 text-white transition-colors">仍要查询</button>
               </div>
             </div>
           )}
@@ -355,7 +355,7 @@ export default function Calculator() {
                 <button key={item.id} onClick={() => { setMode('calc'); setHsCode(item.hs_code); setCountryCode(item.country_code || 'CN'); setPriceTerm(item.fob_value > 0 && item.fob_value < item.cif_value ? 'fob' : 'cif'); setCifValue(String(item.cif_value)); setFobValue(String(item.fob_value || item.cif_value)); setFreight(String(item.freight || 0)); setInsurance(String(item.insurance || 0)); setQuantity(String(item.quantity || 1)); setCurrency(item.currency || 'CNY'); setResult(item); setTariff({ hs_code: item.hs_code, description: item.hs_description || '', mfn_rate: item.duty_rate, general_rate: null, vat_rate: item.vat_rate, consumption_tax: item.consumption_tax_rate ? 1 : 0, unit: '个', supervision: null }) }}
                   className="w-full text-left px-2 py-1.5 rounded-md cursor-pointer bg-transparent hover:bg-surface dark:hover:bg-gray-800 transition-colors border-none">
                   <div className="flex items-center justify-between"><span className="text-[12px] font-medium truncate flex-1">{item.hs_description || item.hs_code}</span><span className="text-[12px] font-mono font-semibold text-primary-500 shrink-0 ml-2">¥{fmt(item.total_tax)}</span></div>
-                  <div className="text-[10px] text-muted mt-0.5">{item.hs_code} · {timeAgo(item.created_at)}</div>
+                  <div className="text-[12px] text-muted mt-0.5">{item.hs_code} · {timeAgo(item.created_at)}</div>
                 </button>
               ))}
             </div>
@@ -386,7 +386,7 @@ export default function Calculator() {
             <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <div className="flex items-baseline gap-3"><h3 className="text-lg font-semibold">税率信息</h3><span className="text-[13px] font-mono text-primary-500">{tariff.hs_code}</span></div>
               <button onClick={async () => { await navigator.clipboard.writeText(formatLookupText(tariff)); setCopyMsg('已复制'); setTimeout(() => setCopyMsg(''), 1500) }}
-                className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink hover:border-gray-300 transition-colors active:scale-[0.97]">{copyMsg || '复制结果'}</button>
+                className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink hover:border-gray-300 transition-colors active:scale-[0.97]">{copyMsg || '复制结果'}</button>
             </div>
             <div className="p-8 space-y-4">
               <p className="text-[13px] text-muted">{tariff.description}</p>
@@ -407,7 +407,7 @@ export default function Calculator() {
             <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <div className="flex items-baseline gap-3"><h3 className="text-lg font-semibold">计算结果</h3><span className="text-[13px] font-mono text-primary-500">{result.hs_code}</span></div>
               <button onClick={async () => { await navigator.clipboard.writeText(formatCalcText(result, direction)); setCopyMsg('已复制'); setTimeout(() => setCopyMsg(''), 1500) }}
-                className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink hover:border-gray-300 transition-colors active:scale-[0.97]">{copyMsg || '复制结果'}</button>
+                className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink hover:border-gray-300 transition-colors active:scale-[0.97]">{copyMsg || '复制结果'}</button>
             </div>
             <div className="p-8 space-y-4">
               <p className="text-[13px] text-muted">{result.hs_description}</p>

@@ -79,9 +79,9 @@ export default function CustomsOfficeManager() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
-              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">代码</th>
-              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">名称</th>
-              <th className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">所属关区</th>
+              <th className="text-left px-2 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">代码</th>
+              <th className="text-left px-2 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">名称</th>
+              <th className="text-left px-2 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">所属关区</th>
               <th className="w-10" />
             </tr>
           </thead>
@@ -93,7 +93,7 @@ export default function CustomsOfficeManager() {
                 <td className="px-2 py-1.5 text-[12px] text-muted">{o.parent_name || '—'}</td>
                 <td className="px-2 py-1.5">
                   <button onClick={() => handleDelete(o.code)}
-                    className="text-[11px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent">删除</button>
+                    className="text-[12px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent">删除</button>
                 </td>
               </tr>
             ))}

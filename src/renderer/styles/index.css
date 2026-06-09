@@ -53,6 +53,7 @@
 
 body {
   font-family: "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
   background: #F8FAFC;
   color: #111827;
   -webkit-font-smoothing: antialiased;

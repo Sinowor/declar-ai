@@ -140,12 +140,12 @@ export default function Sidebar({
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-sm truncate">{d.displayName}</div>
-                      <div className="text-[11px] text-muted mt-0.5">
+                      <div className="text-[12px] text-muted mt-0.5">
                         {d.type && typeNames[d.type] ? `${typeNames[d.type]} · ` : ''}{d.updatedAt}
                       </div>
-                      <div className="text-[11px] text-muted mt-0.5 flex items-center gap-1.5">
+                      <div className="text-[12px] text-muted mt-0.5 flex items-center gap-1.5">
                         <span>{d.cargoCount} 行货物</span>
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${badge.className}`}>
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[12px] font-semibold ${badge.className}`}>
                           {badge.label}
                         </span>
                       </div>

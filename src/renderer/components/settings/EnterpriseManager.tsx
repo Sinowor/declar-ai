@@ -86,7 +86,7 @@ export default function EnterpriseManager() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] text-muted">管理申报单位信息，可设置默认企业用于新建申报单</span>
+        <span className="text-[12px] text-muted">管理申报单位信息，可设置默认企业用于新建申报单</span>
         <button onClick={openAdd}
           className="h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors"
         >+ 添加企业</button>
@@ -98,10 +98,10 @@ export default function EnterpriseManager() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-[13px] font-medium">{e.name}</span>
-              {e.short_name && <span className="text-[11px] text-muted">({e.short_name})</span>}
-              {e.is_default ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium">默认</span> : null}
+              {e.short_name && <span className="text-[12px] text-muted">({e.short_name})</span>}
+              {e.is_default ? <span className="text-[12px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-medium">默认</span> : null}
             </div>
-            <div className="text-[11px] text-muted mt-0.5">
+            <div className="text-[12px] text-muted mt-0.5">
               {e.credit_code && <span>信用代码: {e.credit_code}</span>}
               {e.credit_code && e.customs_code && <span className="mx-2">|</span>}
               {e.customs_code && <span>海关编码: {e.customs_code}</span>}
@@ -110,12 +110,12 @@ export default function EnterpriseManager() {
           <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
             {!e.is_default && (
               <button onClick={() => handleSetDefault(e.id)}
-                className="text-[11px] text-muted hover:text-primary-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">设为默认</button>
+                className="text-[12px] text-muted hover:text-primary-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">设为默认</button>
             )}
             <button onClick={() => openEdit(e)}
-              className="text-[11px] text-muted hover:text-primary-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">编辑</button>
+              className="text-[12px] text-muted hover:text-primary-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">编辑</button>
             <button onClick={() => handleDelete(e.id)}
-              className="text-[11px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">删除</button>
+              className="text-[12px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">删除</button>
           </div>
         </div>
       ))}
@@ -138,7 +138,7 @@ export default function EnterpriseManager() {
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                   placeholder="如 天津报关有限公司"
                   className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.name ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} autoFocus />
-                {errors.name && <div className="text-[11px] text-red-500 mt-0.5">{errors.name}</div>}
+                {errors.name && <div className="text-[12px] text-red-500 mt-0.5">{errors.name}</div>}
               </div>
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">企业简称</label>
@@ -151,14 +151,14 @@ export default function EnterpriseManager() {
                 <input value={form.credit_code} onChange={e => setForm({ ...form, credit_code: e.target.value })}
                   placeholder="18位，选填"
                   className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.credit_code ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
-                {errors.credit_code && <div className="text-[11px] text-red-500 mt-0.5">{errors.credit_code}</div>}
+                {errors.credit_code && <div className="text-[12px] text-red-500 mt-0.5">{errors.credit_code}</div>}
               </div>
               <div>
                 <label className="block text-[12px] font-medium text-muted mb-1">海关10位编码</label>
                 <input value={form.customs_code} onChange={e => setForm({ ...form, customs_code: e.target.value })}
                   placeholder="10位数字，选填"
                   className={`w-full h-9 rounded-md border px-3 text-[13px] outline-none focus:border-primary-500 font-sans bg-white dark:bg-gray-800 ${errors.customs_code ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`} />
-                {errors.customs_code && <div className="text-[11px] text-red-500 mt-0.5">{errors.customs_code}</div>}
+                {errors.customs_code && <div className="text-[12px] text-red-500 mt-0.5">{errors.customs_code}</div>}
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">

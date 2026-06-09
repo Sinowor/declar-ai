@@ -59,7 +59,7 @@ export default function SimpleDataManager({ title, description, columns, listMet
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] text-muted">{description || `管理${title}数据`}</span>
+        <span className="text-[12px] text-muted">{description || `管理${title}数据`}</span>
         <button onClick={openAdd}
           className="h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors"
         >+ 添加</button>
@@ -70,7 +70,7 @@ export default function SimpleDataManager({ title, description, columns, listMet
           <thead>
             <tr>
               {columns.map(c => (
-                <th key={c.key} className="text-left px-2 py-1.5 text-[11px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">{c.label}</th>
+                <th key={c.key} className="text-left px-2 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">{c.label}</th>
               ))}
               <th className="w-10" />
             </tr>
@@ -83,7 +83,7 @@ export default function SimpleDataManager({ title, description, columns, listMet
                 ))}
                 <td className="px-2 py-1.5">
                   <button onClick={() => handleDelete(item[columns[0].key])}
-                    className="text-[11px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent">删除</button>
+                    className="text-[12px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent">删除</button>
                 </td>
               </tr>
             ))}

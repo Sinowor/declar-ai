@@ -155,7 +155,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
             </button>
             {menuOpen && (
               <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-panel z-50 py-1.5 min-w-[180px] max-h-[360px] overflow-y-auto">
-                <div className="px-3 py-1.5 text-[11px] text-muted font-semibold uppercase tracking-wider">显示列</div>
+                <div className="px-3 py-1.5 text-[12px] text-muted font-semibold uppercase tracking-wider">显示列</div>
                 {allColumns.map(col => (
                   <label key={col.source_key} className="flex items-center gap-2 px-3 py-1.5 hover:bg-surface dark:hover:bg-gray-800 cursor-pointer text-[13px] font-medium select-none">
                     <input type="checkbox" checked={!hiddenKeys.has(col.source_key)} onChange={() => toggleColumn(col.source_key)}
@@ -193,7 +193,7 @@ export default function CargoDetailsTable({ details, onUpdate, cargoColumns }: C
             <div className="flex items-center justify-between px-6 py-[14px] border-b border-gray-200 dark:border-gray-700 shrink-0">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold">货物明细</h3>
-                <span className="text-[11px] text-muted">{details.length} 行 · {visibleColumns.length}/{allColumns.length} 列</span>
+                <span className="text-[12px] text-muted">{details.length} 行 · {visibleColumns.length}/{allColumns.length} 列</span>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={addRow}

@@ -22,7 +22,7 @@ export default function ThemeColorPicker() {
                 boxShadow: themeId === t.id ? `0 0 0 2px white, 0 0 0 3px ${t.primary}` : 'none',
               }}
             />
-            <span className={`text-[10px] font-medium leading-tight text-center ${themeId === t.id ? 'text-ink' : 'text-muted'}`}>
+            <span className={`text-[12px] font-medium leading-tight text-center ${themeId === t.id ? 'text-ink' : 'text-muted'}`}>
               {t.label}
             </span>
           </button>

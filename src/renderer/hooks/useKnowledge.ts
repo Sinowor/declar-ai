@@ -15,7 +15,8 @@ export function parseTags(t: string): string[] {
 
 const api = (window as any).api
 
-export function useKnowledge(onDirtyChange?: (dirty: boolean) => void) {
+export function useKnowledge(onDirtyChange?: (dirty: boolean) => void, callbacks?: { onSaved?: () => void; onSaveError?: (msg: string) => void; onDeleted?: () => void }) {
+  const cbs = callbacks || {}
   const [entries, setEntries] = useState<Entry[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null)
@@ -161,8 +162,11 @@ export function useKnowledge(onDirtyChange?: (dirty: boolean) => void) {
         setEditing(false); setDirty(false)
         if (res.id) { setSelectedId(res.id); await loadEntry(res.id) }
         else if (selectedEntry) await loadEntry(selectedEntry.id)
+        cbs.onSaved?.()
+      } else {
+        cbs.onSaveError?.(res?.error || '保存失败')
       }
-    } catch (e) { console.error('Save failed:', e) }
+    } catch (e: any) { cbs.onSaveError?.(e?.message || '保存失败') }
     finally { setSaving(false) }
   }
 
@@ -172,6 +176,7 @@ export function useKnowledge(onDirtyChange?: (dirty: boolean) => void) {
       await api.knowledgeDelete(selectedEntry.id)
       setSelectedId(null); setSelectedEntry(null); setDirty(false); setRelatedNotes([])
       await loadEntries(activeTag, search || undefined)
+      cbs.onDeleted?.()
     }
   }
 

@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown'
 import { useKnowledge, parseTags } from '../../hooks/useKnowledge'
 import type { Entry, AttachedFile } from '../../hooks/useKnowledge'
 import KnowledgeSidebar from './KnowledgeSidebar'
+import { useToast } from '../../contexts/ToastContext'
 
 function timeAgo(d: string): string {
   const diff = Date.now() - new Date(d).getTime()
@@ -26,7 +27,12 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   sidebarCollapsed: boolean; onToggleSidebar: () => void
   onDirtyChange?: (dirty: boolean) => void
 }) {
-  const k = useKnowledge(onDirtyChange)
+  const toast = useToast()
+  const k = useKnowledge(onDirtyChange, {
+    onSaved: () => toast.showToast('success', '笔记已保存'),
+    onSaveError: (msg) => toast.showToast('error', msg),
+    onDeleted: () => toast.showToast('info', '笔记已删除'),
+  })
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -78,11 +84,11 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                     </button>
                   )}
                   {k.selectedEntry && <span className="truncate">{parseTags(k.selectedEntry.tags).join(' · ') || '未分类'}</span>}
-                  {k.selectedEntry?.hs_code && <span className="font-mono text-[11px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">HS: {k.selectedEntry.hs_code}</span>}
+                  {k.selectedEntry?.hs_code && <span className="font-mono text-[12px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">HS: {k.selectedEntry.hs_code}</span>}
                   {k.selectedEntry && <span className="shrink-0">{timeAgo(k.selectedEntry.updated_at)}</span>}
                 </div>
                 {(k.autoSaved || k.saving) && (
-                  <div className="flex items-center gap-2 text-[11px]">
+                  <div className="flex items-center gap-2 text-[12px]">
                     {k.autoSaved && <span className="text-green-500">已自动保存</span>}
                     {k.saving && <span className="text-muted">保存中...</span>}
                   </div>
@@ -91,10 +97,10 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
               <div className="flex items-center gap-2 no-drag shrink-0">
                 {k.editing ? (
                   <button onClick={() => k.handleToggleEditing(false)}
-                    className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">预览</button>
+                    className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">预览</button>
                 ) : (
                   <button onClick={() => k.handleToggleEditing(true)}
-                    className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">编辑</button>
+                    className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">编辑</button>
                 )}
               </div>
             </div>
@@ -125,7 +131,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                   className="w-full min-h-[300px] h-[400px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-y placeholder:text-muted/40" />
 
                 <div>
-                  <div className="text-[11px] font-medium text-muted mb-2">附件 · 拖拽文件到此处</div>
+                  <div className="text-[12px] font-medium text-muted mb-2">附件 · 拖拽文件到此处</div>
                   <div className={`border-2 border-dashed rounded-lg p-4 mb-3 transition-colors ${k.dragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700'}`}
                     onDragOver={e => { e.preventDefault(); k.setDragOver(true) }}
                     onDragLeave={() => k.setDragOver(false)}
@@ -139,7 +145,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                             </span>
                           ) : null}
                           <span className="cursor-pointer hover:text-primary-500 hover:underline" onClick={() => k.handleOpenFile(f.id)}>{f.file_name}</span>
-                          {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
+                          {f.file_size ? <span className="text-[12px] text-muted/50">{formatSize(f.file_size)}</span> : null}
                           <button onClick={() => k.handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
                         </span>
                       ))}
@@ -147,11 +153,11 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                     </div>
                   </div>
                   <button onClick={k.handleFilePick}
-                    className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors">+ 添加附件</button>
+                    className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors">+ 添加附件</button>
                 </div>
 
                 <div>
-                  <div className="text-[11px] font-medium text-muted mb-2">添加链接</div>
+                  <div className="text-[12px] font-medium text-muted mb-2">添加链接</div>
                   <div className="flex gap-2">
                     <input value={k.linkTitle} onChange={e => k.setLinkTitle(e.target.value)} placeholder="标题（可选）"
                       className="w-28 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40" />
@@ -159,7 +165,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                       className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40"
                       onKeyDown={e => { if (e.key === 'Enter') k.handleAddLink() }} />
                     <button onClick={k.handleAddLink}
-                      className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors shrink-0">添加</button>
+                      className="h-7 px-3 rounded-sm text-[12px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors shrink-0">添加</button>
                   </div>
                 </div>
 
@@ -186,7 +192,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                     )}
                     {k.files.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">附件 ({k.files.length})</div>
+                        <div className="text-[12px] font-semibold text-muted uppercase tracking-wider mb-2">附件 ({k.files.length})</div>
                         <div className="flex flex-wrap gap-2">
                           {k.files.map((f, i) => (
                             <span key={i} onClick={() => k.handleOpenFile(f.id)}
@@ -197,7 +203,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                                 </span>
                               ) : null}
                               {f.file_name}
-                              {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
+                              {f.file_size ? <span className="text-[12px] text-muted/50">{formatSize(f.file_size)}</span> : null}
                             </span>
                           ))}
                         </div>
@@ -205,13 +211,13 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                     )}
                     {k.relatedNotes.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">相关笔记</div>
+                        <div className="text-[12px] font-semibold text-muted uppercase tracking-wider mb-2">相关笔记</div>
                         <div className="space-y-1">
                           {k.relatedNotes.map(r => (
                             <button key={r.id} onClick={() => k.handleSelect(r.id)}
                               className="block w-full text-left px-3 py-2 rounded-md text-[13px] hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                               <span className="font-medium">{r.title}</span>
-                              {r.hs_code && <span className="ml-2 text-[11px] font-mono text-muted">HS: {r.hs_code}</span>}
+                              {r.hs_code && <span className="ml-2 text-[12px] font-mono text-muted">HS: {r.hs_code}</span>}
                             </button>
                           ))}
                         </div>

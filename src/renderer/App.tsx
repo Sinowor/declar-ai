@@ -9,6 +9,7 @@ import BatchClassifier from './components/hs/BatchClassifier'
 import Calculator from './components/calculator/Calculator'
 import KnowledgeBase from './components/knowledge/KnowledgeBase'
 import TitleBar from './components/shared/TitleBar'
+import { ToastProvider } from './contexts/ToastContext'
 import Settings from './components/settings/Settings'
 import AboutModal from './components/shared/AboutModal'
 import LicenseModal from './components/shared/LicenseModal'
@@ -207,6 +208,7 @@ export default function App() {
   const platformClass = isMac ? 'platform-darwin' : 'platform-win32'
 
   return (
+    <ToastProvider>
     <div className={platformClass} style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       {!isMac && <TitleBar />}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -274,5 +276,6 @@ export default function App() {
       <LicenseModal open={licenseOpen} onClose={() => setLicenseOpen(false)} />
       </div>
     </div>
+    </ToastProvider>
   )
 }

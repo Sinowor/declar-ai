@@ -22,7 +22,7 @@ export default function TitleBar() {
       style={{ height: 32, WebkitAppRegion: 'drag' } as React.CSSProperties}
     >
       <div className="flex items-center gap-2 pl-3">
-        <span className="text-[11px] font-semibold text-muted select-none">DeclarAI</span>
+        <span className="text-[12px] font-semibold text-muted select-none">DeclarAI</span>
       </div>
       <div className="flex h-full no-drag">
         <button

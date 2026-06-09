@@ -53,7 +53,7 @@ export default function TaxRateManager() {
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card">
       <div className="px-6 py-[18px] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h3 className="text-lg font-semibold">税率管理</h3>
-        <span className="text-[11px] text-muted">{items.length} 条</span>
+        <span className="text-[12px] text-muted">{items.length} 条</span>
       </div>
       <div className="p-6">
         <div className="flex items-center justify-between mb-3">
@@ -68,13 +68,13 @@ export default function TaxRateManager() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th className="text-left px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">编码</th>
-                <th className="text-left px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">名称</th>
-                <th className="text-right px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">最惠国%</th>
-                <th className="text-right px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">普通%</th>
-                <th className="text-right px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">增值税%</th>
-                <th className="text-center px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">消费税</th>
-                <th className="text-left px-1.5 py-1.5 text-[10px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">监管</th>
+                <th className="text-left px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">编码</th>
+                <th className="text-left px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">名称</th>
+                <th className="text-right px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">最惠国%</th>
+                <th className="text-right px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">普通%</th>
+                <th className="text-right px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">增值税%</th>
+                <th className="text-center px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">消费税</th>
+                <th className="text-left px-1.5 py-1.5 text-[12px] font-semibold text-muted uppercase border-b border-gray-200 dark:border-gray-700">监管</th>
                 <th className="w-10" />
               </tr>
             </thead>
@@ -90,7 +90,7 @@ export default function TaxRateManager() {
                   <td className="px-1.5 py-1.5 text-[12px]">{r.supervision || '—'}</td>
                   <td className="px-1.5 py-1.5">
                     <button onClick={() => handleDelete(r.code)}
-                      className="text-[10px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent">删除</button>
+                      className="text-[12px] text-muted hover:text-red-500 cursor-pointer border-none bg-transparent">删除</button>
                   </td>
                 </tr>
               ))}
@@ -109,27 +109,27 @@ export default function TaxRateManager() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">HS 编码 *</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">HS 编码 *</label>
                 <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 font-mono bg-white dark:bg-gray-800" />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">名称</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">名称</label>
                 <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">最惠国税率 (%)</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">最惠国税率 (%)</label>
                 <input type="number" step="0.1" value={form.mfn_rate ?? ''} onChange={e => setForm({ ...form, mfn_rate: e.target.value ? parseFloat(e.target.value) : null })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">普通税率 (%)</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">普通税率 (%)</label>
                 <input type="number" step="0.1" value={form.general_rate ?? ''} onChange={e => setForm({ ...form, general_rate: e.target.value ? parseFloat(e.target.value) : null })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">增值税率 (%)</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">增值税率 (%)</label>
                 <input type="number" step="0.1" value={form.vat_rate ?? ''} onChange={e => setForm({ ...form, vat_rate: e.target.value ? parseFloat(e.target.value) : 0 })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>
@@ -137,17 +137,17 @@ export default function TaxRateManager() {
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={!!form.consumption_tax} onChange={e => setForm({ ...form, consumption_tax: e.target.checked ? 1 : 0 })}
                     className="w-3.5 h-3.5 rounded border-gray-300 text-primary-500" />
-                  <span className="text-[11px] text-muted">消费税</span>
+                  <span className="text-[12px] text-muted">消费税</span>
                 </label>
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">监管条件</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">监管条件</label>
                 <input value={form.supervision || ''} onChange={e => setForm({ ...form, supervision: e.target.value || null })}
                   placeholder="如 AB"
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-muted mb-0.5">单位</label>
+                <label className="block text-[12px] font-medium text-muted mb-0.5">单位</label>
                 <input value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useToast } from '../../contexts/ToastContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import type { ThemeMode } from '../../contexts/ThemeContext'
 import ThemeColorPicker from './ThemeColorPicker'
@@ -27,6 +28,7 @@ const tabs: { id: TabId; label: string }[] = [
 ]
 
 export default function Settings({ onShowAbout, onShowLicense }: Props) {
+  const toast = useToast()
   const { themeMode, setThemeMode } = useTheme()
   const [activeTab, setActiveTab] = useState<TabId>('general')
   const [storageRoot, setStorageRoot] = useState('')
@@ -58,6 +60,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
     if (!window.api?.saveConfig) return
     await window.api.saveConfig({ storageRoot })
     setSaved(true)
+    toast.showToast('success', '存储路径已保存，重启后生效')
     if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
     savedTimerRef.current = setTimeout(() => setSaved(false), 2000)
   }
@@ -142,7 +145,7 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
                     {shortcuts.map(s => (
                       <div key={s.keys} className="flex items-center justify-between text-sm">
                         <span className="text-muted">{s.desc}</span>
-                        <kbd className="px-2 py-0.5 rounded text-[11px] font-mono bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-ink">{s.keys}</kbd>
+                        <kbd className="px-2 py-0.5 rounded text-[12px] font-mono bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-ink">{s.keys}</kbd>
                       </div>
                     ))}
                   </div>

@@ -165,7 +165,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
             const done = processingStep > i; const active = processingStep === i
             return (
               <div key={label} className="step-enter flex items-center gap-3 justify-center" style={{ animationDelay: `${i * 0.12}s` }}>
-                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors duration-500"
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold transition-colors duration-500"
                   style={done ? { background: p(0.12), color: theme.primary } : active ? { background: theme.primary, color: '#fff' } : { color: 'var(--border)' }}>
                   {done ? '✓' : active ? '' : i + 1}
                 </span>
@@ -207,7 +207,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
             {missingFields.length > 0 && (
               <div className="flex gap-2 flex-wrap ml-12">
                 {missingFields.map(f => (
-                  <span key={f} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium" style={{ background: p(0.06), color: theme.primary }}>{f}</span>
+                  <span key={f} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium" style={{ background: p(0.06), color: theme.primary }}>{f}</span>
                 ))}
               </div>
             )}
@@ -273,7 +273,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
               <button onClick={() => doClassify()} disabled={!input.trim()}
                 className="h-9 px-5 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-2 transition-colors hover:opacity-90 active:scale-[0.98]"
                 style={{ background: input.trim() ? `linear-gradient(135deg, ${theme.primary}, ${theme.accentForeground})` : 'var(--muted)' }}
-              >开始归类分析 <span className="text-[10px] opacity-40 ml-0.5">⌘↵</span></button>
+              >开始归类分析 <span className="text-[12px] opacity-40 ml-0.5">⌘↵</span></button>
             </div>
           </div>
 
@@ -290,7 +290,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
             </span>
           </div>
 
-          <p className="text-center text-[11px] mt-8" style={{ color: 'var(--border)' }}>
+          <p className="text-center text-[12px] mt-8" style={{ color: 'var(--border)' }}>
             基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准
           </p>
 
@@ -346,11 +346,11 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
         <div className="result-enter bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-card overflow-hidden" style={{ animationDelay: '0s' }}>
           <div className="p-6 flex items-start justify-between">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-3">推荐 HS 编码</div>
+              <div className="text-[12px] uppercase tracking-[0.12em] text-muted font-semibold mb-3">推荐 HS 编码</div>
               <div className="flex items-baseline gap-3">
                 <span className="text-[48px] font-bold tracking-tight font-mono" style={{ color: theme.primary, letterSpacing: '-0.03em' }}>{result.hs_code || '—'}</span>
                 {result.confidence && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold" style={{ background: p(0.08), color: theme.primary }}>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold" style={{ background: p(0.08), color: theme.primary }}>
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: confDot[result.confidence] || confDot.low }} />{confLabel[result.confidence] || result.confidence}
                   </span>
                 )}
@@ -365,7 +365,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
                 <div className="mt-3 text-[12px] leading-relaxed px-4 py-3 rounded-xl border" style={{ borderColor: p(0.15), background: p(0.03), color: 'var(--muted)' }}>
                   <div className="font-semibold mb-1.5" style={{ color: theme.primary }}>基于 AI 假设信息归类</div>
                   <div className="whitespace-pre-wrap">{assumptions}</div>
-                  <div className="mt-2 text-[11px] text-muted">以上信息非用户提供的真实完整数据，归类仅供报关参考</div>
+                  <div className="mt-2 text-[12px] text-muted">以上信息非用户提供的真实完整数据，归类仅供报关参考</div>
                 </div>
               )}
             </div>
@@ -378,30 +378,30 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
           <div className="grid grid-cols-4 border-t border-gray-100 dark:border-gray-800">
             {[{ label: '最惠国关税', value: result.mfn_rate || '—' },{ label: '增值税率', value: result.vat_rate || '—' },{ label: '监管条件', value: result.supervision_conditions || '—' },{ label: '法定单位', value: '—' }].map((item, i) => (
               <div key={item.label} className={`px-6 py-4 ${i < 3 ? 'border-r border-gray-100 dark:border-gray-800' : ''}`}>
-                <div className="text-[11px] text-muted uppercase tracking-wider mb-1">{item.label}</div>
+                <div className="text-[12px] text-muted uppercase tracking-wider mb-1">{item.label}</div>
                 <div className="text-lg font-bold">{item.value}</div>
               </div>
             ))}
           </div>
 
           {result.rationale && (
-            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{result.rationale}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[12px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">归类推导过程</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{result.rationale}</div></div>
           )}
           {result.alternatives && (
-            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{result.alternatives}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[12px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">候选编码与排除理由</div><div className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>{result.alternatives}</div></div>
           )}
           {result.tariff_text && (
-            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--muted)', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[12px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--muted)', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
           )}
           {relatedNotes.length > 0 && (
             <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4">
-              <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">相关知识库笔记</div>
+              <div className="text-[12px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">相关知识库笔记</div>
               <div className="space-y-1">
                 {relatedNotes.map(rn => (
                   <div key={rn.id} className="flex items-center gap-2 text-[13px] px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors" onClick={() => { (window as any).api?.knowledgeGet?.(rn.id) }}>
                     <span className="font-medium truncate">{rn.title}</span>
-                    <span className="text-[11px] font-mono text-muted shrink-0">HS: {rn.hs_code}</span>
-                    {parseTagsArr(rn.tags).slice(0, 2).map((t: string) => <span key={t} className="text-[10px] text-muted bg-gray-100 dark:bg-gray-800 px-1 rounded shrink-0">{t}</span>)}
+                    <span className="text-[12px] font-mono text-muted shrink-0">HS: {rn.hs_code}</span>
+                    {parseTagsArr(rn.tags).slice(0, 2).map((t: string) => <span key={t} className="text-[12px] text-muted bg-gray-100 dark:bg-gray-800 px-1 rounded shrink-0">{t}</span>)}
                   </div>
                 ))}
               </div>
@@ -409,7 +409,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
           )}
         </div>
 
-        <p className="result-enter text-center text-[11px] mt-2" style={{ color: 'var(--border)', animationDelay: '0.4s' }}>基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准</p>
+        <p className="result-enter text-center text-[12px] mt-2" style={{ color: 'var(--border)', animationDelay: '0.4s' }}>基于 AI 大语言模型对《中华人民共和国进出口税则》进行检索与解析，归类结果仅供报关参考，最终以海关认定为准</p>
       </div>
 
       {toast && (

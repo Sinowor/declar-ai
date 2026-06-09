@@ -50,7 +50,7 @@ function TemplateLoader({ selectedType, onLoad }: { selectedType: string | null;
           <option key={t.id} value={t.id}>{t.name}</option>
         ))}
       </select>
-      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
+      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] text-muted pointer-events-none">&#9660;</span>
     </div>
   )
 }
@@ -81,7 +81,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           >新建申报单</button>
           {(recentDeclarations || []).slice(0, 5).length > 0 && (
             <div className="text-left">
-              <div className="text-[11px] uppercase tracking-[0.12em] font-semibold mb-3 text-muted">最近使用</div>
+              <div className="text-[12px] uppercase tracking-[0.12em] font-semibold mb-3 text-muted">最近使用</div>
               <div className="space-y-1">
                 {(recentDeclarations || []).slice(0, 5).map(d => (
                   <button key={d.id}
@@ -92,8 +92,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                       d.status === 'done' ? 'bg-emerald-400' : d.status === 'review' ? 'bg-amber-400' : d.status === 'draft' ? 'bg-slate-300' : 'bg-sky-400'
                     }`} />
                     <span className="flex-1 text-[13px] font-medium truncate">{d.displayName}</span>
-                    <span className="text-[11px] text-muted">{d.cargoCount} 行</span>
-                    <span className="text-[11px] text-muted">{d.updatedAt}</span>
+                    <span className="text-[12px] text-muted">{d.cargoCount} 行</span>
+                    <span className="text-[12px] text-muted">{d.updatedAt}</span>
                   </button>
                 ))}
               </div>
@@ -431,7 +431,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const sevBadge = (severity: string) => {
     const colors: Record<string, string> = { high: 'bg-red-50 text-red-600', medium: 'bg-amber-50 text-amber-600', low: 'bg-sky-50 text-sky-600' }
     const labels: Record<string, string> = { high: '高', medium: '中', low: '低' }
-    return <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${colors[severity] || colors.medium}`}>{labels[severity] || severity}</span>
+    return <span className={`inline-flex px-1.5 py-0.5 rounded text-[12px] font-semibold ${colors[severity] || colors.medium}`}>{labels[severity] || severity}</span>
   }
 
   // ═══ Render ═══
@@ -464,7 +464,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 <span className="inline-flex items-center gap-1.5 text-[12px] font-medium"
                   style={{ color: step.done ? '#22C55E' : isActive ? 'var(--primary)' : undefined }}
                 >
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold text-white ${
                     step.done ? 'bg-emerald-400' : isActive ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
                   }`}>{step.done ? '✓' : step.n}</span>
                   {step.label}
@@ -602,7 +602,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                         <div key={i}
                           className={`flex items-start gap-3 px-3 py-2 rounded-md transition-colors hover:bg-slate-50 dark:hover:bg-gray-800 dark:bg-gray-800 ${isResolved ? 'opacity-40' : ''}`}
                         >
-                          <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold ${
                             isResolved ? 'bg-emerald-100 text-emerald-600' : issue.severity === 'high' ? 'bg-red-100 text-red-600' : issue.severity === 'medium' ? 'bg-amber-100 text-amber-600' : 'bg-sky-100 text-sky-600'
                           }`}>
                             {isResolved ? '✓' : '!'}
@@ -619,7 +619,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                           </div>
                           {!isResolved && (
                             <button onClick={() => resolveIssue(i)}
-                              className="shrink-0 h-6 px-2 rounded-sm text-[11px] font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors"
+                              className="shrink-0 h-6 px-2 rounded-sm text-[12px] font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted hover:text-emerald-600 hover:border-emerald-300 cursor-pointer transition-colors"
                             >确认</button>
                           )}
                         </div>
@@ -665,7 +665,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                         <option key={e.id} value={e.id}>{e.short_name || e.name}{e.is_default ? ' (默认)' : ''}</option>
                       ))}
                     </select>
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] text-muted pointer-events-none">&#9660;</span>
                   </div>
                 )}
                 {/* Type selector */}
@@ -680,7 +680,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                     <option key={tc.type} value={tc.type}>{tc.title}</option>
                   ))}
                 </select>
-                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted pointer-events-none">&#9660;</span>
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-muted pointer-events-none">&#9660;</span>
                 </div>
                 {/* Export buttons — transit only */}
                 {selectedType === 'transit_transport' && (
@@ -741,7 +741,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 <button onClick={() => handleSave()} disabled={isSaving}
                   className={`h-[34px] px-4 rounded-sm text-white border-none font-semibold text-[13px] cursor-pointer inline-flex items-center gap-1.5 transition-colors ${saveDone ? 'bg-emerald-500 hover:bg-emerald-500' : 'bg-primary-500 hover:bg-primary-600'} ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isSaving ? '保存中...' : saveDone ? <><span>✓</span><span>已保存</span></> : <><IconSave /><span>保存草稿</span><span className="text-[10px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
+                  {isSaving ? '保存中...' : saveDone ? <><span>✓</span><span>已保存</span></> : <><IconSave /><span>保存草稿</span><span className="text-[12px] opacity-40 ml-0.5">{navigator.platform?.toLowerCase?.().includes('mac') ? '⌘S' : 'Ctrl+S'}</span></>}
                 </button>
               </div>
             </div>
@@ -759,7 +759,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="text-sm font-semibold text-ink">{SECTION_LABELS[section as FieldSection] || section}</h4>
                     {selectedConfig && (
-                      <span className="text-[11px] text-muted">
+                      <span className="text-[12px] text-muted">
                         已填 {mappings.filter(m => fields[m.source_key] !== undefined && fields[m.source_key] !== null && !(typeof fields[m.source_key] === 'string' && fields[m.source_key].trim() === '')).length}/{mappings.length}
                       </span>
                     )}
@@ -801,7 +801,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                               className={`h-9 rounded-md border px-3 text-sm outline-none transition-[border-color,box-shadow,background-color] focus:border-primary-500 focus:ring-[3px] focus:ring-primary-500/10 bg-[#FAFBFC] dark:bg-gray-800 focus:bg-white dark:bg-gray-900 font-sans ${isMissing ? 'border-amber-400 bg-amber-50/50' : 'border-gray-200 dark:border-gray-700'}`}
                             />
                           )}
-                          {isMissing && <div className="text-[11px] text-amber-600">"{selectedConfig!.title}" 必填项</div>}
+                          {isMissing && <div className="text-[12px] text-amber-600">"{selectedConfig!.title}" 必填项</div>}
                         </div>
                       )
                     })}
@@ -849,13 +849,13 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           {/* Related Knowledge Base Notes */}
           {relatedNotes.length > 0 && (
             <div className="mt-6 p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-surface dark:bg-gray-800/50">
-              <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-3">相关知识库笔记</div>
+              <div className="text-[12px] font-semibold text-muted uppercase tracking-wider mb-3">相关知识库笔记</div>
               <div className="space-y-1">
                 {relatedNotes.slice(0, 5).map(n => (
                   <div key={n.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[13px] hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <span className="font-medium truncate flex-1">{n.title}</span>
-                    {n.hs_code && <span className="text-[11px] font-mono text-muted shrink-0">HS: {n.hs_code}</span>}
-                    {(() => { try { const tags = JSON.parse(n.tags); return tags.slice(0, 2).map((t: string, i: number) => <span key={i} className="text-[10px] text-muted bg-gray-100 dark:bg-gray-700 px-1 rounded shrink-0">{t}</span>) } catch { return null } })()}
+                    {n.hs_code && <span className="text-[12px] font-mono text-muted shrink-0">HS: {n.hs_code}</span>}
+                    {(() => { try { const tags = JSON.parse(n.tags); return tags.slice(0, 2).map((t: string, i: number) => <span key={i} className="text-[12px] text-muted bg-gray-100 dark:bg-gray-700 px-1 rounded shrink-0">{t}</span>) } catch { return null } })()}
                   </div>
                 ))}
               </div>

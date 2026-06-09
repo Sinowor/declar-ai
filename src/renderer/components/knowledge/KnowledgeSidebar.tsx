@@ -42,28 +42,28 @@ export default function KnowledgeSidebar({
       </div>
       <div className="px-4 pb-2 max-h-[72px] overflow-y-auto flex flex-wrap gap-1">
         <button onClick={() => onActiveTagChange('')}
-          className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
+          className={`px-2 py-0.5 rounded text-[12px] font-medium cursor-pointer border transition-colors shrink-0 ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
         {allTags.map(t => (
           <button key={t} onClick={() => onActiveTagChange(activeTag === t ? '' : t)}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
+            className={`px-2 py-0.5 rounded text-[12px] font-medium cursor-pointer border transition-colors shrink-0 ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
         ))}
         <div className="relative shrink-0" ref={tagManagerRef}>
           <button onClick={onToggleTagManager}
-            className="px-2 py-0.5 rounded text-[11px] text-muted cursor-pointer border border-dashed border-gray-200 dark:border-gray-700 hover:text-ink hover:border-gray-400 transition-colors"
+            className="px-2 py-0.5 rounded text-[12px] text-muted cursor-pointer border border-dashed border-gray-200 dark:border-gray-700 hover:text-ink hover:border-gray-400 transition-colors"
             title="管理标签">+</button>
           {showTagManager && (
             <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-30 p-2.5">
               <div className="flex gap-1 mb-2">
                 <input value={newTagName} onChange={e => onNewTagNameChange(e.target.value)} placeholder="新标签名"
-                  className="flex-1 h-6 rounded border border-gray-200 dark:border-gray-700 px-2 text-[11px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
+                  className="flex-1 h-6 rounded border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
                   onKeyDown={e => { if (e.key === 'Enter') onAddDbTag() }} />
                 <button onClick={onAddDbTag}
-                  className="h-6 px-2 rounded text-[10px] font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors shrink-0">添加</button>
+                  className="h-6 px-2 rounded text-[12px] font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors shrink-0">添加</button>
               </div>
               <div className="flex flex-wrap gap-1">
-                {dbTags.length === 0 && <span className="text-[10px] text-muted/50">暂无预设标签</span>}
+                {dbTags.length === 0 && <span className="text-[12px] text-muted/50">暂无预设标签</span>}
                 {dbTags.map(t => (
-                  <span key={t.name} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-surface dark:bg-gray-700 border border-gray-200 dark:border-gray-600 group">
+                  <span key={t.name} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[12px] bg-surface dark:bg-gray-700 border border-gray-200 dark:border-gray-600 group">
                     {t.name}
                     <button onClick={() => onDeleteDbTag(t.name)}
                       className="text-muted hover:text-red-500 cursor-pointer leading-none opacity-0 group-hover:opacity-100 transition-opacity">×</button>
@@ -85,16 +85,16 @@ export default function KnowledgeSidebar({
               <motion.button key={e.id} variants={staggerItem} onClick={() => onSelect(e.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-lg cursor-pointer border-none transition-colors group ${selectedId === e.id ? 'bg-surface dark:bg-gray-800' : 'bg-transparent hover:bg-surface dark:hover:bg-gray-800'}`}>
                 <div className="flex items-center gap-1.5">
-                  {e.is_pinned ? <span className="text-[10px] shrink-0">📌</span> : null}
+                  {e.is_pinned ? <span className="text-[12px] shrink-0">📌</span> : null}
                   <div className="text-[13px] font-medium truncate flex-1">{e.title}</div>
-                  {e.file_count > 0 && <span className="text-[10px] text-muted/40 shrink-0" title={`${e.file_count} 个附件`}>📎</span>}
+                  {e.file_count > 0 && <span className="text-[12px] text-muted/40 shrink-0" title={`${e.file_count} 个附件`}>📎</span>}
                   <button onClick={(ev) => { ev.stopPropagation(); onTogglePin(e) }}
-                    className="opacity-0 group-hover:opacity-100 text-[11px] text-muted hover:text-amber-500 cursor-pointer shrink-0 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 text-[12px] text-muted hover:text-amber-500 cursor-pointer shrink-0 transition-opacity"
                     title={e.is_pinned ? '取消置顶' : '置顶'}>📌</button>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  {parseTags(e.tags).map(t => <span key={t} className="text-[10px] text-muted bg-surface dark:bg-gray-800 px-1 rounded">{t}</span>)}
-                  <span className="text-[10px] text-muted/50 ml-auto">{timeAgo(e.updated_at)}</span>
+                  {parseTags(e.tags).map(t => <span key={t} className="text-[12px] text-muted bg-surface dark:bg-gray-800 px-1 rounded">{t}</span>)}
+                  <span className="text-[12px] text-muted/50 ml-auto">{timeAgo(e.updated_at)}</span>
                 </div>
               </motion.button>
             ))}

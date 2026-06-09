@@ -125,7 +125,7 @@ export default function AiReviewPanel({
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-[13px] truncate">{issue.field_path}</span>
                   <span
-                    className={`inline-flex px-1.5 py-0.5 rounded text-[11px] font-semibold ${sev.bg} ${sev.color}`}
+                    className={`inline-flex px-1.5 py-0.5 rounded text-[12px] font-semibold ${sev.bg} ${sev.color}`}
                   >
                     {severityLabels[issue.severity]}
                   </span>
@@ -137,7 +137,7 @@ export default function AiReviewPanel({
                   <p className="text-[12px] text-sky-600 mt-1">→ {issue.suggestion}</p>
                 )}
                 {isResolved && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-600">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded text-[12px] font-semibold bg-emerald-50 text-emerald-600">
                     &#10003; 已处理
                   </span>
                 )}

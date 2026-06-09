@@ -80,7 +80,7 @@ export default function DeclarationPreview({ declaration, onEnterEdit }: Props) 
             <div key={kpi.label} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 shadow-card">
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: kpi.color }} />
-                <span className="text-[11px] uppercase tracking-wider text-muted font-medium">{kpi.label}</span>
+                <span className="text-[12px] uppercase tracking-wider text-muted font-medium">{kpi.label}</span>
               </div>
               <div className="text-2xl font-bold tabular-nums">{typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}{kpi.unit && <span className="text-sm text-muted font-normal ml-0.5">{kpi.unit}</span>}</div>
             </div>

@@ -92,7 +92,7 @@ export default function HsHistorySidebar({ items, onSelect, collapsed, onToggleC
                 <span className={`w-2 h-2 rounded-full shrink-0 ${item.confidence === 'high' ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="text-[13px] font-medium truncate">{item.product_description}</div>
-                  <div className="text-[11px] text-muted mt-0.5">
+                  <div className="text-[12px] text-muted mt-0.5">
                     <span className="font-mono text-primary-500">{item.hs_code || '—'}</span>
                     <span className="mx-1.5">·</span>
                     {timeAgo(item.created_at)}

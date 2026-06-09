@@ -205,7 +205,7 @@ export default function BatchClassifier({ onBack }: Props) {
           <thead>
             <tr className="bg-slate-800 dark:bg-slate-700">
               {['#', '商品信息', 'HS编码', '置信度', '关税', '增值税', '监管', '依据摘要'].map(h => (
-                <th key={h} className="px-3 py-2.5 text-[11px] font-semibold text-left uppercase tracking-wider" style={{ color: 'var(--border)' }}>{h}</th>
+                <th key={h} className="px-3 py-2.5 text-[12px] font-semibold text-left uppercase tracking-wider" style={{ color: 'var(--border)' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -222,10 +222,10 @@ export default function BatchClassifier({ onBack }: Props) {
                     <td className="px-3 py-2.5 text-xs text-muted">{r.row_index + 1}</td>
                     <td className="px-3 py-2.5 text-[13px] max-w-[240px] truncate" title={r.product_info}>{r.product_info}</td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[13px] font-mono font-semibold" style={{ color: theme.primary }}>{r.hs_code || '—'}</span>{unverified.has(r.row_index) && <span className="text-amber-500 ml-1 text-[11px]" title="该编码未在税则中验证">⚠</span>}
+                      <span className="text-[13px] font-mono font-semibold" style={{ color: theme.primary }}>{r.hs_code || '—'}</span>{unverified.has(r.row_index) && <span className="text-amber-500 ml-1 text-[12px]" title="该编码未在税则中验证">⚠</span>}
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[12px] font-semibold ${
                         isLow ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300' : ''
                       }`} style={!isLow ? { background: p(0.08), color: theme.primary } : undefined}>
                         <span className={`w-1.5 h-1.5 rounded-full ${isLow ? 'bg-amber-500 dark:bg-amber-400' : ''}`} style={!isLow ? { background: theme.primary } : undefined} />{isLow ? '低' : '高'}
