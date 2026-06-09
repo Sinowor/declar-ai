@@ -120,6 +120,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
   const [reviewIssues, setReviewIssues] = useState<ReviewIssue[]>([])
   const [resolvedIssues, setResolvedIssues] = useState<Set<number>>(new Set())
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' | 'info' } | null>(null)
+  const [relatedNotes, setRelatedNotes] = useState<{ id: string; title: string; hs_code: string; tags: string }[]>([])
   const [selectedType, setSelectedType] = useState<DeclarationTypeKey | null>(null)
   const [typeConfigs, setTypeConfigs] = useState<DeclarationTypeConfig[]>([])
   const [enterprises, setEnterprises] = useState<any[]>([])
@@ -285,6 +286,24 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [])
+
+  // ── Related knowledge base notes ──
+  useEffect(() => {
+    const hsCodes = [...new Set(cargoDetails.map((d: any) => d.hs_code).filter(Boolean))]
+    if (hsCodes.length === 0 || !window.api?.knowledgeRelated) { setRelatedNotes([]); return }
+    Promise.all(hsCodes.map((code: string) =>
+      window.api.knowledgeRelated(code).then((r: any[]) => Array.isArray(r) ? r : []).catch(() => [])
+    )).then((results: any[][]) => {
+      const seen = new Set<string>()
+      const merged: { id: string; title: string; hs_code: string; tags: string }[] = []
+      for (const arr of results) {
+        for (const n of arr) {
+          if (!seen.has(n.id)) { seen.add(n.id); merged.push(n) }
+        }
+      }
+      setRelatedNotes(merged)
+    })
+  }, [cargoDetails])
 
   // ═══ File handlers ═══
   const handleFilesImported = useCallback((newFiles: { file_name: string }[]) => {
@@ -826,6 +845,22 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
           <div className="mt-6">
             <AttachmentPanel declarationId={declaration!.id} refreshKey={attachRefreshKey} />
           </div>
+
+          {/* Related Knowledge Base Notes */}
+          {relatedNotes.length > 0 && (
+            <div className="mt-6 p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-surface dark:bg-gray-800/50">
+              <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-3">相关知识库笔记</div>
+              <div className="space-y-1">
+                {relatedNotes.slice(0, 5).map(n => (
+                  <div key={n.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[13px] hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <span className="font-medium truncate flex-1">{n.title}</span>
+                    {n.hs_code && <span className="text-[11px] font-mono text-muted shrink-0">HS: {n.hs_code}</span>}
+                    {(() => { try { const tags = JSON.parse(n.tags); return tags.slice(0, 2).map((t: string, i: number) => <span key={i} className="text-[10px] text-muted bg-gray-100 dark:bg-gray-700 px-1 rounded shrink-0">{t}</span>) } catch { return null } })()}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
