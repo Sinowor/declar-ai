@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import type { ThemeMode } from '../../contexts/ThemeContext'
 import ThemeColorPicker from './ThemeColorPicker'
@@ -31,6 +31,11 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('general')
   const [storageRoot, setStorageRoot] = useState('')
   const [saved, setSaved] = useState(false)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current) }
+  }, [])
 
   useEffect(() => {
     if (window.api?.getConfig) {
@@ -53,7 +58,8 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
     if (!window.api?.saveConfig) return
     await window.api.saveConfig({ storageRoot })
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+    savedTimerRef.current = setTimeout(() => setSaved(false), 2000)
   }
 
   return (
@@ -65,14 +71,16 @@ export default function Settings({ onShowAbout, onShowLicense }: Props) {
 
       <div className="flex flex-1 px-8 pb-12">
         {/* Left Tab Nav */}
-        <nav className="shrink-0 mr-8 flex flex-col gap-0.5" style={{ width: 140 }}>
+        <nav className="shrink-0 mr-8 flex flex-col gap-0.5" style={{ width: 140 }} role="tablist" aria-label="设置分类">
           {tabs.map(tab => {
             const active = activeTab === tab.id
             return (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={active}
                 onClick={() => setActiveTab(tab.id)}
-                className={`h-9 px-3 rounded-md text-[13px] font-medium text-left cursor-pointer transition-colors border-none w-full ${
+                className={`h-9 px-3 rounded-md text-[13px] font-medium text-left cursor-pointer transition-colors border-none w-full focus-visible:ring-2 focus-visible:ring-primary-300 focus-visible:outline-none ${
                   active
                     ? 'bg-primary-50 text-primary-600'
                     : 'text-muted hover:text-ink hover:bg-slate-100 bg-transparent'

@@ -49,7 +49,7 @@ export default function EnterpriseManager() {
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
     if (!form.name.trim()) errs.name = '企业名称不能为空'
-    if (form.credit_code.trim() && !/^[1-9]\d{5}[0-9A-HJ-NPQRTUWXY]{9}[0-9A-HJ-NPQRTUWXY]\d$/.test(form.credit_code.trim())) {
+    if (form.credit_code.trim() && !/^[1-9][0-9A-HJ-NPQRTUWXY]{5}[0-9A-HJ-NPQRTUWXY]{10}[0-9A-HJ-NPQRTUWXY]\d$/.test(form.credit_code.trim())) {
       errs.credit_code = '统一社会信用代码格式不正确（应为18位）'
     }
     if (form.customs_code.trim() && !/^\d{10}$/.test(form.customs_code.trim())) {
@@ -107,7 +107,7 @@ export default function EnterpriseManager() {
               {e.customs_code && <span>海关编码: {e.customs_code}</span>}
             </div>
           </div>
-          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
             {!e.is_default && (
               <button onClick={() => handleSetDefault(e.id)}
                 className="text-[11px] text-muted hover:text-primary-500 cursor-pointer border-none bg-transparent px-2 py-1 rounded transition-colors">设为默认</button>
