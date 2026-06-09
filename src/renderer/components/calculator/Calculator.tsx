@@ -62,13 +62,17 @@ function formatCalcText(r: CalcResult, dir: string): string {
   return rows.filter(l => l !== '').join('\n')
 }
 
+function SectionLabel({ children }: { children: string }) {
+  return <div className="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted mb-3">{children}</div>
+}
+
 export default function Calculator() {
   const [mode, setMode] = useState<Mode>('lookup')
   const [hsCode, setHsCode] = useState('')
   const [direction, setDirection] = useState<'import' | 'export'>('import')
   const [countryCode, setCountryCode] = useState('CN')
   const [currency, setCurrency] = useState('CNY')
-  const [exchangeRate, setExchangeRate] = useState('7.15')
+  const [exchangeRate, setExchangeRate] = useState('1')
   const [priceTerm, setPriceTerm] = useState<'cif' | 'fob'>('cif')
   const [cifValue, setCifValue] = useState('')
   const [fobValue, setFobValue] = useState('')
@@ -153,13 +157,13 @@ export default function Calculator() {
   // Save history after calculation
   useEffect(() => {
     if (!result || !api?.calculatorSaveHistory) return
-    api.calculatorSaveHistory({ ...result, result_json: JSON.stringify(result) })
-    setTimeout(() => api.calculatorHistory?.().then((l: any[]) => { if (Array.isArray(l)) setHistory(l) }), 500)
+    const save = async () => {
+      await api.calculatorSaveHistory({ ...result, result_json: JSON.stringify(result) })
+      const l = await api.calculatorHistory?.()
+      if (Array.isArray(l)) setHistory(l)
+    }
+    save()
   }, [result])
-
-  const SectionLabel = ({ children }: { children: string }) => (
-    <div className="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted mb-3">{children}</div>
-  )
 
   return (
     <div className="flex-1 flex overflow-hidden bg-surface">
@@ -203,7 +207,7 @@ export default function Calculator() {
               <div className="relative">
                 <input value={showCountries ? countrySearch : selectedCountryName}
                   disabled={loading}
-                  onFocus={() => { setShowCountries(true); setCountrySearch('') }}
+                  onFocus={() => { setShowCountries(true); setCountrySearch(selectedCountryName) }}
                   onChange={e => { setCountrySearch(e.target.value); setShowCountries(true) }}
                   onBlur={() => setTimeout(() => setShowCountries(false), 200)}
                   placeholder="搜索国家..."
