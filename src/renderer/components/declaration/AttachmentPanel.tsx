@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { IconDocument } from './Icons'
+import { IconDocument } from '../shared/Icons'
 
 interface FileEntry {
   id: string

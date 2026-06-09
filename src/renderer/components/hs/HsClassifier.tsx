@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { useTheme } from '../contexts/ThemeContext'
-import Logo from './Logo'
-import { IconSearchNav } from './Icons'
+import { useTheme } from '../../contexts/ThemeContext'
+import Logo from '../shared/Logo'
+import { IconSearchNav } from '../shared/Icons'
 import HsHistorySidebar from './HsHistorySidebar'
 
 interface HsResult {

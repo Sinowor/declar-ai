@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
-import { IconFile } from './Icons'
+import { IconFile } from '../shared/Icons'
 
 interface ImportedFile {
   id?: string

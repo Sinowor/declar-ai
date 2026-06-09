@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useTheme } from '../contexts/ThemeContext'
-import { IconFile } from './Icons'
+import { useTheme } from '../../contexts/ThemeContext'
+import { IconFile } from '../shared/Icons'
 
 interface BatchResult {
   row_index: number

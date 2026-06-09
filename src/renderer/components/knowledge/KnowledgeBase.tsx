@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown'
-import { useKnowledge, parseTags } from '../hooks/useKnowledge'
-import type { Entry, AttachedFile } from '../hooks/useKnowledge'
+import { useKnowledge, parseTags } from '../../hooks/useKnowledge'
+import type { Entry, AttachedFile } from '../../hooks/useKnowledge'
 
 function timeAgo(d: string): string {
   const diff = Date.now() - new Date(d).getTime()

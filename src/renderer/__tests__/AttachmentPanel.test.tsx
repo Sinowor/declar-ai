@@ -30,7 +30,7 @@ async function renderPanel(declarationId = 'decl-1') {
   // Default: return empty file list
   mockApi.listAllFiles.mockResolvedValue([])
 
-  const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+  const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
   render(<AttachmentPanel declarationId={declarationId} />)
 }
 
@@ -39,7 +39,7 @@ describe('AttachmentPanel — loading & empty states', () => {
     // Never resolve to keep loading state
     mockApi.listAllFiles.mockReturnValue(new Promise(() => {}))
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     expect(screen.getByText('加载中...')).toBeDefined()
@@ -48,7 +48,7 @@ describe('AttachmentPanel — loading & empty states', () => {
   it('shows empty state when no files exist', async () => {
     mockApi.listAllFiles.mockResolvedValue([])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {
@@ -59,7 +59,7 @@ describe('AttachmentPanel — loading & empty states', () => {
   it('shows error state when loading fails', async () => {
     mockApi.listAllFiles.mockRejectedValue(new Error('Network error'))
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {
@@ -70,7 +70,7 @@ describe('AttachmentPanel — loading & empty states', () => {
   it('calls listAllFiles with correct declarationId', async () => {
     mockApi.listAllFiles.mockResolvedValue([])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-42" />)
 
     await waitFor(() => {
@@ -89,7 +89,7 @@ describe('AttachmentPanel — file display', () => {
       },
     ])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {
@@ -107,7 +107,7 @@ describe('AttachmentPanel — file display', () => {
       },
     ])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {
@@ -130,7 +130,7 @@ describe('AttachmentPanel — file display', () => {
       },
     ])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {
@@ -149,7 +149,7 @@ describe('AttachmentPanel — action buttons', () => {
       },
     ])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {
@@ -170,7 +170,7 @@ describe('AttachmentPanel — action buttons', () => {
       },
     ])
 
-    const { default: AttachmentPanel } = await import('../components/AttachmentPanel')
+    const { default: AttachmentPanel } = await import('../components/declaration/AttachmentPanel')
     render(<AttachmentPanel declarationId="decl-1" />)
 
     await waitFor(() => {

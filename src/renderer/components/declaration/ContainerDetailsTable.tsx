@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { IconTrash, IconBox } from './Icons'
-import type { FieldMapping } from '../../shared/types'
+import { IconTrash, IconBox } from '../shared/Icons'
+import type { FieldMapping } from '../../../shared/types'
 
 interface Props {
   details: Record<string, any>[]

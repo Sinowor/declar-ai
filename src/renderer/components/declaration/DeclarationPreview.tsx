@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import type { DeclarationItem } from '../App'
-import { FIELD_LABELS, SECTION_LABELS } from '../../shared/types'
-import type { FieldSection } from '../../shared/types'
-import { IconDocument } from './Icons'
+import type { DeclarationItem } from '../../App'
+import { FIELD_LABELS, SECTION_LABELS } from '../../../shared/types'
+import type { FieldSection } from '../../../shared/types'
+import { IconDocument } from '../shared/Icons'
 
 interface Props {
   declaration: DeclarationItem

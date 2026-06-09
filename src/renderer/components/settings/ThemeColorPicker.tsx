@@ -1,5 +1,5 @@
-import { useTheme } from '../contexts/ThemeContext'
-import { themeColors } from '../../shared/theme-colors'
+import { useTheme } from '../../contexts/ThemeContext'
+import { themeColors } from '../../../shared/theme-colors'
 
 export default function ThemeColorPicker() {
   const { themeId, setThemeId } = useTheme()

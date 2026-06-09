@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { DeclarationItem } from '../App'
-import { IconSearch, IconChevronLeft, IconPlus, IconList } from './Icons'
+import type { DeclarationItem } from '../../App'
+import { IconSearch, IconChevronLeft, IconPlus, IconList } from '../shared/Icons'
 
 const statusBadge: Record<string, { label: string; className: string }> = {
   draft: { label: '草稿', className: 'bg-slate-100 text-slate-500' },

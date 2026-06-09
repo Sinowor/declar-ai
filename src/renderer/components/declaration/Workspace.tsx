@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import type { DeclarationItem } from '../App'
-import type { ReviewIssue, FileWarning, FieldMapping, DeclarationTypeConfig, DeclarationTypeKey, FieldSection } from '../../shared/types'
-import { FIELD_LABELS, CARGO_FIELD_LABELS, SECTION_LABELS } from '../../shared/types'
+import type { DeclarationItem } from '../../App'
+import type { ReviewIssue, FileWarning, FieldMapping, DeclarationTypeConfig, DeclarationTypeKey, FieldSection } from '../../../shared/types'
+import { FIELD_LABELS, CARGO_FIELD_LABELS, SECTION_LABELS } from '../../../shared/types'
 import FileDropZone from './FileDropZone'
 import CargoDetailsTable from './CargoDetailsTable'
 import ContainerDetailsTable from './ContainerDetailsTable'
 import AttachmentPanel from './AttachmentPanel'
 import DeclarationPreview from './DeclarationPreview'
-import { IconSave, IconAI, IconDocument } from './Icons'
+import { IconSave, IconAI, IconDocument } from '../shared/Icons'
 
 interface WorkspaceProps {
   declaration: DeclarationItem | null | undefined
