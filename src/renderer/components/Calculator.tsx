@@ -188,24 +188,26 @@ export default function Calculator() {
               <div className="flex gap-2">
                 <div className="flex-1">
                   <input value={hsCode} onChange={e => setHsCode(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleLookup() }}
+                    disabled={loading}
                     placeholder="HS 编码 · 84141000"
-                    className="hs-input w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
+                    className="hs-input w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-3 text-[14px] font-mono outline-none focus:border-primary-500 bg-white dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed" />
                 </div>
                 <div className="w-[100px]">
                   <div className="flex bg-surface dark:bg-gray-800 rounded-md p-0.5 h-9">
                     {(['import', 'export'] as const).map(d => (
-                      <button key={d} onClick={() => setDirection(d)} className={`flex-1 rounded text-[12px] font-medium cursor-pointer border-none transition-colors ${direction === d ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'}`}>{d === 'import' ? '进口' : '出口'}</button>
+                      <button key={d} disabled={loading} onClick={() => setDirection(d)} className={`flex-1 rounded text-[12px] font-medium cursor-pointer border-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${direction === d ? 'bg-white dark:bg-gray-700 text-ink shadow-sm' : 'bg-transparent text-muted hover:text-ink'}`}>{d === 'import' ? '进口' : '出口'}</button>
                     ))}
                   </div>
                 </div>
               </div>
               <div className="relative">
                 <input value={showCountries ? countrySearch : selectedCountryName}
+                  disabled={loading}
                   onFocus={() => { setShowCountries(true); setCountrySearch('') }}
                   onChange={e => { setCountrySearch(e.target.value); setShowCountries(true) }}
                   onBlur={() => setTimeout(() => setShowCountries(false), 200)}
                   placeholder="搜索国家..."
-                  className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 cursor-text" />
+                  className="w-full h-9 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 cursor-text disabled:opacity-50 disabled:cursor-not-allowed" />
                 {showCountries && (
                   <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-panel z-50 max-h-[180px] overflow-y-auto">
                     {filteredCountries.map((c: any) => (
@@ -359,14 +361,14 @@ export default function Calculator() {
       {/* Right Area */}
       <div className="flex-1 overflow-y-auto flex items-center justify-center">
         {!tariff && !result && !error && (
-          <div className="text-center text-muted -mt-10">
+          <div className="text-center text-muted mt-0">
             <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="mx-auto mb-4 opacity-20"><rect x="3" y="2" width="18" height="20" rx="2" /><line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="10" x2="16" y2="10" /><circle cx="8.5" cy="16.5" r="1.5" fill="currentColor" /><line x1="13" y1="16" x2="17" y2="16" /></svg>
             <div className="text-[15px] font-medium mb-1">输入 HS 编码查询税率或计算税费</div>
             <div className="text-[13px]">{mode === 'lookup' ? '查看最惠国税率、增值税率、监管条件' : '输入货值、运费、保费计算综合税费'}</div>
           </div>
         )}
         {error && (
-          <div className="text-center -mt-10">
+          <div className="text-center mt-0">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto mb-3 text-amber-500"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
             <div className="text-[15px] font-medium text-amber-600 mb-1">{error}</div>
             <div className="text-[13px] text-muted">请检查 HS 编码是否正确，或在设置中补充税率数据</div>

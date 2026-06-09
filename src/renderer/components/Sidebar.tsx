@@ -124,7 +124,9 @@ export default function Sidebar({
                 <div
                   key={d.id}
                   onClick={() => onSelect(d.id)}
-                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-colors mb-1 group relative ${
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(d.id) } }}
+                  tabIndex={0} role="button"
+                  className={`px-3.5 py-3 rounded-md cursor-pointer transition-colors mb-1 group relative focus-visible:ring-2 focus-visible:ring-primary-300 dark:focus-visible:ring-primary-600 focus-visible:outline-none ${
                     isEditing
                       ? 'bg-primary-50 ring-1 ring-primary-200'
                       : isActive
@@ -178,14 +180,14 @@ export default function Sidebar({
               {isLocked ? (
                 <button
                   onClick={onExitDeclaration}
-                  className="w-full h-10 rounded-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface dark:hover:bg-gray-800 transition-colors"
+                  className="w-full h-10 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-muted font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-surface dark:hover:bg-gray-800 transition-colors"
                 >
                   ← 退出当前申报单
                 </button>
               ) : (
                 <button
                   onClick={onNewDeclaration}
-                  className="w-full h-10 rounded-sm bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-colors"
+                  className="w-full h-10 rounded-md bg-primary-500 text-white border-none font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 hover:bg-primary-600 transition-colors"
                 >
                   <IconPlus /><span>新建申报单</span>
                 </button>

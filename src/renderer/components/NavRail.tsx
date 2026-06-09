@@ -97,10 +97,10 @@ export default function NavRail({ active, onChange, editing, sidebarCollapsed, o
           {editing && (
             <button onClick={onExitEdit} title="退出编辑" aria-label="退出编辑"
               className="flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer border-none bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16,17 21,12 16,7" /><line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              <span className="text-[10px] font-medium leading-none" style={{ color: '#EF4444' }}>退出</span>
+              <span className="text-[10px] font-medium leading-none text-red-500">退出</span>
             </button>
           )}
         </div>
