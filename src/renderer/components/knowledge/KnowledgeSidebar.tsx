@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion'
+import { staggerContainer, staggerItem } from '../../animations/variants'
 import type { Entry, DbTag } from '../../hooks/useKnowledge'
 import { parseTags } from '../../hooks/useKnowledge'
 
@@ -78,9 +80,9 @@ export default function KnowledgeSidebar({
         {entries.length === 0 ? (
           <div className="text-center py-12 text-[13px] text-muted">暂无笔记</div>
         ) : (
-          <div className="space-y-0.5">
+          <motion.div className="space-y-0.5" variants={staggerContainer} initial="initial" animate="animate">
             {entries.map(e => (
-              <button key={e.id} onClick={() => onSelect(e.id)}
+              <motion.button key={e.id} variants={staggerItem} onClick={() => onSelect(e.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-lg cursor-pointer border-none transition-colors group ${selectedId === e.id ? 'bg-surface dark:bg-gray-800' : 'bg-transparent hover:bg-surface dark:hover:bg-gray-800'}`}>
                 <div className="flex items-center gap-1.5">
                   {e.is_pinned ? <span className="text-[10px] shrink-0">📌</span> : null}
@@ -94,9 +96,9 @@ export default function KnowledgeSidebar({
                   {parseTags(e.tags).map(t => <span key={t} className="text-[10px] text-muted bg-surface dark:bg-gray-800 px-1 rounded">{t}</span>)}
                   <span className="text-[10px] text-muted/50 ml-auto">{timeAgo(e.updated_at)}</span>
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
     </aside>

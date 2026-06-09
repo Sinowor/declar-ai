@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { fadeSlideUp } from './animations/variants'
 import NavRail, { type ModuleId } from './components/shared/NavRail'
 import Sidebar from './components/declaration/Sidebar'
 import Workspace from './components/declaration/Workspace'
@@ -221,54 +223,52 @@ export default function App() {
         onLogoClick={() => setAboutOpen(true)}
       />
 
-      {/* ═══ Context Panel (switches per module) ═══ */}
-      {activeModule === 'declarations' && (
-        <Sidebar
-          declarations={filteredDeclarations}
-          selectedId={selectedId}
-          editingId={editingId}
-          collapsed={sidebarCollapsed}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onSelect={handleSelect}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-          onNewDeclaration={handleNewDeclaration}
-          onExitDeclaration={handleExitEdit}
-          onDelete={handleDelete}
-        />
-      )}
-
-      {/* ═══ Workspace (switches per module) ═══ */}
-      {activeModule === 'declarations' && (
-        <Workspace
-          declaration={editingDeclaration}
-          selectedDeclaration={selectedDeclaration}
-          onEnterEdit={() => selectedId && handleEnterEdit(selectedId)}
-          isEditing={!!editingId}
-          onNavigateToHs={navigateToHsClassifier}
-          recentDeclarations={declarations}
-          onSelectDeclaration={handleSelect}
-          onNewDeclaration={handleNewDeclaration}
-        />
-      )}
-      {activeModule === 'hs-classifier' && !batchMode && (
-        <HsClassifier onBatchMode={() => setBatchMode(true)}
-          sidebarCollapsed={hsSidebarCollapsed}
-          onToggleSidebar={() => setHsSidebarCollapsed(v => !v)}
-        />
-      )}
-      {activeModule === 'hs-classifier' && batchMode && (
-        <BatchClassifier onBack={() => setBatchMode(false)} />
-      )}
-      {activeModule === 'calculator' && (
-        <Calculator />
-      )}
-      {activeModule === 'knowledge' && (
-        <KnowledgeBase sidebarCollapsed={kbSidebarCollapsed} onToggleSidebar={() => setKbSidebarCollapsed(v => !v)} onDirtyChange={setKbDirty} />
-      )}
-      {activeModule === 'settings' && (
-        <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />
-      )}
+      {/* ═══ Content Area (animated module switch) ═══ */}
+      <AnimatePresence mode="wait">
+        {activeModule === 'declarations' && (
+          <motion.div key="declarations" variants={fadeSlideUp} initial="initial" animate="animate" exit="exit" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <Sidebar
+              declarations={filteredDeclarations} selectedId={selectedId} editingId={editingId}
+              collapsed={sidebarCollapsed} searchQuery={searchQuery} onSearchChange={setSearchQuery}
+              onSelect={handleSelect} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              onNewDeclaration={handleNewDeclaration} onExitDeclaration={handleExitEdit} onDelete={handleDelete}
+            />
+            <Workspace
+              declaration={editingDeclaration} selectedDeclaration={selectedDeclaration}
+              onEnterEdit={() => selectedId && handleEnterEdit(selectedId)} isEditing={!!editingId}
+              onNavigateToHs={navigateToHsClassifier} recentDeclarations={declarations}
+              onSelectDeclaration={handleSelect} onNewDeclaration={handleNewDeclaration}
+            />
+          </motion.div>
+        )}
+        {activeModule === 'hs-classifier' && !batchMode && (
+          <motion.div key="hs-classifier" variants={fadeSlideUp} initial="initial" animate="animate" exit="exit" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <HsClassifier onBatchMode={() => setBatchMode(true)}
+              sidebarCollapsed={hsSidebarCollapsed} onToggleSidebar={() => setHsSidebarCollapsed(v => !v)}
+            />
+          </motion.div>
+        )}
+        {activeModule === 'hs-classifier' && batchMode && (
+          <motion.div key="hs-batch" variants={fadeSlideUp} initial="initial" animate="animate" exit="exit" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <BatchClassifier onBack={() => setBatchMode(false)} />
+          </motion.div>
+        )}
+        {activeModule === 'calculator' && (
+          <motion.div key="calculator" variants={fadeSlideUp} initial="initial" animate="animate" exit="exit" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <Calculator />
+          </motion.div>
+        )}
+        {activeModule === 'knowledge' && (
+          <motion.div key="knowledge" variants={fadeSlideUp} initial="initial" animate="animate" exit="exit" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <KnowledgeBase sidebarCollapsed={kbSidebarCollapsed} onToggleSidebar={() => setKbSidebarCollapsed(v => !v)} onDirtyChange={setKbDirty} />
+          </motion.div>
+        )}
+        {activeModule === 'settings' && (
+          <motion.div key="settings" variants={fadeSlideUp} initial="initial" animate="animate" exit="exit" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <Settings onShowAbout={() => setAboutOpen(true)} onShowLicense={() => setLicenseOpen(true)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
       <LicenseModal open={licenseOpen} onClose={() => setLicenseOpen(false)} />
