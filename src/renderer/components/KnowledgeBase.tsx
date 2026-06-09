@@ -1,14 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
-
-interface Entry {
-  id: string; title: string; content: string; hs_code: string | null
-  tags: string; source_type: string; is_pinned: number
-  created_at: string; updated_at: string; file_count: number
-}
-interface AttachedFile { id?: string; file_name: string; file_path?: string; file_size?: number }
-interface DbTag { name: string; color: string | null }
-interface RelatedEntry { id: string; title: string; hs_code: string; tags: string }
+import { useKnowledge, parseTags } from '../hooks/useKnowledge'
+import type { Entry, AttachedFile } from '../hooks/useKnowledge'
 
 function timeAgo(d: string): string {
   const diff = Date.now() - new Date(d).getTime()
@@ -16,10 +8,6 @@ function timeAgo(d: string): string {
   if (min < 1) return '刚刚'; if (min < 60) return `${min}分钟前`
   const hr = Math.floor(min / 60); if (hr < 24) return `${hr}小时前`
   return `${Math.floor(hr / 24)}天前`
-}
-
-function parseTags(t: string): string[] {
-  try { return JSON.parse(t) } catch { return [] }
 }
 
 function formatSize(bytes?: number): string {
@@ -37,362 +25,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
   sidebarCollapsed: boolean; onToggleSidebar: () => void
   onDirtyChange?: (dirty: boolean) => void
 }) {
-  const [entries, setEntries] = useState<Entry[]>([])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null)
-  const [search, setSearch] = useState('')
-  const [activeTag, setActiveTag] = useState('')
-  const [allTags, setAllTags] = useState<string[]>([])
-  const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ title: '', content: '', tags: '', hs_code: '' })
-  const [saving, setSaving] = useState(false)
-  const [files, setFiles] = useState<AttachedFile[]>([])
-  const [linkUrl, setLinkUrl] = useState('')
-  const [linkTitle, setLinkTitle] = useState('')
-  const [dragOver, setDragOver] = useState(false)
-  const [dirty, setDirty] = useState(false)
-  const [dbTags, setDbTags] = useState<DbTag[]>([])
-  const [tagSuggestions, setTagSuggestions] = useState<string[]>([])
-  const [showTagSuggestions, setShowTagSuggestions] = useState(false)
-  const [relatedNotes, setRelatedNotes] = useState<RelatedEntry[]>([])
-  const [showTagManager, setShowTagManager] = useState(false)
-  const [newTagName, setNewTagName] = useState('')
-  const [autoSaved, setAutoSaved] = useState(false)
-  const tagManagerRef = useRef<HTMLDivElement>(null)
-  const savedForm = useRef({ title: '', content: '', tags: '', hs_code: '' })
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const tagInputRef = useRef<HTMLInputElement>(null)
-  const tagDropdownRef = useRef<HTMLDivElement>(null)
-
-  const api = (window as any).api
-
-  // ── Dirty check: compare current form against saved snapshot ──
-  const isDirty = useCallback(() => {
-    const s = savedForm.current
-    return form.title !== s.title || form.content !== s.content || form.tags !== s.tags || form.hs_code !== s.hs_code
-  }, [form])
-
-  // Sync dirty state with parent
-  useEffect(() => { onDirtyChange?.(dirty) }, [dirty, onDirtyChange])
-
-  const loadEntries = useCallback(async (tag?: string, q?: string) => {
-    if (!api?.knowledgeList) return
-    const list = await api.knowledgeList({ tag, search: q })
-    if (Array.isArray(list)) {
-      setEntries(list)
-      const tagSet = new Set<string>()
-      for (const e of list) {
-        for (const t of parseTags(e.tags)) tagSet.add(t)
-      }
-      setAllTags(Array.from(tagSet))
-    }
-  }, [])
-
-  // Load DB tags on mount
-  const loadDbTags = useCallback(async () => {
-    if (api?.knowledgeTags) {
-      const tags = await api.knowledgeTags()
-      if (Array.isArray(tags)) setDbTags(tags)
-    }
-  }, [])
-
-  useEffect(() => { loadDbTags() }, [loadDbTags])
-
-  // Debounced search
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current)
-    searchTimer.current = setTimeout(() => loadEntries(activeTag, search || undefined), 300)
-    return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
-  }, [search, activeTag, loadEntries])
-
-  // ── Auto-save: 2s after last edit ──
-  useEffect(() => {
-    if (!dirty || !form.title.trim() || !editing) return
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
-    autoSaveTimer.current = setTimeout(async () => {
-      const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-      try {
-        const res = await api.knowledgeSave({
-          id: selectedEntry?.id, title: form.title.trim(), content: form.content,
-          tags: JSON.stringify(tagArr), hs_code: form.hs_code.trim() || null,
-          is_pinned: selectedEntry?.is_pinned || 0,
-        })
-        if (res?.success) {
-          savedForm.current = { ...form }
-          setDirty(false)
-          setAutoSaved(true)
-          setTimeout(() => setAutoSaved(false), 1500)
-          if (res.id) {
-            setSelectedId(res.id)
-            if (!selectedEntry?.id) await loadEntry(res.id)
-          }
-          await loadEntries(activeTag, search || undefined)
-        }
-      } catch {}
-    }, 2000)
-    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current) }
-  }, [form, dirty, editing])
-
-  // ── Auto-sync dirty state from form vs saved snapshot ──
-  useEffect(() => {
-    const s = savedForm.current
-    const isD = form.title !== s.title || form.content !== s.content || form.tags !== s.tags || form.hs_code !== s.hs_code
-    setDirty(isD)
-  }, [form])
-
-  // ── Ctrl+S / Cmd+S save, Ctrl+N / Cmd+N new ──
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === 's') {
-          e.preventDefault()
-          if (editing && form.title.trim()) handleSave()
-        } else if (e.key === 'n') {
-          e.preventDefault()
-          handleNew()
-        }
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [editing, form, selectedEntry, dirty])
-
-  // ── Click-outside for tag manager popover ──
-  useEffect(() => {
-    if (!showTagManager) return
-    const handler = (e: MouseEvent) => {
-      if (tagManagerRef.current && !tagManagerRef.current.contains(e.target as Node)) {
-        setShowTagManager(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [showTagManager])
-
-  // ── Click-outside for tag dropdown ──
-  useEffect(() => {
-    if (!showTagSuggestions) return
-    const handler = (e: MouseEvent) => {
-      if (tagDropdownRef.current && !tagDropdownRef.current.contains(e.target as Node) &&
-          tagInputRef.current && !tagInputRef.current.contains(e.target as Node)) {
-        setShowTagSuggestions(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [showTagSuggestions])
-
-  // ── Load related notes when selectedEntry changes ──
-  useEffect(() => {
-    if (selectedEntry?.hs_code && api?.knowledgeRelated) {
-      api.knowledgeRelated(selectedEntry.hs_code).then((related: RelatedEntry[]) => {
-        if (Array.isArray(related)) setRelatedNotes(related.filter((r: RelatedEntry) => r.id !== selectedEntry.id))
-      }).catch(() => setRelatedNotes([]))
-    } else {
-      setRelatedNotes([])
-    }
-  }, [selectedEntry?.hs_code, selectedEntry?.id])
-
-  const loadEntry = async (id: string) => {
-    if (!api?.knowledgeGet) return
-    const entry = await api.knowledgeGet(id)
-    setSelectedEntry(entry)
-    const f = { title: entry.title, content: entry.content, tags: parseTags(entry.tags).join(', '), hs_code: entry.hs_code || '' }
-    setForm(f)
-    savedForm.current = f
-    if (api?.knowledgeFilesList) {
-      const fl = await api.knowledgeFilesList(id)
-      if (Array.isArray(fl)) setFiles(fl)
-      else setFiles([])
-    }
-    setDirty(false)
-  }
-
-  const confirmDiscard = (): boolean => {
-    if (!isDirty()) return true
-    return confirm('你有未保存的更改，确定要离开吗？')
-  }
-
-  const handleSelect = (id: string) => {
-    if (!confirmDiscard()) return
-    setSelectedId(id); setEditing(false); loadEntry(id)
-  }
-
-  const handleNew = () => {
-    if (!confirmDiscard()) return
-    setSelectedId(null); setSelectedEntry(null); setEditing(true)
-    const f = { title: '', content: '', tags: '', hs_code: '' }
-    setForm(f); savedForm.current = f; setFiles([])
-    setDirty(false); setRelatedNotes([])
-  }
-
-  const setFormAndDirty = (patch: typeof form) => {
-    setForm(patch)
-    setDirty(isDirtyRef(patch))
-  }
-
-  // ref-based dirty check for use in closures
-  const isDirtyRef = (patch: typeof form) => {
-    const s = savedForm.current
-    return patch.title !== s.title || patch.content !== s.content || patch.tags !== s.tags || patch.hs_code !== s.hs_code
-  }
-
-  const handleSave = async () => {
-    if (!form.title.trim()) return
-    setSaving(true)
-    const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-    try {
-      const res = await api.knowledgeSave({
-        id: selectedEntry?.id, title: form.title.trim(), content: form.content,
-        tags: JSON.stringify(tagArr), hs_code: form.hs_code.trim() || null,
-        is_pinned: selectedEntry?.is_pinned || 0,
-      })
-      if (res?.success) {
-        savedForm.current = { ...form }
-        await loadEntries(activeTag, search || undefined)
-        setEditing(false)
-        setDirty(false)
-        if (res.id) { setSelectedId(res.id); await loadEntry(res.id) }
-        else if (selectedEntry) await loadEntry(selectedEntry.id)
-      }
-    } catch (e) { console.error('Save failed:', e) }
-    finally { setSaving(false) }
-  }
-
-  const handleDelete = async () => {
-    if (!selectedEntry || !confirm('确定删除这条笔记？')) return
-    if (api?.knowledgeDelete) {
-      await api.knowledgeDelete(selectedEntry.id)
-      setSelectedId(null); setSelectedEntry(null); setDirty(false); setRelatedNotes([])
-      await loadEntries(activeTag, search || undefined)
-    }
-  }
-
-  const ensureEntry = async (): Promise<string | null> => {
-    if (selectedEntry?.id) return selectedEntry.id
-    let title = form.title.trim()
-    if (!title) {
-      const unnamed = entries.filter(e => /^未命名\d*$/.test(e.title))
-      if (unnamed.length === 0) { title = '未命名' }
-      else {
-        const nums = unnamed.map(e => { const m = e.title.match(/^未命名(\d+)$/); return m ? parseInt(m[1]) : 0 })
-        title = `未命名${Math.max(...nums, 0) + 1}`
-      }
-      setForm(prev => ({ ...prev, title }))
-    }
-    const tagArr = form.tags.split(/[,，]/).map(t => t.trim()).filter(Boolean)
-    const res = await api.knowledgeSave({
-      title, content: form.content,
-      tags: JSON.stringify(tagArr), hs_code: form.hs_code.trim() || null,
-    })
-    if (!res?.success || !res.id) return null
-    savedForm.current = { ...form, title }
-    setSelectedId(res.id); setDirty(false)
-    await loadEntry(res.id)
-    await loadEntries(activeTag, search || undefined)
-    return res.id
-  }
-
-  const handleFilePick = async () => {
-    if (!api?.knowledgeFileAdd) return
-    const entryId = await ensureEntry()
-    if (!entryId) return
-    const imported = await api.knowledgeFileAdd(entryId)
-    if (Array.isArray(imported)) setFiles(prev => [...prev, ...imported])
-  }
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault(); setDragOver(false)
-    if (!api?.getFilePath || !api?.knowledgeFileAddByPaths) return
-    const entryId = await ensureEntry()
-    if (!entryId) return
-    const paths: string[] = []
-    for (const f of Array.from(e.dataTransfer.files)) {
-      try { const p = api.getFilePath(f); if (p) paths.push(p) } catch { console.warn('Failed to get file path for dropped file:', f.name) }
-    }
-    if (paths.length > 0) {
-      const imported = await api.knowledgeFileAddByPaths(entryId, paths)
-      if (Array.isArray(imported)) setFiles(prev => [...prev, ...imported])
-    }
-  }
-
-  const handleAddLink = () => {
-    if (!linkUrl.trim()) return
-    const mdLink = linkTitle.trim() ? `[${linkTitle.trim()}](${linkUrl.trim()})` : linkUrl.trim()
-    const newContent = form.content ? form.content + '\n' + mdLink : mdLink
-    setForm(prev => ({ ...prev, content: newContent }))
-    setLinkUrl(''); setLinkTitle('')
-  }
-
-  const handleRemoveFile = async (idx: number) => {
-    const f = files[idx]
-    if (f.id && api?.knowledgeFileDelete) await api.knowledgeFileDelete(f.id)
-    setFiles(prev => prev.filter((_, i) => i !== idx))
-  }
-
-  const handleOpenFile = (fileId?: string) => {
-    if (fileId && api?.knowledgeFileOpen) api.knowledgeFileOpen(fileId)
-  }
-
-  const togglePin = async (entry: Entry) => {
-    const newPinned = entry.is_pinned ? 0 : 1
-    await api.knowledgeSave({
-      id: entry.id, title: entry.title, content: entry.content,
-      tags: entry.tags, hs_code: entry.hs_code, is_pinned: newPinned,
-    })
-    await loadEntries(activeTag, search || undefined)
-    if (selectedEntry?.id === entry.id) {
-      setSelectedEntry({ ...selectedEntry, is_pinned: newPinned })
-    }
-  }
-
-  const handleTagInputChange = (value: string) => {
-    setForm(prev => ({ ...prev, tags: value }))
-    const parts = value.split(/[,，]/)
-    const lastPart = parts[parts.length - 1].trim().toLowerCase()
-    if (lastPart.length > 0) {
-      const existing = parts.map(p => p.trim())
-      const matches = dbTags
-        .filter(t => t.name.toLowerCase().includes(lastPart) && !existing.includes(t.name))
-        .map(t => t.name)
-        .slice(0, 5)
-      setTagSuggestions(matches)
-      setShowTagSuggestions(matches.length > 0)
-    } else {
-      setShowTagSuggestions(false)
-    }
-  }
-
-  const insertTagSuggestion = (tag: string) => {
-    const parts = form.tags.split(/[,，]/).map(t => t.trim())
-    parts[parts.length - 1] = tag
-    const newTags = parts.join(', ')
-    setForm(prev => ({ ...prev, tags: newTags }))
-    setShowTagSuggestions(false)
-    tagInputRef.current?.focus()
-  }
-
-  const handleToggleEditing = (enter: boolean) => {
-    if (!enter && isDirty()) {
-      if (!confirm('你有未保存的更改，确定要离开编辑模式吗？')) return
-    }
-    setEditing(enter)
-    if (!enter) setDirty(false)
-  }
-
-  const handleAddDbTag = async () => {
-    if (!newTagName.trim() || !api?.knowledgeTagAdd) return
-    await api.knowledgeTagAdd(newTagName.trim())
-    setNewTagName('')
-    await loadDbTags()
-  }
-
-  const handleDeleteDbTag = async (name: string) => {
-    if (!api?.knowledgeTagDelete) return
-    await api.knowledgeTagDelete(name)
-    await loadDbTags()
-  }
+  const k = useKnowledge(onDirtyChange)
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -401,35 +34,35 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
         className="flex flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 z-10">
         <div className="px-4 pt-4 pb-3 drag-region"><div className="text-[15px] font-semibold">知识库</div></div>
         <div className="px-4 pb-3">
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="搜索笔记..."
+          <input value={k.search} onChange={e => k.setSearch(e.target.value)} placeholder="搜索笔记..."
             className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2.5 text-[13px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans placeholder:text-muted/50" />
         </div>
         <div className="px-4 pb-2 max-h-[72px] overflow-y-auto flex flex-wrap gap-1">
-          <button onClick={() => setActiveTag('')}
-            className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${!activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
-          {allTags.map(t => (
-            <button key={t} onClick={() => setActiveTag(activeTag === t ? '' : t)}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
+          <button onClick={() => k.setActiveTag('')}
+            className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${!k.activeTag ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>全部</button>
+          {k.allTags.map(t => (
+            <button key={t} onClick={() => k.setActiveTag(k.activeTag === t ? '' : t)}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer border transition-colors shrink-0 ${k.activeTag === t ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 border-primary-200 dark:border-primary-800' : 'bg-transparent text-muted border-gray-200 dark:border-gray-700 hover:text-ink'}`}>{t}</button>
           ))}
-          <div className="relative shrink-0" ref={tagManagerRef}>
-            <button onClick={() => setShowTagManager(!showTagManager)}
+          <div className="relative shrink-0" ref={k.tagManagerRef}>
+            <button onClick={() => k.setShowTagManager(!k.showTagManager)}
               className="px-2 py-0.5 rounded text-[11px] text-muted cursor-pointer border border-dashed border-gray-200 dark:border-gray-700 hover:text-ink hover:border-gray-400 transition-colors"
               title="管理标签">+</button>
-            {showTagManager && (
+            {k.showTagManager && (
               <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-30 p-2.5">
                 <div className="flex gap-1 mb-2">
-                  <input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="新标签名"
+                  <input value={k.newTagName} onChange={e => k.setNewTagName(e.target.value)} placeholder="新标签名"
                     className="flex-1 h-6 rounded border border-gray-200 dark:border-gray-700 px-2 text-[11px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800"
-                    onKeyDown={e => { if (e.key === 'Enter') handleAddDbTag() }} />
-                  <button onClick={handleAddDbTag}
+                    onKeyDown={e => { if (e.key === 'Enter') k.handleAddDbTag() }} />
+                  <button onClick={k.handleAddDbTag}
                     className="h-6 px-2 rounded text-[10px] font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 transition-colors shrink-0">添加</button>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                  {dbTags.length === 0 && <span className="text-[10px] text-muted/50">暂无预设标签</span>}
-                  {dbTags.map(t => (
+                  {k.dbTags.length === 0 && <span className="text-[10px] text-muted/50">暂无预设标签</span>}
+                  {k.dbTags.map(t => (
                     <span key={t.name} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-surface dark:bg-gray-700 border border-gray-200 dark:border-gray-600 group">
                       {t.name}
-                      <button onClick={() => handleDeleteDbTag(t.name)}
+                      <button onClick={() => k.handleDeleteDbTag(t.name)}
                         className="text-muted hover:text-red-500 cursor-pointer leading-none opacity-0 group-hover:opacity-100 transition-opacity">×</button>
                     </span>
                   ))}
@@ -438,21 +71,21 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
             )}
           </div>
         </div>
-        <button onClick={handleNew}
+        <button onClick={k.handleNew}
           className="mx-4 mb-3 h-7 px-3 rounded-sm text-xs font-medium cursor-pointer bg-primary-500 text-white border-none hover:bg-primary-600 active:scale-[0.97] transition-colors">+ 新建笔记</button>
         <div className="flex-1 overflow-y-auto px-4 pb-4">
-          {entries.length === 0 ? (
+          {k.entries.length === 0 ? (
             <div className="text-center py-12 text-[13px] text-muted">暂无笔记</div>
           ) : (
             <div className="space-y-0.5">
-              {entries.map(e => (
-                <button key={e.id} onClick={() => handleSelect(e.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg cursor-pointer border-none transition-colors group ${selectedId === e.id ? 'bg-surface dark:bg-gray-800' : 'bg-transparent hover:bg-surface dark:hover:bg-gray-800'}`}>
+              {k.entries.map(e => (
+                <button key={e.id} onClick={() => k.handleSelect(e.id)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg cursor-pointer border-none transition-colors group ${k.selectedId === e.id ? 'bg-surface dark:bg-gray-800' : 'bg-transparent hover:bg-surface dark:hover:bg-gray-800'}`}>
                   <div className="flex items-center gap-1.5">
                     {e.is_pinned ? <span className="text-[10px] shrink-0">📌</span> : null}
                     <div className="text-[13px] font-medium truncate flex-1">{e.title}</div>
                     {e.file_count > 0 && <span className="text-[10px] text-muted/40 shrink-0" title={`${e.file_count} 个附件`}>📎</span>}
-                    <button onClick={(ev) => { ev.stopPropagation(); togglePin(e); }}
+                    <button onClick={(ev) => { ev.stopPropagation(); k.togglePin(e) }}
                       className="opacity-0 group-hover:opacity-100 text-[11px] text-muted hover:text-amber-500 cursor-pointer shrink-0 transition-opacity"
                       title={e.is_pinned ? '取消置顶' : '置顶'}>📌</button>
                   </div>
@@ -469,7 +102,7 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
 
       {/* Content area */}
       <div className="flex-1 overflow-y-auto flex flex-col bg-surface">
-        {!selectedEntry && !editing ? (
+        {!k.selectedEntry && !k.editing ? (
           <div className="flex-1 flex items-center justify-center text-muted">
             <div className="text-center -mt-10">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="mx-auto mb-3 opacity-20">
@@ -484,128 +117,126 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
             <div className="px-8 pt-6 pb-4 drag-region flex items-start justify-between">
               <div className="flex flex-col gap-1 min-w-0 flex-1 mr-4">
                 <div className="flex items-center gap-2 text-[12px] text-muted flex-wrap">
-                  {selectedEntry && (
-                    <button onClick={() => selectedEntry && togglePin(selectedEntry)}
+                  {k.selectedEntry && (
+                    <button onClick={() => k.selectedEntry && k.togglePin(k.selectedEntry)}
                       className="cursor-pointer text-[13px] hover:scale-110 transition-transform shrink-0"
-                      title={selectedEntry?.is_pinned ? '取消置顶' : '置顶'}>
-                      {selectedEntry?.is_pinned ? '📌' : '📍'}
+                      title={k.selectedEntry?.is_pinned ? '取消置顶' : '置顶'}>
+                      {k.selectedEntry?.is_pinned ? '📌' : '📍'}
                     </button>
                   )}
-                  {selectedEntry && <span className="truncate">{parseTags(selectedEntry.tags).join(' · ') || '未分类'}</span>}
-                  {selectedEntry?.hs_code && <span className="font-mono text-[11px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">HS: {selectedEntry.hs_code}</span>}
-                  {selectedEntry && <span className="shrink-0">{timeAgo(selectedEntry.updated_at)}</span>}
+                  {k.selectedEntry && <span className="truncate">{parseTags(k.selectedEntry.tags).join(' · ') || '未分类'}</span>}
+                  {k.selectedEntry?.hs_code && <span className="font-mono text-[11px] bg-surface dark:bg-gray-800 px-1.5 py-0.5 rounded shrink-0">HS: {k.selectedEntry.hs_code}</span>}
+                  {k.selectedEntry && <span className="shrink-0">{timeAgo(k.selectedEntry.updated_at)}</span>}
                 </div>
-                {(autoSaved || saving) && (
+                {(k.autoSaved || k.saving) && (
                   <div className="flex items-center gap-2 text-[11px]">
-                    {autoSaved && <span className="text-green-500">已自动保存</span>}
-                    {saving && <span className="text-muted">保存中...</span>}
+                    {k.autoSaved && <span className="text-green-500">已自动保存</span>}
+                    {k.saving && <span className="text-muted">保存中...</span>}
                   </div>
                 )}
               </div>
               <div className="flex items-center gap-2 no-drag shrink-0">
-                {editing ? (
-                  <button onClick={() => handleToggleEditing(false)}
+                {k.editing ? (
+                  <button onClick={() => k.handleToggleEditing(false)}
                     className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">预览</button>
                 ) : (
-                  <button onClick={() => handleToggleEditing(true)}
+                  <button onClick={() => k.handleToggleEditing(true)}
                     className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-transparent text-muted hover:text-ink transition-colors">编辑</button>
                 )}
               </div>
             </div>
 
-            {editing ? (
+            {k.editing ? (
               <div className="px-8 pb-12 flex-1 flex flex-col space-y-3">
-                <input value={form.title} onChange={e => setFormAndDirty({ ...form, title: e.target.value })} placeholder="标题"
+                <input value={k.form.title} onChange={e => k.setForm({ ...k.form, title: e.target.value })} placeholder="标题"
                   className="w-full text-[22px] font-bold outline-none border-none bg-transparent text-ink placeholder:text-muted/40" />
                 <div className="flex gap-3">
-                  <div className="flex-1 relative" ref={tagDropdownRef}>
-                    <input ref={tagInputRef} value={form.tags} onChange={e => handleTagInputChange(e.target.value)}
-                      onFocus={() => { const parts = form.tags.split(/[,，]/); const last = parts[parts.length - 1].trim(); if (last) handleTagInputChange(form.tags) }}
+                  <div className="flex-1 relative" ref={k.tagDropdownRef}>
+                    <input ref={k.tagInputRef} value={k.form.tags} onChange={e => k.handleTagInputChange(e.target.value)}
+                      onFocus={() => { const parts = k.form.tags.split(/[,，]/); const last = parts[parts.length - 1].trim(); if (last) k.handleTagInputChange(k.form.tags) }}
                       placeholder="标签，逗号分隔（如：归类经验, 口岸须知）"
                       className="w-full h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40" />
-                    {showTagSuggestions && (
+                    {k.showTagSuggestions && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20 overflow-hidden">
-                        {tagSuggestions.map(t => (
-                          <button key={t} onMouseDown={e => { e.preventDefault(); insertTagSuggestion(t) }}
+                        {k.tagSuggestions.map(t => (
+                          <button key={t} onMouseDown={e => { e.preventDefault(); k.insertTagSuggestion(t) }}
                             className="w-full text-left px-2.5 py-1.5 text-[12px] hover:bg-surface dark:hover:bg-gray-700 cursor-pointer transition-colors">{t}</button>
                         ))}
                       </div>
                     )}
                   </div>
-                  <input value={form.hs_code} onChange={e => setFormAndDirty({ ...form, hs_code: e.target.value })} placeholder="HS编码（可选）"
+                  <input value={k.form.hs_code} onChange={e => k.setForm({ ...k.form, hs_code: e.target.value })} placeholder="HS编码（可选）"
                     className="w-40 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-mono placeholder:text-muted/40" />
                 </div>
-                <textarea value={form.content} onChange={e => setFormAndDirty({ ...form, content: e.target.value })} placeholder="输入正文（支持 Markdown）..."
+                <textarea value={k.form.content} onChange={e => k.setForm({ ...k.form, content: e.target.value })} placeholder="输入正文（支持 Markdown）..."
                   className="w-full min-h-[300px] h-[400px] rounded-lg border border-gray-200 dark:border-gray-700 p-4 text-[14px] leading-relaxed outline-none focus:border-primary-500 bg-white dark:bg-gray-800 font-sans resize-y placeholder:text-muted/40" />
 
-                {/* File attachments */}
                 <div>
                   <div className="text-[11px] font-medium text-muted mb-2">附件 · 拖拽文件到此处</div>
-                  <div className={`border-2 border-dashed rounded-lg p-4 mb-3 transition-colors ${dragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700'}`}
-                    onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={handleDrop}>
+                  <div className={`border-2 border-dashed rounded-lg p-4 mb-3 transition-colors ${k.dragOver ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-gray-200 dark:border-gray-700'}`}
+                    onDragOver={e => { e.preventDefault(); k.setDragOver(true) }}
+                    onDragLeave={() => k.setDragOver(false)}
+                    onDrop={k.handleDrop}>
                     <div className="flex flex-wrap gap-2">
-                      {files.map((f, i) => (
+                      {k.files.map((f, i) => (
                         <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
                           {isImageFile(f.file_name) ? (
                             <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
                               <img src={`file://${f.file_path}`} className="w-full h-full object-cover" alt="" />
                             </span>
                           ) : null}
-                          <span className="cursor-pointer hover:text-primary-500 hover:underline" onClick={() => handleOpenFile(f.id)}>{f.file_name}</span>
+                          <span className="cursor-pointer hover:text-primary-500 hover:underline" onClick={() => k.handleOpenFile(f.id)}>{f.file_name}</span>
                           {f.file_size ? <span className="text-[10px] text-muted/50">{formatSize(f.file_size)}</span> : null}
-                          <button onClick={() => handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
+                          <button onClick={() => k.handleRemoveFile(i)} className="text-muted hover:text-red-500 cursor-pointer text-xs leading-none">×</button>
                         </span>
                       ))}
-                      {files.length === 0 && <span className="text-[12px] text-muted/60">拖拽文件到此处，或点击下方按钮选择</span>}
+                      {k.files.length === 0 && <span className="text-[12px] text-muted/60">拖拽文件到此处，或点击下方按钮选择</span>}
                     </div>
                   </div>
-                  <button onClick={handleFilePick}
+                  <button onClick={k.handleFilePick}
                     className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors">+ 添加附件</button>
                 </div>
 
-                {/* Link input */}
                 <div>
                   <div className="text-[11px] font-medium text-muted mb-2">添加链接</div>
                   <div className="flex gap-2">
-                    <input value={linkTitle} onChange={e => setLinkTitle(e.target.value)} placeholder="标题（可选）"
+                    <input value={k.linkTitle} onChange={e => k.setLinkTitle(e.target.value)} placeholder="标题（可选）"
                       className="w-28 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40" />
-                    <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..."
+                    <input value={k.linkUrl} onChange={e => k.setLinkUrl(e.target.value)} placeholder="https://..."
                       className="flex-1 h-7 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800 placeholder:text-muted/40"
-                      onKeyDown={e => { if (e.key === 'Enter') handleAddLink() }} />
-                    <button onClick={handleAddLink}
+                      onKeyDown={e => { if (e.key === 'Enter') k.handleAddLink() }} />
+                    <button onClick={k.handleAddLink}
                       className="h-7 px-3 rounded-sm text-[11px] font-medium cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-ink transition-colors shrink-0">添加</button>
                   </div>
                 </div>
 
                 <div className="flex gap-2 pt-4">
-                  <button onClick={handleSave} disabled={saving}
-                    className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors disabled:opacity-50">{saving ? '保存中...' : '保存'}</button>
-                  {selectedEntry && <button onClick={handleDelete}
+                  <button onClick={k.handleSave} disabled={k.saving}
+                    className="h-8 px-5 rounded-sm text-white border-none font-semibold text-xs cursor-pointer bg-primary-500 hover:bg-primary-600 active:scale-[0.97] transition-colors disabled:opacity-50">{k.saving ? '保存中...' : '保存'}</button>
+                  {k.selectedEntry && <button onClick={k.handleDelete}
                     className="h-8 px-3 rounded-sm text-xs cursor-pointer border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-muted hover:text-red-500 transition-colors">删除</button>}
                 </div>
               </div>
             ) : (
               <div className="px-8 pb-12 flex-1 max-w-[800px]">
-                {selectedEntry && (
+                {k.selectedEntry && (
                   <>
-                    <h1 className="text-[26px] font-bold tracking-tight mb-6">{selectedEntry.title}</h1>
-                    {selectedEntry.content.trim() ? (
+                    <h1 className="text-[26px] font-bold tracking-tight mb-6">{k.selectedEntry.title}</h1>
+                    {k.selectedEntry.content.trim() ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown>{selectedEntry.content}</ReactMarkdown>
+                        <ReactMarkdown>{k.selectedEntry.content}</ReactMarkdown>
                       </div>
                     ) : (
                       <div className="mt-6 py-12 text-center text-[13px] text-muted/50 italic border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
                         暂无内容，点击上方「编辑」开始书写
                       </div>
                     )}
-                    {files.length > 0 && (
+                    {k.files.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">附件 ({files.length})</div>
+                        <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">附件 ({k.files.length})</div>
                         <div className="flex flex-wrap gap-2">
-                          {files.map((f, i) => (
-                            <span key={i} onClick={() => handleOpenFile(f.id)}
+                          {k.files.map((f, i) => (
+                            <span key={i} onClick={() => k.handleOpenFile(f.id)}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] bg-surface dark:bg-gray-800 border border-gray-200 dark:border-gray-700 cursor-pointer hover:text-primary-500 hover:border-primary-300 dark:hover:border-primary-700 hover:underline transition-colors">
                               {isImageFile(f.file_name) ? (
                                 <span className="w-5 h-5 rounded overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
@@ -619,12 +250,12 @@ export default function KnowledgeBase({ sidebarCollapsed, onToggleSidebar, onDir
                         </div>
                       </div>
                     )}
-                    {relatedNotes.length > 0 && (
+                    {k.relatedNotes.length > 0 && (
                       <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                         <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mb-2">相关笔记</div>
                         <div className="space-y-1">
-                          {relatedNotes.map(r => (
-                            <button key={r.id} onClick={() => handleSelect(r.id)}
+                          {k.relatedNotes.map(r => (
+                            <button key={r.id} onClick={() => k.handleSelect(r.id)}
                               className="block w-full text-left px-3 py-2 rounded-md text-[13px] hover:bg-surface dark:hover:bg-gray-800 cursor-pointer transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                               <span className="font-medium">{r.title}</span>
                               {r.hs_code && <span className="ml-2 text-[11px] font-mono text-muted">HS: {r.hs_code}</span>}
