@@ -464,7 +464,7 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
                 <span className="inline-flex items-center gap-1.5 text-[12px] font-medium"
                   style={{ color: step.done ? '#22C55E' : isActive ? 'var(--primary)' : undefined }}
                 >
-                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold text-white ${
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white ${
                     step.done ? 'bg-emerald-400' : isActive ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
                   }`}>{step.done ? '✓' : step.n}</span>
                   {step.label}
@@ -522,7 +522,8 @@ export default function Workspace({ declaration, selectedDeclaration, onEnterEdi
             {!extractionCompleted && files.length > 0 && (
               <div className="flex justify-end mt-4">
                 <button onClick={handleAIExtract} disabled={isExtracting}
-                  className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-colors ${isExtracting ? 'bg-primary-300 cursor-not-allowed' : 'transition-all hover:shadow-lg hover:shadow-primary-500/20 pulse-ai" style={{ background: "var(--gradient) }}'}`}
+                  className={`h-[38px] px-5 rounded-sm text-white border-none font-semibold text-sm cursor-pointer inline-flex items-center gap-1.5 transition-colors ${isExtracting ? 'bg-primary-300 cursor-not-allowed' : 'transition-all hover:shadow-lg hover:shadow-primary-500/20 pulse-ai'}`}
+                  style={isExtracting ? undefined : { background: 'var(--gradient)' }}
                 >
                   {isExtracting ? '提取+审核中...' : <><IconAI /><span>AI 提取并审核</span></>}
                 </button>
