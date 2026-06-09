@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface TaxRate {
   code: string; description: string; mfn_rate: number | null
@@ -19,7 +19,12 @@ export default function TaxRateManager() {
     if (Array.isArray(result)) setItems(result)
   }
 
-  useEffect(() => { load(search || undefined) }, [search])
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => load(search || undefined), 300)
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
+  }, [search])
 
   useEffect(() => {
     if (!modalOpen) return
@@ -125,7 +130,7 @@ export default function TaxRateManager() {
               </div>
               <div>
                 <label className="block text-[11px] font-medium text-muted mb-0.5">增值税率 (%)</label>
-                <input type="number" step="0.1" value={form.vat_rate} onChange={e => setForm({ ...form, vat_rate: parseFloat(e.target.value) || 0 })}
+                <input type="number" step="0.1" value={form.vat_rate ?? ''} onChange={e => setForm({ ...form, vat_rate: e.target.value ? parseFloat(e.target.value) : 0 })}
                   className="w-full h-8 rounded-md border border-gray-200 dark:border-gray-700 px-2 text-[12px] outline-none focus:border-primary-500 bg-white dark:bg-gray-800" />
               </div>
               <div className="flex items-end gap-2">

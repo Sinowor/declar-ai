@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface CustomsOffice {
   code: string
@@ -19,7 +19,12 @@ export default function CustomsOfficeManager() {
     if (Array.isArray(result)) setOffices(result)
   }
 
-  useEffect(() => { load(search || undefined) }, [search])
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    searchTimer.current = setTimeout(() => load(search || undefined), 300)
+    return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
+  }, [search])
 
   // Escape to close modal
   useEffect(() => {
