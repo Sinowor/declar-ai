@@ -4,7 +4,6 @@ import * as path from 'path'
 import { v4 as uuid } from 'uuid'
 import { ensureStorageRoot, folderPath } from '../storage'
 import { initSchema } from './schema'
-import { initSeed } from './seed'
 
 let SQL: SqlJsStatic | null = null
 let db: SqlJsDatabase | null = null
@@ -41,7 +40,6 @@ export async function getDb(): Promise<SqlJsDatabase> {
 
   try {
     initSchema(db)
-    initSeed(db)
     saveDb() // persist schema + seed data to disk immediately
   } catch (err: any) {
     console.error('[db] Schema initialization failed:', err.message)
