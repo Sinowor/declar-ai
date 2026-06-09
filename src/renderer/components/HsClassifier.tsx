@@ -12,6 +12,9 @@ interface HsResult {
   alternatives: string | null; tariff_text: string | null
   code_verified: boolean; created_at: string
 }
+interface RelatedEntry { id: string; title: string; hs_code: string; tags: string }
+
+function parseTagsArr(tags: string): string[] { try { return JSON.parse(tags) } catch { return [] } }
 
 const confLabel: Record<string, string> = { high: '高置信度', medium: '中置信度', low: '低置信度' }
 const placeholders = [
@@ -51,6 +54,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
   const [assumptions, setAssumptions] = useState('')
   const [history, setHistory] = useState<HsResult[]>([])
   const [toast, setToast] = useState<string | null>(null)
+  const [relatedNotes, setRelatedNotes] = useState<RelatedEntry[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
@@ -62,6 +66,14 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
       }).catch(() => {})
     }
   }, [result])
+
+  useEffect(() => {
+    if (result?.hs_code && window.api?.knowledgeRelated) {
+      window.api.knowledgeRelated(result.hs_code).then((notes: RelatedEntry[]) => {
+        setRelatedNotes(Array.isArray(notes) ? notes : [])
+      }).catch(() => setRelatedNotes([]))
+    } else { setRelatedNotes([]) }
+  }, [result?.hs_code])
 
   useEffect(() => {
     if (input || focused) return
@@ -110,6 +122,7 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
 
   const handleNewQuery = () => {
     setResult(null); setInput(''); setNeedsMoreInfo(false); setInfoAssumed(false); setAssumptions('')
+    setRelatedNotes([])
     setTimeout(() => textareaRef.current?.focus(), 100)
   }
 
@@ -379,6 +392,20 @@ export default function HsClassifier({ onBatchMode, sidebarCollapsed, onToggleSi
           )}
           {result.tariff_text && (
             <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4"><div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">税则原文参考</div><div className="text-[13px] leading-relaxed font-mono rounded-xl p-4 border whitespace-pre-wrap" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--muted)', maxHeight: 320, overflowY: 'auto' }}>{result.tariff_text}</div></div>
+          )}
+          {relatedNotes.length > 0 && (
+            <div className="border-t border-gray-100 dark:border-gray-800 px-6 py-4">
+              <div className="text-[11px] uppercase tracking-[0.12em] text-muted font-semibold mb-2">相关知识库笔记</div>
+              <div className="space-y-1">
+                {relatedNotes.map(rn => (
+                  <div key={rn.id} className="flex items-center gap-2 text-[13px] px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors" onClick={() => { (window as any).api?.knowledgeGet?.(rn.id) }}>
+                    <span className="font-medium truncate">{rn.title}</span>
+                    <span className="text-[11px] font-mono text-muted shrink-0">HS: {rn.hs_code}</span>
+                    {parseTagsArr(rn.tags).slice(0, 2).map((t: string) => <span key={t} className="text-[10px] text-muted bg-gray-100 dark:bg-gray-800 px-1 rounded shrink-0">{t}</span>)}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
