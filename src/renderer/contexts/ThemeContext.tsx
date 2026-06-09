@@ -22,6 +22,7 @@ function applyTheme(theme: ThemeColor) {
   root.style.setProperty('--accent-foreground', theme.accentForeground)
   root.style.setProperty('--ring', theme.primary)
   root.style.setProperty('--gradient', theme.gradient)
+  root.style.setProperty('--gradient-rgb', theme.gradientRgb)
 }
 
 function resolveMode(mode: ThemeMode): 'light' | 'dark' {
